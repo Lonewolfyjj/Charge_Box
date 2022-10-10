@@ -362,6 +362,8 @@
                     <state>$PROJ_DIR$\..\User\App\Inc</state>
                     <state>$PROJ_DIR$\..\rtthread\components\pin</state>
                     <state>$PROJ_DIR$\..\User\Utility\fifo</state>
+                    <state>$PROJ_DIR$\..\User\Utility\hup</state>
+                    <state>$PROJ_DIR$\..\User\Utility\xor_calc</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1247,6 +1249,12 @@
             <name>utility</name>
             <file>
                 <name>$PROJ_DIR$\..\User\Utility\fifo\hl_util_fifo.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Utility\hup\hl_util_hup.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Utility\xor_calc\hl_util_xor_calc.c</name>
             </file>
         </group>
         <file>
