@@ -18,11 +18,16 @@
 /* Private define ------------------------------------------------------------*/
 #define CONSOLE_UART        "uart1"
 
+#define FIFO_BUFSZ 128  
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 static struct rt_semaphore shell_rx_sem; /* defined console rx semaphore*/
 
-static hl_fifo_t hl_console_fifo;
+static hl_util_fifo_t hl_console_fifo;
+
+static char fifo_buf[FIFO_BUFSZ] = { 0 };
+
 /* Private functions ---------------------------------------------------------*/
 //#ifdef RT_USING_CONSOLE
 
@@ -44,9 +49,9 @@ void hl_hal_console_init(void)
     USART_InitType USART_InitStructure;
     GPIO_InitType GPIO_InitStructure;
 
-    hl_util_fifo_init(&hl_console_fifo, 128);
+    hl_util_fifo_init(&hl_console_fifo, fifo_buf, sizeof(fifo_buf));
     
-    /* ³õÊ¼»¯´®¿Ú½ÓÊÕÊý¾ÝµÄÐÅºÅÁ¿ */
+    /* ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½Ú½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ýµï¿½ï¿½Åºï¿½ï¿½ï¿½ */
     rt_sem_init(&(shell_rx_sem), "shell_rx", 0, 0);
     
     /* Enable GPIO clock */
@@ -145,10 +150,10 @@ char rt_hw_console_getchar(void)
 
 void USART1_IRQHandler(void)
 {
-    uint8_t receive_data;    // ½ÓÊÕÊý¾Ý
+    uint8_t receive_data;    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     
     /* enter interrupt */
-    rt_interrupt_enter();          //ÔÚÖÐ¶ÏÖÐÒ»¶¨Òªµ÷ÓÃÕâ¶Ôº¯Êý£¬½øÈëÖÐ¶Ï
+    rt_interrupt_enter();          //ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ôºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ð¶ï¿½
     
     if (USART_GetIntStatus(USART1, USART_INT_RXDNE) != RESET) {
         /* Read one byte from the receive data register */
@@ -159,5 +164,5 @@ void USART1_IRQHandler(void)
     }
     
     /* leave interrupt */
-    rt_interrupt_leave();    //ÔÚÖÐ¶ÏÖÐÒ»¶¨Òªµ÷ÓÃÕâ¶Ôº¯Êý£¬Àë¿ªÖÐ¶Ï
+    rt_interrupt_leave();    //ï¿½ï¿½ï¿½Ð¶ï¿½ï¿½ï¿½Ò»ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ôºï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ë¿ªï¿½Ð¶ï¿½
 }

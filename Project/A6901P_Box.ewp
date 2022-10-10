@@ -355,12 +355,13 @@
                     <state>$PROJ_DIR$\..\rtthread</state>
                     <state>$PROJ_DIR$\..\rtthread\include</state>
                     <state>$PROJ_DIR$\..\rtthread\components\finsh</state>
-                    <state>$PROJ_DIR$\..\User\Utility\Inc</state>
+                    <state>F:\LiLinsFile\MacrophoneGroup\6902_box\6902_box_app\User\Utility</state>
                     <state>$PROJ_DIR$\..\User\Module\Inc</state>
                     <state>$PROJ_DIR$\..\User\Hal\Inc</state>
                     <state>$PROJ_DIR$\..\User\Driver\Inc</state>
                     <state>$PROJ_DIR$\..\User\App\Inc</state>
                     <state>$PROJ_DIR$\..\rtthread\components\pin</state>
+                    <state>$PROJ_DIR$\..\User\Utility\fifo</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1245,7 +1246,7 @@
         <group>
             <name>utility</name>
             <file>
-                <name>$PROJ_DIR$\..\User\Utility\Src\hl_util_fifo.c</name>
+                <name>$PROJ_DIR$\..\User\Utility\fifo\hl_util_fifo.c</name>
             </file>
         </group>
         <file>
