@@ -63,13 +63,13 @@ void hl_hal_console_init(void)
     GPIO_InitStruct(&GPIO_InitStructure);
 
     /* Configure USARTx Tx as alternate function push-pull */
-    GPIO_InitStructure.Pin            = GPIO_PIN_9;
+    GPIO_InitStructure.Pin            = GPIO_PIN_4;
     GPIO_InitStructure.GPIO_Mode      = GPIO_Mode_AF_PP;
-    GPIO_InitStructure.GPIO_Alternate = GPIO_AF4_USART1;
+    GPIO_InitStructure.GPIO_Alternate = GPIO_AF1_USART1;
     GPIO_InitPeripheral(GPIOA, &GPIO_InitStructure);
     
     /* Configure USARTx Rx as alternate function push-pull and pull-up */
-    GPIO_InitStructure.Pin            = GPIO_PIN_10;
+    GPIO_InitStructure.Pin            = GPIO_PIN_5;
     GPIO_InitStructure.GPIO_Pull      = GPIO_Pull_Up;
     GPIO_InitStructure.GPIO_Alternate = GPIO_AF4_USART1;
     GPIO_InitPeripheral(GPIOA, &GPIO_InitStructure);

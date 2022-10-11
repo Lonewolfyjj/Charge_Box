@@ -60,7 +60,7 @@ extern "C" {
         can define the HSE value in your toolchain compiler preprocessor.
   */
 #if !defined HSE_VALUE
-#define HSE_VALUE (8000000) /*!< Value of the External oscillator in Hz */
+#define HSE_VALUE (16000000) /*!< Value of the External oscillator in Hz */
 #endif                      /* HSE_VALUE */
 
 /*

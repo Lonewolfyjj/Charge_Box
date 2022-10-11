@@ -65,7 +65,7 @@
 #define SYSCLK_USE_HSE_PLL 4
 
 #ifndef SYSCLK_FREQ
-#define SYSCLK_FREQ 64000000
+#define SYSCLK_FREQ 48000000
 #endif
 
 /*
