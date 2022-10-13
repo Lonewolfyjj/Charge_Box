@@ -667,7 +667,7 @@
                 </option>
                 <option>
                     <name>OOCOutputFile</name>
-                    <state>A6901P_Box.hex</state>
+                    <state>A6902_Box.hex</state>
                 </option>
                 <option>
                     <name>OOCCommandLineProducer</name>
@@ -722,7 +722,7 @@
                 </option>
                 <option>
                     <name>IlinkOutputFile</name>
-                    <state>A6901P_Box.out</state>
+                    <state>A6902_Box.out</state>
                 </option>
                 <option>
                     <name>IlinkDebugInfoEnable</name>

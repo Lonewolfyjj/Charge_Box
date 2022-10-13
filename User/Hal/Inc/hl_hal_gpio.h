@@ -16,33 +16,33 @@
 /* Exported types ------------------------------------------------------------*/
 typedef enum _HL_GPIO_PORT_E
 {
-    GPIO_USB_CC = 0,            // high£¨device£©£¬low£¨host£©
-    GPIO_CHG_STAT,              // ³äµç×´Ì¬¼ì²â
-    GPIO_VBUS_DET,              // ÊÇ·ñ²åÈë³äµçÆ÷¼ì²â
-    
-    GPIO_TX1_OCB,               // ¹ýÁ÷¼ì²â
+    GPIO_USB_CC = 0,  // highï¼ˆdeviceï¼‰ï¼Œlowï¼ˆhostï¼‰
+    GPIO_CHG_STAT,    // å……ç”µçŠ¶æ€æ£€æµ‹
+    GPIO_VBUS_DET,    // æ˜¯å¦æ’å…¥å……ç”µå™¨æ£€æµ‹
+
+    GPIO_TX1_OCB,  // è¿‡æµæ£€æµ‹
     GPIO_TX2_OCB,
     GPIO_RX_OCB,
 
-    GPIO_PWR_5V_EN,             // ÉýÑ¹¿ØÖÆ
-	GPIO_TX1_PWR_EN,            // ¹ýÁ÷Ð¾Æ¬¿ØÖÆ
-	GPIO_TX2_PWR_EN,
-	GPIO_RX_PWR_EN,
-    
-    GPIO_PWR_1V8_EN,            // 1.8VµçÑ¹Êä³ö
-    GPIO_SN1_EN,                // ´®¿ÚµçÆ½×ª»»
+    GPIO_PWR_5V_EN,   // å‡åŽ‹æŽ§åˆ¶
+    GPIO_TX1_PWR_EN,  // è¿‡æµèŠ¯ç‰‡æŽ§åˆ¶
+    GPIO_TX2_PWR_EN,
+    GPIO_RX_PWR_EN,
+
+    GPIO_PWR_1V8_EN,  // 1.8Vç”µåŽ‹è¾“å‡º
+    GPIO_SN1_EN,      // ä¸²å£ç”µå¹³è½¬æ¢
     GPIO_SN2_EN,
-    
-    GPIO_USB_OTG,               // ³äµçÐ¾Æ¬¿ØÖÆ£¨host¡¢device£©
+
+    GPIO_USB_OTG,  // å……ç”µèŠ¯ç‰‡æŽ§åˆ¶ï¼ˆhostã€deviceï¼‰
     GPIO_LED_R,
     GPIO_LED_G,
     GPIO_LED_B,
-    
-    GPIO_CHARGE_ENABLE,        // ³äµç¿ØÖÆ
-    
-    GPIO_WAKEUP_TX1,           // TX1»½ÐÑ
-    GPIO_WAKEUP_TX2,           // TX2»½ÐÑ      
-    GPIO_WAKEUP_RX,            // RX»½ÐÑ    
+
+    GPIO_CHARGE_ENABLE,  // å……ç”µæŽ§åˆ¶
+
+    GPIO_WAKEUP_TX1,  // TX1å”¤é†’
+    GPIO_WAKEUP_TX2,  // TX2å”¤é†’
+    GPIO_WAKEUP_RX,   // RXå”¤é†’
 
     USER_GPIO_NUMBER,
 } HL_GPIO_PORT_E;

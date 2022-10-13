@@ -16,9 +16,9 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-#define CONSOLE_UART        "uart1"
+#define CONSOLE_UART "uart1"
 
-#define FIFO_BUFSZ 128  
+#define FIFO_BUFSZ 128
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -47,18 +47,18 @@ static void hl_hal_console_callback(uint8_t data)
 void hl_hal_console_init(void)
 {
     USART_InitType USART_InitStructure;
-    GPIO_InitType GPIO_InitStructure;
+    GPIO_InitType  GPIO_InitStructure;
 
     hl_util_fifo_init(&hl_console_fifo, fifo_buf, sizeof(fifo_buf));
-    
+
     /* 初始化串口接收数据的信号量 */
     rt_sem_init(&(shell_rx_sem), "shell_rx", 0, 0);
-    
+
     /* Enable GPIO clock */
     RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOA, ENABLE);
     /* Enable USARTx Clock */
     RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_USART1, ENABLE);
-    
+
     /* Initialize GPIO_InitStructure */
     GPIO_InitStruct(&GPIO_InitStructure);
 
@@ -67,13 +67,13 @@ void hl_hal_console_init(void)
     GPIO_InitStructure.GPIO_Mode      = GPIO_Mode_AF_PP;
     GPIO_InitStructure.GPIO_Alternate = GPIO_AF1_USART1;
     GPIO_InitPeripheral(GPIOA, &GPIO_InitStructure);
-    
+
     /* Configure USARTx Rx as alternate function push-pull and pull-up */
     GPIO_InitStructure.Pin            = GPIO_PIN_5;
     GPIO_InitStructure.GPIO_Pull      = GPIO_Pull_Up;
     GPIO_InitStructure.GPIO_Alternate = GPIO_AF4_USART1;
     GPIO_InitPeripheral(GPIOA, &GPIO_InitStructure);
-    
+
     /* USARTy and USARTz configuration ------------------------------------------------------*/
     USART_StructInit(&USART_InitStructure);
     USART_InitStructure.BaudRate            = 115200;
@@ -82,17 +82,17 @@ void hl_hal_console_init(void)
     USART_InitStructure.Parity              = USART_PE_NO;
     USART_InitStructure.HardwareFlowControl = USART_HFCTRL_NONE;
     USART_InitStructure.Mode                = USART_MODE_RX | USART_MODE_TX;
-    
+
     NVIC_InitType NVIC_InitStructure;
 
     /* Configure the NVIC Preemption Priority Bits */
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
 
     /* Enable the USARTy Interrupt */
-    NVIC_InitStructure.NVIC_IRQChannel            = USART1_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannel                   = USART1_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelCmd         = ENABLE;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 0;
+    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
 
     /* Configure USARTx */
@@ -110,25 +110,26 @@ void hl_hal_console_init(void)
  */
 void hl_hal_console_deinit(void)
 {
-
 }
 
 /**
  * @brief This function is the console output interface
  */
-void rt_hw_console_output(const char *str)
+void rt_hw_console_output(const char* str)
 {
     rt_size_t i = 0, size = 0;
-    char a = '\r';
+    char      a = '\r';
 
     size = rt_strlen(str);
     for (i = 0; i < size; i++) {
         if (*(str + i) == '\n') {
             USART_SendData(USART1, (uint8_t)a);
-            while (USART_GetFlagStatus(USART1, USART_FLAG_TXDE) == RESET);
+            while (USART_GetFlagStatus(USART1, USART_FLAG_TXDE) == RESET)
+                ;
         }
         USART_SendData(USART1, *(str + i));
-        while (USART_GetFlagStatus(USART1, USART_FLAG_TXDE) == RESET);
+        while (USART_GetFlagStatus(USART1, USART_FLAG_TXDE) == RESET)
+            ;
     }
 }
 
@@ -139,10 +140,10 @@ char rt_hw_console_getchar(void)
 {
     char ch = -1;
 
-    while (1 != hl_util_fifo_read(&hl_console_fifo, (uint8_t *)&ch, 1)) {
+    while (1 != hl_util_fifo_read(&hl_console_fifo, (uint8_t*)&ch, 1)) {
         rt_sem_take(&shell_rx_sem, RT_WAITING_FOREVER);
     }
-    
+
     return ch;
 }
 
@@ -150,11 +151,11 @@ char rt_hw_console_getchar(void)
 
 void USART1_IRQHandler(void)
 {
-    uint8_t receive_data;    // 接收数据
-    
+    uint8_t receive_data;  // 接收数据
+
     /* enter interrupt */
-    rt_interrupt_enter();          //在中断中一定要调用这对函数，进入中断
-    
+    rt_interrupt_enter();  //在中断中一定要调用这对函数，进入中断
+
     if (USART_GetIntStatus(USART1, USART_INT_RXDNE) != RESET) {
         /* Read one byte from the receive data register */
         receive_data = USART_ReceiveData(USART1);
@@ -162,7 +163,7 @@ void USART1_IRQHandler(void)
     } else {
         receive_data = USART_ReceiveData(USART1);
     }
-    
+
     /* leave interrupt */
-    rt_interrupt_leave();    //在中断中一定要调用这对函数，离开中断
+    rt_interrupt_leave();  //在中断中一定要调用这对函数，离开中断
 }
