@@ -12,17 +12,7 @@
 int main(void)
 {
     /* Output a message on Hyperterminal using printf function */
-    rt_kprintf("hollyland A6902 start\n");
-
-    hl_hal_gpio_init(GPIO_PWR_5V_EN);
-    while (1)
-    {
-        hl_hal_gpio_low(GPIO_PWR_5V_EN);
-        rt_thread_mdelay(1000);
-        hl_hal_gpio_high(GPIO_PWR_5V_EN);
-        rt_thread_mdelay(1000);
-        // rt_kprintf("hollyland:Hello RT-Thread\n");
-    }
+    rt_kprintf("hollyland A6902_box start\n");
 }
 
 #ifdef USE_FULL_ASSERT
