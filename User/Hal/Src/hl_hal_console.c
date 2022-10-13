@@ -51,7 +51,7 @@ void hl_hal_console_init(void)
 
     hl_util_fifo_init(&hl_console_fifo, fifo_buf, sizeof(fifo_buf));
     
-    /* ��ʼ�����ڽ������ݵ��ź��� */
+    /* 初始化串口接收数据的信号量 */
     rt_sem_init(&(shell_rx_sem), "shell_rx", 0, 0);
     
     /* Enable GPIO clock */
@@ -150,10 +150,10 @@ char rt_hw_console_getchar(void)
 
 void USART1_IRQHandler(void)
 {
-    uint8_t receive_data;    // ��������
+    uint8_t receive_data;    // 接收数据
     
     /* enter interrupt */
-    rt_interrupt_enter();          //���ж���һ��Ҫ������Ժ����������ж�
+    rt_interrupt_enter();          //在中断中一定要调用这对函数，进入中断
     
     if (USART_GetIntStatus(USART1, USART_INT_RXDNE) != RESET) {
         /* Read one byte from the receive data register */
@@ -164,5 +164,5 @@ void USART1_IRQHandler(void)
     }
     
     /* leave interrupt */
-    rt_interrupt_leave();    //���ж���һ��Ҫ������Ժ������뿪�ж�
+    rt_interrupt_leave();    //在中断中一定要调用这对函数，离开中断
 }
