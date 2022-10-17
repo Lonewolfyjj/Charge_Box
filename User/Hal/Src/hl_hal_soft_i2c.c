@@ -376,11 +376,11 @@ int hl_hal_soft_i2c_write(soft_i2c_info *info, soft_i2c_dev_addr_info *pro_addr,
 int hl_hal_soft_i2c_init(soft_i2c_info *info)
 {
     GPIO_InitType gpio_init_struct;
-
     if (info == NULL) {
         printf("[error] hl_hal_soft_i2c_init\r\n");
         return -1;
     }
+    RCC_EnableAPB2PeriphClk(info->rcc_periph_gpiox, ENABLE);
     GPIO_InitStruct(&gpio_init_struct);
     gpio_init_struct.Pin = info->gpio_pin_sclx | info->gpio_pin_sdax;
     gpio_init_struct.GPIO_Mode = GPIO_Mode_Out_PP;

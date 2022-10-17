@@ -37,6 +37,7 @@ typedef struct {
     uint16_t gpio_pin_sdax;
     uint16_t gpio_pin_sclx;
     uint32_t gpiox_base;
+    uint32_t rcc_periph_gpiox;
     GPIO_Module *gpiox;
     void (*delay_us)(uint16_t usec);
 }soft_i2c_info;

@@ -25,12 +25,6 @@
 #include "hl_hal_soft_spi.h"
 /* typedef -------------------------------------------------------------------*/
 /* define --------------------------------------------------------------------*/
-#define SPI_MOSI_PIN            GPIO_PIN_15
-#define SPI_MISO_PIN            GPIO_PIN_14
-#define SPI_SCK_PIN             GPIO_PIN_13
-#define SPI_CS_PIN              GPIO_PIN_12
-#define SPI_GPIOX               GPIOB
-#define SPI_RCC_PERIPH_GPIOX    RCC_APB2_PERIPH_GPIOB
 /* variables -----------------------------------------------------------------*/
 /* Private function(only *.c)  -----------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
@@ -50,22 +44,22 @@
  * <tr><td>2022-10-17      <td>yijiujun     <td>新建
  * </table>
  */
-void hl_hal_soft_spi_init(void)
+void hl_hal_soft_spi_init(hl_hal_soft_spi_info *spi_info)
 {
     GPIO_InitType gpio_init_struct;
-    RCC_EnableAPB2PeriphClk(SPI_RCC_PERIPH_GPIOX, ENABLE);
+    RCC_EnableAPB2PeriphClk(spi_info->rcc_periph_gpiox, ENABLE);
     GPIO_InitStruct(&gpio_init_struct);
 
-    gpio_init_struct.Pin = SPI_MOSI_PIN | SPI_SCK_PIN | SPI_CS_PIN;
+    gpio_init_struct.Pin = spi_info->spi_cs_pin | spi_info->spi_mosi_pin | spi_info->spi_sck_pin;
     gpio_init_struct.GPIO_Mode = GPIO_Mode_Out_PP;
     gpio_init_struct.GPIO_Pull = GPIO_Pull_Up;
     gpio_init_struct.GPIO_Slew_Rate = GPIO_Slew_Rate_High;
-    GPIO_InitPeripheral(SPI_GPIOX, &gpio_init_struct);
+    GPIO_InitPeripheral(spi_info->gpiox, &gpio_init_struct);
 
-    gpio_init_struct.Pin = SPI_MISO_PIN;
+    gpio_init_struct.Pin = spi_info->spi_miso_pin;
     gpio_init_struct.GPIO_Mode = GPIO_Mode_Input;
     gpio_init_struct.GPIO_Pull = GPIO_Pull_Up;
-    GPIO_InitPeripheral(SPI_GPIOX, &gpio_init_struct);
+    GPIO_InitPeripheral(spi_info->gpiox, &gpio_init_struct);
 }
 
 #if 1
@@ -84,20 +78,20 @@ void hl_hal_soft_spi_init(void)
  * <tr><td>2022-10-17      <td>yijiujun     <td>新建
  * </table>
  */
-uint8_t hl_hal_soft_spi_send_recv(uint8_t wdata)
+uint8_t hl_hal_soft_spi_send_recv(hl_hal_soft_spi_info *spi_info, uint8_t wdata)
 {
     uint8_t count, reg_val = 0;
     for (count = 0; count < 8; count++) {
-        SPI_SCK = 0;
+        SPI_SCK(spi_info->spi_sck_pin_num, spi_info->gpiox_base) = 0;
         if (wdata & 0x80) {     //在下降沿处，主机发送一位数据给从机
-            SPI_MOSI = 1;
+            SPI_MOSI(spi_info->spi_mosi_pin_num, spi_info->gpiox_base) = 1;
         } else {
-            SPI_MOSI = 0;
+            SPI_MOSI(spi_info->spi_mosi_pin_num, spi_info->gpiox_base) = 0;
         }
         wdata <<= 1;
         reg_val <<= 1; 
-        SPI_SCK = 1;
-		if(SPI_MISO) {          //在上升沿处，主机接收一位数据
+        SPI_SCK(spi_info->spi_sck_pin_num, spi_info->gpiox_base) = 1;
+		if(SPI_MISO(spi_info->spi_miso_pin_num, spi_info->gpiox_base) == 1) {          //在上升沿处，主机接收一位数据
             reg_val |= 0x01;
         }              
     }
@@ -123,15 +117,15 @@ uint8_t hl_hal_soft_spi_send_recv(uint8_t wdata)
 uint8_t hl_hal_soft_spi_send_recv_data(uint8_t wdata)
 {
     uint8_t count, reg_val = 0;
-    SPI_SCK = 0;
+    SPI_SCK(spi_sck_pin_num, gpiox_base) = 0;
 
     for (count = 0; count < 8; count++) { 
-        SPI_MOSI = (wdata >> (7 - count)) & 0x01;     //发送
+        SPI_MOSI(spi_mosi_pin_num, gpiox_base) = (wdata >> (7 - count)) & 0x01;     //发送
         delay_us(1);
-        SPI_SCK = 1;
-        reg_val |= SPI_MISO << (7 - count);     //接收
+        SPI_SCK(spi_sck_pin_num, gpiox_base) = 1;
+        reg_val |= SPI_MOSI(spi_miso_pin_num, gpiox_base) << (7 - count);     //接收
         delay_us(1);
-        SPI_SCK = 0;        
+        SPI_SCK(spi_sck_pin_num, gpiox_base) = 0;        
     }
     return reg_val;
 }

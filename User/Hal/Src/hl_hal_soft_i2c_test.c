@@ -66,6 +66,7 @@ static void hl_delay_timer_delay_us(uint16_t usec)
         GPIO_PIN_2,     //gpio_pin_sda
         GPIO_PIN_3,     //gpio_pin_scl
         GPIOA_BASE,     //gpiox_base
+        RCC_APB2_PERIPH_GPIOB,
         GPIOA,          //gpiox
         hl_delay_timer_delay_us //微秒级延时函数名
     };
@@ -78,8 +79,7 @@ static void hl_delay_timer_delay_us(uint16_t usec)
     /* 延时定时器初始化并启动 */
     hl_delay_timer_tim_init();
     
-    /* I2C引脚初始化，并使能I2C引脚对应的GPIO组外设时钟，只能在外面使能 */
-    RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOA, ENABLE);
+    /* I2C引脚初始化，并使能I2C引脚对应的GPIO组外设时钟 */
     hl_hal_soft_i2c_init(&i2c_str1);
 
     /* 检测I2C引脚对应连接的从机设备地址，并打印出来 */
