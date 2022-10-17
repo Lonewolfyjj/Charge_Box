@@ -19,6 +19,10 @@
 #ifndef __HL_HAL_UART_H__
 #define __HL_HAL_UART_H__
 
+#include "rtthread.h"
+#include "stdint.h"
+#include "stdbool.h"
+
 /**************************************************************************
  *                               宏定义                                      *
  **************************************************************************/
@@ -37,6 +41,7 @@ typedef enum _UART_PORT_E
     UART_PORT1 = 1,
     UART_PORT2,
     UART_PORT3,
+    LPUART_PORT,
 } UART_PORT_E;
 
 /**************************************************************************

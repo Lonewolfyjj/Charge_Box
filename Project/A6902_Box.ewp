@@ -355,7 +355,7 @@
                     <state>$PROJ_DIR$\..\rtthread</state>
                     <state>$PROJ_DIR$\..\rtthread\include</state>
                     <state>$PROJ_DIR$\..\rtthread\components\finsh</state>
-                    <state>F:\LiLinsFile\MacrophoneGroup\6902_box\6902_box_app\User\Utility</state>
+                    <state>$PROJ_DIR$\..\User\Utility</state>
                     <state>$PROJ_DIR$\..\User\Module\Inc</state>
                     <state>$PROJ_DIR$\..\User\Hal\Inc</state>
                     <state>$PROJ_DIR$\..\User\Driver\Inc</state>
@@ -1135,6 +1135,9 @@
             <name>$PROJ_DIR$\..\Libraries\n32l40x_std_periph_driver\src\n32l40x_lptim.c</name>
         </file>
         <file>
+            <name>$PROJ_DIR$\..\Libraries\n32l40x_std_periph_driver\src\n32l40x_lpuart.c</name>
+        </file>
+        <file>
             <name>$PROJ_DIR$\..\Libraries\n32l40x_std_periph_driver\src\n32l40x_opamp.c</name>
         </file>
         <file>
@@ -1237,9 +1240,9 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_uart.c</name>
-                <excluded>
-                    <configuration>Release</configuration>
-                </excluded>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_uart_test.c</name>
             </file>
         </group>
         <group>
