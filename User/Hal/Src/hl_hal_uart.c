@@ -42,13 +42,11 @@
  **************************************************************************/
 /* 串口回调函数指针 */
 static uart_rcv_cb_t uart1_rcv_cb  = RT_NULL;
-static uart_rcv_cb_t uart2_rcv_cb  = RT_NULL;
 static uart_rcv_cb_t uart3_rcv_cb  = RT_NULL;
 static uart_rcv_cb_t lpuart_rcv_cb = RT_NULL;
 
 /* 串口工作标志 */
 static bool s_uart1_is_active  = false;
-static bool s_uart2_is_active  = false;
 static bool s_uart3_is_active  = false;
 static bool s_lpuart_is_active = false;
 
@@ -70,27 +68,6 @@ void USART1_IRQHandler(void)
         }
     } else {
         receive_data = USART_ReceiveData(USART1);
-    }
-
-    /* leave interrupt */
-    rt_interrupt_leave();  //在中断中一定要调用这对函数，离开中断
-}
-
-void USART2_IRQHandler(void)
-{
-    uint8_t receive_data;  // 接收数据
-
-    /* enter interrupt */
-    rt_interrupt_enter();  //在中断中一定要调用这对函数，进入中断
-
-    if (USART_GetIntStatus(USART2, USART_INT_RXDNE) != RESET) {
-        /* Read one byte from the receive data register */
-        receive_data = USART_ReceiveData(USART2);
-        if (uart2_rcv_cb != RT_NULL) {
-            uart2_rcv_cb(receive_data);
-        }
-    } else {
-        receive_data = USART_ReceiveData(USART2);
     }
 
     /* leave interrupt */
@@ -219,85 +196,6 @@ static int hl_hal_uart1_config(uint32_t baudrate)
     USART_Enable(USART1, ENABLE);
 
     s_uart1_is_active = true;
-    return true;
-}
-
-static void _uart2_gpio_init(void)
-{
-    GPIO_InitType GPIO_InitStructure;
-
-    /* Enable GPIO clock */
-    RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOA, ENABLE);
-
-    /* Initialize GPIO_InitStructure */
-    GPIO_InitStruct(&GPIO_InitStructure);
-
-    /* Configure USARTx Tx as alternate function push-pull */
-    GPIO_InitStructure.Pin            = GPIO_PIN_2;
-    GPIO_InitStructure.GPIO_Mode      = GPIO_Mode_AF_PP;
-    GPIO_InitStructure.GPIO_Alternate = GPIO_AF4_USART2;
-    GPIO_InitPeripheral(GPIOA, &GPIO_InitStructure);
-
-    /* Configure USARTx Rx as alternate function push-pull and pull-up */
-    GPIO_InitStructure.Pin            = GPIO_PIN_3;
-    GPIO_InitStructure.GPIO_Pull      = GPIO_Pull_Up;
-    GPIO_InitStructure.GPIO_Alternate = GPIO_AF4_USART2;
-    GPIO_InitPeripheral(GPIOA, &GPIO_InitStructure);
-}
-
-static void _uart2_gpio_deinit(void)
-{
-}
-
-/**************************************************************************
-* 函数名称: 	hl_hal_uart2_config
-* 功能描述: 	串口2配置
-* 输入参数: BaudRate:串口波特率
-* 输出参数: 无
-* 返 回 值: true：成功				false：失败
-* 其它说明: 
-* 修改日期          版本号          修改人	      修改内容
-* -----------------------------------------------
-* 2021/06/16	V1.0.0.0	 卢彰豪	      创建
-**************************************************************************/
-static int hl_hal_uart2_config(uint32_t baudrate)
-{
-    USART_InitType USART_InitStructure;
-
-    /* Enable USARTx Clock */
-    RCC_EnableAPB1PeriphClk(RCC_APB1_PERIPH_USART2, ENABLE);
-
-    _uart2_gpio_init();
-
-    /* USARTy and USARTz configuration ------------------------------------------------------*/
-    USART_StructInit(&USART_InitStructure);
-    USART_InitStructure.BaudRate            = baudrate;
-    USART_InitStructure.WordLength          = USART_WL_8B;
-    USART_InitStructure.StopBits            = USART_STPB_1;
-    USART_InitStructure.Parity              = USART_PE_NO;
-    USART_InitStructure.HardwareFlowControl = USART_HFCTRL_NONE;
-    USART_InitStructure.Mode                = USART_MODE_RX | USART_MODE_TX;
-
-    NVIC_InitType NVIC_InitStructure;
-
-    /* Configure the NVIC Preemption Priority Bits */
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
-
-    /* Enable the USARTy Interrupt */
-    NVIC_InitStructure.NVIC_IRQChannel                   = USART2_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 0;
-    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
-
-    /* Configure USARTx */
-    USART_Init(USART2, &USART_InitStructure);
-    /* Enable USARTx Receive interrupts */
-    USART_ConfigInt(USART2, USART_INT_RXDNE, ENABLE);
-    /* Enable the USARTx */
-    USART_Enable(USART2, ENABLE);
-
-    s_uart2_is_active = true;
     return true;
 }
 
@@ -472,23 +370,19 @@ static int hl_hal_lpuart_config(uint32_t baudrate)
 * -----------------------------------------------
 * 2021/06/16	V1.0.0.0	 卢彰豪	      创建
 **************************************************************************/
-bool hl_hal_uart_receive_reg(UART_PORT_E USARTx, uart_rcv_cb_t rcv_cb_handle)
+bool hl_hal_uart_receive_reg(hl_hal_uart_numb_e USARTx, uart_rcv_cb_t rcv_cb_handle)
 {
     switch (USARTx) {
-        case UART_PORT1:
+        case HL_HAL_UART_NUMB_1:
             uart1_rcv_cb = rcv_cb_handle;
             break;
-
-        case UART_PORT2:
-            uart2_rcv_cb = rcv_cb_handle;
-            break;
-
-        case UART_PORT3:
-            uart3_rcv_cb = rcv_cb_handle;
-            break;
-
-        case LPUART_PORT:
+        
+        case HL_HAL_UART_NUMB_2:
             lpuart_rcv_cb = rcv_cb_handle;
+            break;
+
+        case HL_HAL_UART_NUMB_3:
+            uart3_rcv_cb = rcv_cb_handle;
             break;
 
         default:
@@ -510,23 +404,19 @@ bool hl_hal_uart_receive_reg(UART_PORT_E USARTx, uart_rcv_cb_t rcv_cb_handle)
 * -----------------------------------------------
 * 2021/06/16	V1.0.0.0	 卢彰豪	      创建
 **************************************************************************/
-bool hl_hal_uart_init(UART_PORT_E USARTx, uint32_t baudrate)
+bool hl_hal_uart_init(hl_hal_uart_numb_e USARTx, uint32_t baudrate)
 {
     switch (USARTx) {
-        case UART_PORT1:
+        case HL_HAL_UART_NUMB_1:
             return hl_hal_uart1_config(baudrate);
             break;
 
-        case UART_PORT2:
-            return hl_hal_uart2_config(baudrate);
-            break;
-
-        case UART_PORT3:
-            return hl_hal_uart3_config(baudrate);
-            break;
-
-        case LPUART_PORT:
+        case HL_HAL_UART_NUMB_2:
             return hl_hal_lpuart_config(baudrate);
+            break;
+
+        case HL_HAL_UART_NUMB_3:
+            return hl_hal_uart3_config(baudrate);
             break;
 
         default:
@@ -546,10 +436,10 @@ bool hl_hal_uart_init(UART_PORT_E USARTx, uint32_t baudrate)
 * -----------------------------------------------
 * 2021/06/16	V1.0.0.0	 卢彰豪	      创建
 **************************************************************************/
-bool hl_hal_uart_deinit(UART_PORT_E USARTx)
+bool hl_hal_uart_deinit(hl_hal_uart_numb_e USARTx)
 {
     switch (USARTx) {
-        case UART_PORT1:
+        case HL_HAL_UART_NUMB_1:
             s_uart1_is_active = false;
             USART_ConfigInt(USART1, USART_INT_RXDNE, DISABLE);
             USART_Enable(USART1, DISABLE);
@@ -558,30 +448,21 @@ bool hl_hal_uart_deinit(UART_PORT_E USARTx)
             RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_USART1, DISABLE);
             break;
 
-        case UART_PORT2:
-            s_uart2_is_active = false;
-            USART_ConfigInt(USART2, USART_INT_RXDNE, DISABLE);
-            USART_Enable(USART2, DISABLE);
-            USART_DeInit(USART2);
-            _uart2_gpio_deinit();
-            RCC_EnableAPB1PeriphClk(RCC_APB1_PERIPH_USART2, DISABLE);
+        case HL_HAL_UART_NUMB_2:
+            s_lpuart_is_active = false;
+            LPUART_ConfigInt(LPUART_INT_FIFO_NE, DISABLE);
+            LPUART_DeInit();
+            _lpuart_gpio_deinit();
+            RCC_EnableRETPeriphClk(RCC_RET_PERIPH_LPUART, DISABLE);
             break;
 
-        case UART_PORT3:
+        case HL_HAL_UART_NUMB_3:
             s_uart3_is_active = false;
             USART_ConfigInt(USART3, USART_INT_RXDNE, DISABLE);
             USART_Enable(USART3, DISABLE);
             USART_DeInit(USART3);
             _uart3_gpio_deinit();
             RCC_EnableAPB1PeriphClk(RCC_APB1_PERIPH_USART3, DISABLE);
-            break;
-
-        case LPUART_PORT:
-            s_lpuart_is_active = false;
-            LPUART_ConfigInt(LPUART_INT_FIFO_NE, DISABLE);
-            LPUART_DeInit();
-            _lpuart_gpio_deinit();
-            RCC_EnableRETPeriphClk(RCC_RET_PERIPH_LPUART, DISABLE);
             break;
 
         default:
@@ -603,14 +484,14 @@ bool hl_hal_uart_deinit(UART_PORT_E USARTx)
 * -----------------------------------------------
 * 2021/06/16	V1.0.0.0	 卢彰豪	      创建
 **************************************************************************/
-bool hl_hal_uart_send(UART_PORT_E USARTx, uint8_t* p_data, uint16_t size)
+bool hl_hal_uart_send(hl_hal_uart_numb_e USARTx, uint8_t* p_data, uint16_t size)
 {
     if (p_data == RT_NULL) {
         return false;
     }
 
     switch (USARTx) {
-        case UART_PORT1:
+        case HL_HAL_UART_NUMB_1:
             if (s_uart1_is_active == true) {
                 while (size--) {
                     USART_SendData(USART1, *p_data);
@@ -621,29 +502,7 @@ bool hl_hal_uart_send(UART_PORT_E USARTx, uint8_t* p_data, uint16_t size)
             }
             break;
 
-        case UART_PORT2:
-            if (s_uart2_is_active == true) {
-                while (size--) {
-                    USART_SendData(USART2, *p_data);
-                    p_data++;
-                    while (USART_GetFlagStatus(USART2, USART_FLAG_TXDE) == RESET)
-                        ;
-                }
-            }
-            break;
-
-        case UART_PORT3:
-            if (s_uart3_is_active == true) {
-                while (size--) {
-                    USART_SendData(USART3, *p_data);
-                    p_data++;
-                    while (USART_GetFlagStatus(USART3, USART_FLAG_TXDE) == RESET)
-                        ;
-                }
-            }
-            break;
-
-        case LPUART_PORT:
+        case HL_HAL_UART_NUMB_2:
             if (s_lpuart_is_active == true) {
                 while (size--) {
                     LPUART_SendData(*p_data);
@@ -651,6 +510,17 @@ bool hl_hal_uart_send(UART_PORT_E USARTx, uint8_t* p_data, uint16_t size)
                     while (LPUART_GetFlagStatus(LPUART_FLAG_TXC) == RESET)
                         ;
                     LPUART_ClrFlag(LPUART_FLAG_TXC);
+                }
+            }
+            break;
+
+        case HL_HAL_UART_NUMB_3:
+            if (s_uart3_is_active == true) {
+                while (size--) {
+                    USART_SendData(USART3, *p_data);
+                    p_data++;
+                    while (USART_GetFlagStatus(USART3, USART_FLAG_TXDE) == RESET)
+                        ;
                 }
             }
             break;

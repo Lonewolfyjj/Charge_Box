@@ -40,7 +40,7 @@ static void _uart3_callback(uint8_t data)
     rt_kprintf("uart3:%c\n", data);
 }
 
-static void _lpuart_callback(uint8_t data)
+static void _uart2_callback(uint8_t data)
 {
     rt_kprintf("lpuart:%c\n", data);
 }
@@ -49,12 +49,12 @@ static void _lpuart_callback(uint8_t data)
 static void hl_hal_uart_test(int argc, char* argv[])  //首先需要把PA8引脚拉高，给电平转换芯片供电。
 {
     rt_kprintf("init uart3, Tx:PB10, Rx:PB11\n");
-    hl_hal_uart_init(UART_PORT3, 115200);
-    hl_hal_uart_receive_reg(UART_PORT3, _uart3_callback);
+    hl_hal_uart_init(HL_HAL_UART_NUMB_3, 115200);
+    hl_hal_uart_receive_reg(HL_HAL_UART_NUMB_3, _uart3_callback);
 
     rt_kprintf("init lpuart, Tx:PA1, Rx:PA0\n");
-    hl_hal_uart_init(LPUART_PORT, 115200);
-    hl_hal_uart_receive_reg(LPUART_PORT, _lpuart_callback);
+    hl_hal_uart_init(HL_HAL_UART_NUMB_2, 115200);
+    hl_hal_uart_receive_reg(HL_HAL_UART_NUMB_2, _uart2_callback);
 }
 
 MSH_CMD_EXPORT(hl_hal_uart_test, hal uart test);

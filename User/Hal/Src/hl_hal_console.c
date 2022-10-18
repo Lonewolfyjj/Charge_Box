@@ -52,9 +52,9 @@ void hl_hal_console_init(void)
     /* 初始化串口接收数据的信号量 */
     rt_sem_init(&(shell_rx_sem), "shell_rx", 0, 0);
 
-    hl_hal_uart_init(UART_PORT1, 115200);
+    hl_hal_uart_init(HL_HAL_UART_NUMB_1, 115200);
 
-    hl_hal_uart_receive_reg(UART_PORT1, hl_hal_console_callback);
+    hl_hal_uart_receive_reg(HL_HAL_UART_NUMB_1, hl_hal_console_callback);
 }
 
 /**
@@ -77,9 +77,9 @@ void rt_hw_console_output(const char* str)
     size = rt_strlen(str);
     for (i = 0; i < size; i++) {
         if (*(str + i) == '\n') {
-            hl_hal_uart_send(UART_PORT1, &a, 1);
+            hl_hal_uart_send(HL_HAL_UART_NUMB_1, &a, 1);
         }
-        hl_hal_uart_send(UART_PORT1, (uint8_t*)(str + i), 1);
+        hl_hal_uart_send(HL_HAL_UART_NUMB_1, (uint8_t*)(str + i), 1);
     }
 }
 

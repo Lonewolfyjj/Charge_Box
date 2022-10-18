@@ -36,13 +36,12 @@
 typedef void (*uart_rcv_cb_t)(uint8_t);
 
 // 串口枚举
-typedef enum _UART_PORT_E
+typedef enum _hl_hal_uart_numb_e
 {
-    UART_PORT1 = 1,
-    UART_PORT2,
-    UART_PORT3,
-    LPUART_PORT,
-} UART_PORT_E;
+    HL_HAL_UART_NUMB_1,     //uart1
+    HL_HAL_UART_NUMB_2,     //lpuart
+    HL_HAL_UART_NUMB_3,     //uart3
+} hl_hal_uart_numb_e;
 
 /**************************************************************************
  *                                常量                                      *
@@ -60,15 +59,15 @@ typedef enum _UART_PORT_E
  *                            全局函数原型                                      *
  **************************************************************************/
 /* 注册回调函数 */
-bool hl_hal_uart_receive_reg(UART_PORT_E USARTx, uart_rcv_cb_t rcv_cb_handle);
+bool hl_hal_uart_receive_reg(hl_hal_uart_numb_e USARTx, uart_rcv_cb_t rcv_cb_handle);
 
 /* 配置串口 */
-bool hl_hal_uart_init(UART_PORT_E USARTx, uint32_t baudrate);
+bool hl_hal_uart_init(hl_hal_uart_numb_e USARTx, uint32_t baudrate);
 
 /* 串口去初始化 */
-bool hl_hal_uart_deinit(UART_PORT_E USARTx);
+bool hl_hal_uart_deinit(hl_hal_uart_numb_e USARTx);
 
 /* 串口发送数据 */
-bool hl_hal_uart_send(UART_PORT_E USARTx, uint8_t* p_data, uint16_t size);
+bool hl_hal_uart_send(hl_hal_uart_numb_e USARTx, uint8_t* p_data, uint16_t size);
 
 #endif /* end of #ifndef __HL_HAL_UART_H__ */
