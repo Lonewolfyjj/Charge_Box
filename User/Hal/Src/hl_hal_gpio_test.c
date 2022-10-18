@@ -97,13 +97,13 @@ int hl_hal_gpio_pwr_on(void)
     hl_hal_gpio_clock_init();
 
     hl_hal_gpio_init(GPIO_1V8_EN);
-    //hl_hal_gpio_init(GPIO_BOOST_EN);
+    hl_hal_gpio_init(GPIO_BOOST_EN);
     hl_hal_gpio_init(GPIO_RX_POW_EN);
     hl_hal_gpio_init(GPIO_TX1_POW_EN);
     hl_hal_gpio_init(GPIO_TX2_POW_EN);
 
     hl_hal_gpio_high(GPIO_1V8_EN);
-    //hl_hal_gpio_high(GPIO_BOOST_EN);
+    hl_hal_gpio_low(GPIO_BOOST_EN);
     hl_hal_gpio_high(GPIO_RX_POW_EN);
     hl_hal_gpio_high(GPIO_TX1_POW_EN);
     hl_hal_gpio_high(GPIO_TX2_POW_EN);
