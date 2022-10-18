@@ -196,7 +196,7 @@ int hl_hal_soft_i2c_api_read(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uint
     switch (i2cx) {
         case HL_HAL_SOFT_I2C_NUMB_1: {
             if (i2c1_init_flag != true) {
-                break;
+                return SOFT_I2C_API_FUNC_RET_ERR;
             }
 
             rt_mutex_take(i2c1_mutex, RT_WAITING_FOREVER);
@@ -205,7 +205,7 @@ int hl_hal_soft_i2c_api_read(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uint
         } break;
         case HL_HAL_SOFT_I2C_NUMB_2: {
             if (i2c2_init_flag != true) {
-                break;
+                return SOFT_I2C_API_FUNC_RET_ERR;
             }
 
             rt_mutex_take(i2c2_mutex, RT_WAITING_FOREVER);
@@ -214,7 +214,7 @@ int hl_hal_soft_i2c_api_read(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uint
         } break;
         case HL_HAL_SOFT_I2C_NUMB_3: {
             if (i2c3_init_flag != true) {
-                break;
+                return SOFT_I2C_API_FUNC_RET_ERR;
             }
 
             rt_mutex_take(i2c3_mutex, RT_WAITING_FOREVER);
@@ -239,7 +239,7 @@ int hl_hal_soft_i2c_api_write(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uin
     switch (i2cx) {
         case HL_HAL_SOFT_I2C_NUMB_1: {
             if (i2c1_init_flag != true) {
-                break;
+                return SOFT_I2C_API_FUNC_RET_ERR;
             }
 
             rt_mutex_take(i2c1_mutex, RT_WAITING_FOREVER);
@@ -248,7 +248,7 @@ int hl_hal_soft_i2c_api_write(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uin
         } break;
         case HL_HAL_SOFT_I2C_NUMB_2: {
             if (i2c2_init_flag != true) {
-                break;
+                return SOFT_I2C_API_FUNC_RET_ERR;
             }
 
             rt_mutex_take(i2c2_mutex, RT_WAITING_FOREVER);
@@ -257,7 +257,7 @@ int hl_hal_soft_i2c_api_write(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uin
         } break;
         case HL_HAL_SOFT_I2C_NUMB_3: {            
             if (i2c3_init_flag != true) {
-                break;
+                return SOFT_I2C_API_FUNC_RET_ERR;
             }
 
             rt_mutex_take(i2c3_mutex, RT_WAITING_FOREVER);
