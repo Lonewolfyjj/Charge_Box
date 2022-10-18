@@ -29,9 +29,7 @@ void assert_failed(const uint8_t* expr, const uint8_t* file, uint32_t line)
        ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
 
     /* Infinite loop */
-    while (1)
-    {
-    }
+    rt_kprintf("Wrong parameters value: file %s on line %d\r\n", file, line);
 }
 
 #endif
