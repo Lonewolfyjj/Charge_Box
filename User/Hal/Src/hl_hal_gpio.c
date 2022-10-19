@@ -98,3 +98,21 @@ int hl_hal_gpio_read(HL_GPIO_PORT_E GPIO_NUM)
     return rt_pin_read(gpio_config_table[GPIO_NUM].pin);
 }
 
+rt_err_t hl_hal_gpio_attach_irq(HL_GPIO_PORT_E gpio_index, rt_uint32_t mode, void (*hdr)(void *args), void *args)
+{
+    RT_ASSERT(gpio_index < USER_GPIO_NUMBER);
+    return rt_pin_attach_irq(gpio_config_table[gpio_index].pin, mode, hdr, args);
+}
+
+rt_err_t hl_hal_gpio_detach_irq(HL_GPIO_PORT_E gpio_index)
+{
+    RT_ASSERT(gpio_index < USER_GPIO_NUMBER);
+    return rt_pin_detach_irq(gpio_config_table[gpio_index].pin);
+}
+
+rt_err_t hl_hal_gpio_irq_enable(HL_GPIO_PORT_E gpio_index, rt_uint32_t enabled)
+{
+    RT_ASSERT(gpio_index < USER_GPIO_NUMBER);
+    return rt_pin_irq_enable(gpio_config_table[gpio_index].pin, enabled);
+}
+

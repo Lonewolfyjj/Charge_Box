@@ -30,6 +30,7 @@
 #include "rtthread.h"
 #include <stdlib.h>
 #include "rtdef.h"
+#include "pin.h"
 
 /* typedef -------------------------------------------------------------------*/
 /* define --------------------------------------------------------------------*/
@@ -76,8 +77,8 @@ int hl_hal_gpio_test(int argc, char** argv)
         } else if (!strcmp("irq", argv[2])) {                // 初始化gpio，并打开中断，绑定中断函数
             irq_arg_table[gpio_pin_e] = gpio_pin_e;
             hl_hal_gpio_init(gpio_pin_e);
-            // hl_hal_gpio_attach_irq(gpio_pin_e, PIN_IRQ_MODE_FALLING, hl_hal_gpio_test_irq_process, &irq_arg_table[gpio_pin_e]);
-            // hl_hal_gpio_irq_enable(gpio_pin_e, PIN_IRQ_ENABLE);
+            hl_hal_gpio_attach_irq(gpio_pin_e, PIN_IRQ_MODE_FALLING, hl_hal_gpio_test_irq_process, &irq_arg_table[gpio_pin_e]);
+            hl_hal_gpio_irq_enable(gpio_pin_e, PIN_IRQ_ENABLE);
             rt_kprintf("gpio set irq completed\r\n");
         } else {
             rt_kprintf("wrong parameter subcommand, hl_hal_gpio_test [enum] [reset | set | read | irq],   subcommand must equal to [reset | set | read | irq] \r\n");

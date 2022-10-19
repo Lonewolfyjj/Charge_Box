@@ -127,4 +127,57 @@ void hl_hal_gpio_low(HL_GPIO_PORT_E gpio_index);
  */
 int hl_hal_gpio_read(HL_GPIO_PORT_E gpio_index);
 
+/**
+ * @brief 绑定中断回调函数
+ * @param [in] gpio_index 
+ * @param [in] mode 
+ * @param [in] hdr 
+ * @param [in] args 
+ * @return rt_err_t 
+ * @date 2022-10-18
+ * @author libo (rd46@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-10-18      <td>libo     <td>新建
+ * </table>
+ */
+rt_err_t hl_hal_gpio_attach_irq(HL_GPIO_PORT_E gpio_index, rt_uint32_t mode, void (*hdr)(void *args), void *args);
+
+/**
+ * @brief 去除绑定
+ * @param [in] gpio_index 
+ * @return rt_err_t 
+ * @date 2022-10-18
+ * @author libo (rd46@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-10-18      <td>libo     <td>新建
+ * </table>
+ */
+rt_err_t hl_hal_gpio_detach_irq(HL_GPIO_PORT_E gpio_index);
+
+/**
+ * @brief 使能中断
+ * @param [in] gpio_index 
+ * @param [in] enabled 
+ * @return rt_err_t 
+ * @date 2022-10-18
+ * @author libo (rd46@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-10-18      <td>libo     <td>新建
+ * </table>
+ */
+rt_err_t hl_hal_gpio_irq_enable(HL_GPIO_PORT_E gpio_index, rt_uint32_t enabled);
+
+
 #endif /* _HAL_INC_HL_HAL_GPIO_H_ */
