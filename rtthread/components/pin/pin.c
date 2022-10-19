@@ -319,7 +319,8 @@ rt_err_t rt_pin_irq_enable(rt_base_t pin, rt_uint32_t enabled)
         /* Configure GPIO_InitStructure */
         GPIO_InitStruct.Pin = index->pin; 
         GPIO_InitStruct.GPIO_Slew_Rate = GPIO_Slew_Rate_Low;
-        GPIO_InitStruct.GPIO_Current = GPIO_DC_2mA;            
+        GPIO_InitStruct.GPIO_Current = GPIO_DC_4mA;
+        GPIO_InitStruct.GPIO_Alternate = GPIO_NO_AF;           
         switch (pin_irq_hdr_tab[irqindex].mode) {
             case PIN_IRQ_MODE_RISING:
                 GPIO_InitStruct.GPIO_Pull  = GPIO_Pull_Down;
@@ -405,7 +406,8 @@ void rt_pin_mode(rt_base_t pin, rt_base_t mode)
     /* Configure GPIO_InitStructure */
     GPIO_InitStructure.Pin = index->pin;
     GPIO_InitStructure.GPIO_Slew_Rate = GPIO_Slew_Rate_Low;
-    GPIO_InitStructure.GPIO_Current = GPIO_DC_2mA;
+    GPIO_InitStructure.GPIO_Current = GPIO_DC_4mA;
+    GPIO_InitStructure.GPIO_Alternate = GPIO_NO_AF;
     if (mode == PIN_MODE_OUTPUT) {
         /* output setting */
         GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
