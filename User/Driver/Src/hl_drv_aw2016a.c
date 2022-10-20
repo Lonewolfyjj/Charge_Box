@@ -62,7 +62,7 @@ static uint8_t _init_flag = 0;
 
 static inline int aw_read(hl_hal_soft_i2c_numb_e* p_i2c_bus, uint8_t PointReg, uint8_t* pData)
 {
-    if (hl_hal_soft_i2c_api_read(*p_i2c_bus, AW2016A_IIC_DEV_ADDR, PointReg, pData) == SOFT_I2C_API_FUNC_RET_OK) {
+    if (hl_hal_soft_i2c_api_read(*p_i2c_bus, AW2016A_IIC_DEV_ADDR, PointReg, pData, 1) == SOFT_I2C_API_FUNC_RET_OK) {
         return AW2016A_FUNC_RET_OK;
     } else {
         DBG_LOG("i2c read err!\n");
@@ -72,7 +72,7 @@ static inline int aw_read(hl_hal_soft_i2c_numb_e* p_i2c_bus, uint8_t PointReg, u
 
 static inline int aw_write(hl_hal_soft_i2c_numb_e* p_i2c_bus, uint8_t PointReg, uint8_t* pData)
 {
-    if (hl_hal_soft_i2c_api_write(*p_i2c_bus, AW2016A_IIC_DEV_ADDR, PointReg, pData) == SOFT_I2C_API_FUNC_RET_OK) {
+    if (hl_hal_soft_i2c_api_write(*p_i2c_bus, AW2016A_IIC_DEV_ADDR, PointReg, pData, 1) == SOFT_I2C_API_FUNC_RET_OK) {
         return AW2016A_FUNC_RET_OK;
     } else {
         DBG_LOG("i2c write err!\n");

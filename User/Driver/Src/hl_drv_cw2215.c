@@ -110,7 +110,7 @@ static const uint8_t battery_profile_info[CW2215_BATINFO_SIZE] = {
 
 static inline int cw_read(unsigned char PointReg, unsigned char* pData)
 {
-    if (hl_hal_soft_i2c_api_read(HL_HAL_SOFT_I2C_NUMB_1, CW2215_IIC_DEV_ADDR, PointReg, pData)
+    if (hl_hal_soft_i2c_api_read(HL_HAL_SOFT_I2C_NUMB_1, CW2215_IIC_DEV_ADDR, PointReg, pData, 1)
         == SOFT_I2C_API_FUNC_RET_OK) {
         return CW2215_FUNC_RET_OK;
     } else {
@@ -121,7 +121,7 @@ static inline int cw_read(unsigned char PointReg, unsigned char* pData)
 
 static inline int cw_write(unsigned char PointReg, unsigned char* pData)
 {
-    if (hl_hal_soft_i2c_api_write(HL_HAL_SOFT_I2C_NUMB_1, CW2215_IIC_DEV_ADDR, PointReg, pData)
+    if (hl_hal_soft_i2c_api_write(HL_HAL_SOFT_I2C_NUMB_1, CW2215_IIC_DEV_ADDR, PointReg, pData, 1)
         == SOFT_I2C_API_FUNC_RET_OK) {
         return CW2215_FUNC_RET_OK;
     } else {
