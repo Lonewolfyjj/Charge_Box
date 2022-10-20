@@ -364,6 +364,7 @@
                     <state>$PROJ_DIR$\..\User\Utility\fifo</state>
                     <state>$PROJ_DIR$\..\User\Utility\hup</state>
                     <state>$PROJ_DIR$\..\User\Utility\xor_calc</state>
+                    <state>$PROJ_DIR$\..\User\driver\Inc</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1226,6 +1227,12 @@
         </group>
         <group>
             <name>driver</name>
+            <file>
+                <name>$PROJ_DIR$\..\User\driver\Src\hl_drv_pcf85063atl.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\driver\Src\hl_drv_pcf85063atl_test.c</name>
+            </file>
         </group>
         <group>
             <name>hal</name>
