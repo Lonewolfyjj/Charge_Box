@@ -35,13 +35,10 @@
 #define		float64_t				double
 #endif
 
-<<<<<<< HEAD
 #ifndef NULL
 #define		NULL				(void*)0
 #endif
 
-=======
->>>>>>> 6c7115a (📝 增加rtc驱动(dri)：1.增加pcf85063驱动)
 #define RTC_PCF85063_Control_1      0x00
 #define RTC_PCF85063_Control_2      0x01
 #define RTC_PCF85063_Offset         0x02
