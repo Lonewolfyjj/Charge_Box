@@ -43,6 +43,7 @@ static hl_hal_soft_i2c_numb_e i2c = HL_HAL_SOFT_I2C_NUMB_1;
  * <tr><td>2022-09-07      <td>libo     <td>新建
  * </table>
  */
+<<<<<<< HEAD
 static rt_err_t write_regs(rt_uint8_t reg, rt_uint8_t* data, rt_uint8_t len)
 {
     /* 调用I2C设备接口传输数据 */
@@ -51,6 +52,16 @@ static rt_err_t write_regs(rt_uint8_t reg, rt_uint8_t* data, rt_uint8_t len)
         return RT_EOK;
     } else {
         rt_kprintf(" hl_drv_pcf85063atl.c write_regs  error!\n");
+=======
+static rt_err_t write_reg(rt_uint8_t reg, rt_uint8_t* data, rt_uint8_t len)
+{
+    /* 调用I2C设备接口传输数据 */
+    if (!hl_hal_soft_i2c_api_write(i2c, 0x51, reg, data, (uint16_t)len)) {
+        //rt_kprintf("RTC_PCF85063ATL  write_reg  ok\n");
+        return RT_EOK;
+    } else {
+        rt_kprintf("RTC_PCF85063ATL  write_reg  error!\n");
+>>>>>>> 6c7115a (📝 增加rtc驱动(dri)：1.增加pcf85063驱动)
         return -RT_ERROR;
     }
 }
@@ -66,6 +77,7 @@ static rt_err_t write_regs(rt_uint8_t reg, rt_uint8_t* data, rt_uint8_t len)
  * @par 修改日志:
  * <table>
  * <tr><th>Date             <th>Author         <th>Description
+<<<<<<< HEAD
  * <tr><td>2022-09-07       <td>libo           <td>新建
  * </table>
  */
@@ -76,6 +88,19 @@ static rt_err_t read_regs(rt_uint8_t reg, rt_uint8_t* data, rt_uint8_t len)
         return RT_EOK;
     } else {
         rt_kprintf("hl_drv_pcf85063atl.c  read_regs  error\n");
+=======
+ * <tr><td>2022-09-07      <td>libo     <td>新建
+ * </table>
+ */
+static rt_err_t read_regs(rt_uint8_t* buf, rt_uint8_t len)
+{
+    /* 调用I2C设备接口传输数据 */
+    if (!hl_hal_soft_i2c_api_read(i2c, 0x51, reg, data, (uint16_t)len)) {
+        //rt_kprintf("RTC_PCF85063ATL  read_regs  ok\n");
+        return RT_EOK;
+    } else {
+        rt_kprintf("RTC_PCF85063ATL  read_regs  error\n");
+>>>>>>> 6c7115a (📝 增加rtc驱动(dri)：1.增加pcf85063驱动)
         return -RT_ERROR;
     }
 }
@@ -83,9 +108,16 @@ static rt_err_t read_regs(rt_uint8_t reg, rt_uint8_t* data, rt_uint8_t len)
 uint8_t hl_drv_rtc_pcf85063_init()
 {
     if (hl_hal_soft_i2c_api_init(HL_HAL_SOFT_I2C_NUMB_1)) {
+<<<<<<< HEAD
         rt_kprintf("get hl_drv_rtc_pcf85063_init  fail\n");
         return -1;
     }
+=======
+        rt_kprintf("RTC_PCF85063ATL  get hl_drv_rtc_pcf85063_init  fail\n");
+        return -1;
+    }
+
+>>>>>>> 6c7115a (📝 增加rtc驱动(dri)：1.增加pcf85063驱动)
     return 0;
 }
 
@@ -96,6 +128,10 @@ uint8_t hl_drv_rtc_pcf85063_deinit()
         rt_kprintf("RTC_PCF85063ATL  get hl_drv_rtc_pcf85063_init  fail\n");
         return -1;
     }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6c7115a (📝 增加rtc驱动(dri)：1.增加pcf85063驱动)
     return 0;
 }
 
@@ -123,6 +159,10 @@ static uint8_t DecimalToBCD(uint8_t data)
         high++;
         data -= 10;
     }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6c7115a (📝 增加rtc驱动(dri)：1.增加pcf85063驱动)
     return((high<<4)|data);
 }
 
@@ -170,8 +210,20 @@ static uint8_t BCDToDecimal(uint8_t data)
  */
 static uint8_t hl_get_rtc_time(void* ptr)
 {
+<<<<<<< HEAD
     if (read_regs(RTC_PCF85063_Seconds, (rt_uint8_t*) ptr, 7)) {
         rt_kprintf("RTC_PCF85063ATL hl_get_rtc_time read_regs  RTC_PCF85063_Seconds fail\n");
+=======
+    if (write_reg(i2c_handle, RTC_PCF85063_Seconds, NULL, 0)) {
+        rt_kprintf("RTC_PCF85063ATL  write_reg   fail\n");
+        return -1;
+    }
+
+    rt_thread_mdelay(400);
+
+    if (read_regs(i2c_handle, (char*)ptr, 7)) {
+        rt_kprintf("RTC_PCF85063ATL  read_regs   fail\n");
+>>>>>>> 6c7115a (📝 增加rtc驱动(dri)：1.增加pcf85063驱动)
         return -1;
     }
     return 0;
@@ -195,6 +247,7 @@ static uint8_t hl_get_rtc_time(void* ptr)
 static uint8_t hl_lock_rtc_clock(void)
 {
     rt_uint8_t reg0x0 = 0x00;
+<<<<<<< HEAD
     if (read_regs(RTC_PCF85063_Control_1, &reg0x0, 1)) {
         rt_kprintf("RTC_PCF85063ATL hl_lock_rtc_clock read_regs  RTC_PCF85063_Control_1 fail\n");
         return -1;
@@ -206,6 +259,27 @@ static uint8_t hl_lock_rtc_clock(void)
         return -1;
     }
     return 0;
+=======
+    if (write_reg(i2c_handle, RTC_PCF85063_Control_1, NULL, 0)) {
+        rt_kprintf("RTC_PCF85063ATL  write_reg  RTC_PCF85063_Control_1 fail\n");
+        return -1;
+    }
+
+    if (read_regs(i2c_handle, &reg0x0, 1)) {
+        rt_kprintf("RTC_PCF85063ATL  read_regs  RTC_PCF85063_Control_1 fail\n");
+        return -1;
+    }
+    reg0x0 |=0x20;
+
+    if (write_reg(i2c_handle, RTC_PCF85063_Control_1, &reg0x0, 1)) {
+        rt_kprintf("RTC_PCF85063ATL  write_reg RTC_PCF85063_Control_1  fail\n");
+        return -1;
+    }
+
+
+    return 0;
+
+>>>>>>> 6c7115a (📝 增加rtc驱动(dri)：1.增加pcf85063驱动)
 }
 
 /**
@@ -226,16 +300,35 @@ static uint8_t hl_lock_rtc_clock(void)
 static uint8_t hl_unlock_rtc_clock(void)
 {
     rt_uint8_t reg0x0 = 0x00;
+<<<<<<< HEAD
     if (read_regs(RTC_PCF85063_Control_1, &reg0x0, 1)) {
         rt_kprintf("RTC_PCF85063ATL hl_unlock_rtc_clock read_regs  RTC_PCF85063_Control_1 fail\n");
+=======
+    if (write_reg(i2c_handle, RTC_PCF85063_Control_1, NULL, 0)) {
+        rt_kprintf("RTC_PCF85063ATL  write_reg RTC_PCF85063_Control_1  fail\n");
+        return -1;
+    }
+
+    if (read_regs(i2c_handle, &reg0x0, 1)) {
+        rt_kprintf("RTC_PCF85063ATL  read_regs  RTC_PCF85063_Control_1 fail\n");
+>>>>>>> 6c7115a (📝 增加rtc驱动(dri)：1.增加pcf85063驱动)
         return -1;
     }
 
     reg0x0 &= 0xDF;
+<<<<<<< HEAD
     if (write_regs(RTC_PCF85063_Control_1, &reg0x0, 1)) {
         rt_kprintf("RTC_PCF85063ATL hl_unlock_rtc_clock write_regs  RTC_PCF85063_Control_1 fail\n");
         return -1;
     } 
+=======
+    if (write_reg(i2c_handle, RTC_PCF85063_Control_1, &reg0x0, 1)) {
+        rt_kprintf("RTC_PCF85063ATL  write_reg RTC_PCF85063_Control_1  fail\n");
+        return -1;
+    }
+
+
+>>>>>>> 6c7115a (📝 增加rtc驱动(dri)：1.增加pcf85063驱动)
     return 0;
 }
 
@@ -267,8 +360,13 @@ static uint8_t hl_set_rtc_time(void* ptr)
         return -1;
     }
     
+<<<<<<< HEAD
     if (write_regs(RTC_PCF85063_Seconds, (rt_uint8_t*)ptr, 7)) {
         rt_kprintf("RTC_PCF85063ATL  write_regs RTC_PCF85063_Seconds  fail\n");
+=======
+    if (write_reg(i2c_handle, RTC_PCF85063_Seconds, (rt_uint8_t*)ptr, 7)) {
+        rt_kprintf("RTC_PCF85063ATL  write_reg RTC_PCF85063_Seconds  fail\n");
+>>>>>>> 6c7115a (📝 增加rtc驱动(dri)：1.增加pcf85063驱动)
         return -1;
     }
 
@@ -276,6 +374,10 @@ static uint8_t hl_set_rtc_time(void* ptr)
         rt_kprintf("RTC_PCF85063ATL  hl_lock_rtc_clock  fail\n");
         return -1;
     }
+<<<<<<< HEAD
+=======
+
+>>>>>>> 6c7115a (📝 增加rtc驱动(dri)：1.增加pcf85063驱动)
     return 0;
 }
 
@@ -290,7 +392,11 @@ uint8_t hl_drv_rtc_pcf85063_io_ctrl(uint8_t cmd, void* ptr, uint16_t len)
     uint8_t* ptr1 = (uint8_t*) ptr;
     
     /*将输入参数10进制转换成bcd码*/
+<<<<<<< HEAD
     for (uint8_t i = 0; i < len; i++){
+=======
+    for (size_t i = 0; i < len; i++){
+>>>>>>> 6c7115a (📝 增加rtc驱动(dri)：1.增加pcf85063驱动)
         ptr1[i]= DecimalToBCD(ptr1[i]);
     }
     
@@ -311,9 +417,18 @@ uint8_t hl_drv_rtc_pcf85063_io_ctrl(uint8_t cmd, void* ptr, uint16_t len)
             break;
     }
 
+<<<<<<< HEAD
     /*将输出参数bcd码转换成10进制*/
     for (uint8_t i = 0; i < len; i++){
          ptr1[i]= BCDToDecimal(ptr1[i]);
     }
+=======
+    
+    /*将输出参数bcd码转换成10进制*/
+    for (size_t i = 0; i < len; i++){
+         ptr1[i]= BCDToDecimal(ptr1[i]);
+    }
+
+>>>>>>> 6c7115a (📝 增加rtc驱动(dri)：1.增加pcf85063驱动)
     return 0;
 }
