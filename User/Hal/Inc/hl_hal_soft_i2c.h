@@ -63,6 +63,8 @@ typedef struct {
 
 #define ACK     0
 #define NOACK   1
+
+#define debug_printf    rt_kprintf
 /* variables -----------------------------------------------------------------*/
 /* Private function(only *.c)  -----------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/

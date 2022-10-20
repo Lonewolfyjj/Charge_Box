@@ -267,7 +267,7 @@ static uint8_t i2c_wait_ack(soft_i2c_info *info)
         err_time++;
         if(err_time > 250) {
             i2c_stop(info); //无应答
-            //printf("[error] no ack\n");
+            //debug_printf("[error] no ack\n");
             return NOACK;
         }    
     } 
@@ -299,7 +299,7 @@ int hl_hal_soft_i2c_read(soft_i2c_info *info, soft_i2c_dev_addr_info *pro_addr, 
     uint16_t count = 0;
 
     if (info == NULL || pro_addr == NULL || rdata == NULL || len <= 0) {
-        printf("[error] hl_hal_soft_i2c_read_data\n");
+        debug_printf("[error] hl_hal_soft_i2c_read_data\n");
         return -1;
     }
     i2c_start(info); 
@@ -342,7 +342,7 @@ int hl_hal_soft_i2c_read(soft_i2c_info *info, soft_i2c_dev_addr_info *pro_addr, 
 int hl_hal_soft_i2c_write(soft_i2c_info *info, soft_i2c_dev_addr_info *pro_addr, uint8_t *wdata, uint16_t len)
 {
     if (info == NULL || pro_addr == NULL || wdata == NULL || len <= 0) {
-        printf("[error] hl_hal_soft_i2c_write_data\n");
+        debug_printf("[error] hl_hal_soft_i2c_write_data\n");
         return -1;
     }
     i2c_start(info); 
@@ -377,7 +377,7 @@ int hl_hal_soft_i2c_init(soft_i2c_info *info)
 {
     GPIO_InitType gpio_init_struct;
     if (info == NULL) {
-        printf("[error] hl_hal_soft_i2c_init\r\n");
+        debug_printf("[error] hl_hal_soft_i2c_init\r\n");
         return -1;
     }
     RCC_EnableAPB2PeriphClk(info->rcc_periph_gpiox, ENABLE);
@@ -407,7 +407,7 @@ int hl_hal_soft_i2c_init(soft_i2c_info *info)
 void hl_hal_soft_i2c_deinit(soft_i2c_info *info)
 {
     if (info == NULL) {
-        printf("[error] hl_hal_soft_i2c_deinit\r\n");
+        debug_printf("[error] hl_hal_soft_i2c_deinit\r\n");
         return;
     }
     GPIO_DeInit(info->gpiox); 
@@ -430,7 +430,7 @@ void hl_hal_soft_i2c_deinit(soft_i2c_info *info)
 int hl_hal_soft_i2c_test_dev_addr(soft_i2c_info *info)
 {
     if (info == NULL) {
-        printf("[error] hl_hal_soft_i2c_test_dev_addr\r\n");
+        debug_printf("[error] hl_hal_soft_i2c_test_dev_addr\r\n");
         return 1;
     }
     uint8_t valid_addr[10];
@@ -445,11 +445,11 @@ int hl_hal_soft_i2c_test_dev_addr(soft_i2c_info *info)
         } 
     }
     if (count == 0) {
-        printf("[error] this i2c pin no ack\r\n");
+        debug_printf("[error] this i2c pin no ack\r\n");
         return 0;
     }
     for (i = 0; i < count; i++) {
-        printf("valid device address %d : 0x%x\n", i + 1, valid_addr[i]);
+        debug_printf("valid device address %d : 0x%x\n", i + 1, valid_addr[i]);
     }
     return 0;
 }
