@@ -23,7 +23,6 @@
 /* Define to prevent recursive inclusion -------------------------------------*/
 /* Includes ------------------------------------------------------------------*/
 #include "hl_drv_sgm41513.h"
-#include "hl_hal_soft_i2c_api.h"
 #include "hl_hal_soft_i2c.h"
 #include "stdint.h"
 #include "n32l40x.h"
@@ -83,7 +82,7 @@ soft_i2c_dev_addr_info i2c_addr1 = {
 
 void hl_drv_sgm41513_write_reg(rt_uint8_t w_addr, rt_uint8_t *reg_data)
 {
-    hl_hal_soft_i2c_api_write(HL_HAL_SOFT_I2C_NUMB_2, SGM41513_WRITE_ADDR, w_addr, reg_data);
+    //hl_hal_soft_i2c_api_write(HL_HAL_SOFT_I2C_NUMB_2, SGM41513_WRITE_ADDR, w_addr, reg_data);
 }
 
 void hl_drv_sgm41513_read_reg(rt_uint8_t r_addr, rt_uint8_t *reg_data)

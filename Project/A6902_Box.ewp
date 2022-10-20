@@ -364,7 +364,7 @@
                     <state>$PROJ_DIR$\..\User\Utility\fifo</state>
                     <state>$PROJ_DIR$\..\User\Utility\hup</state>
                     <state>$PROJ_DIR$\..\User\Utility\xor_calc</state>
-                    <state>$PROJ_DIR$\..\User\Driver\sgm41513</state>
+                    <state>$PROJ_DIR$\..\User\Driver\Inc</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1228,10 +1228,10 @@
         <group>
             <name>driver</name>
             <file>
-                <name>$PROJ_DIR$\..\User\Driver\sgm41513\hl_drv_sgm41513.c</name>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_sgm41513.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\User\Driver\sgm41513\hl_drv_sgm41513_test.c</name>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_sgm41513_test.c</name>
             </file>
         </group>
         <group>
@@ -1244,9 +1244,6 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_i2c.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_i2c_api.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_i2c_test.c</name>
