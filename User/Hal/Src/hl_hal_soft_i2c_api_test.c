@@ -35,40 +35,40 @@ void hl_hal_soft_i2c_api_test()
     char reg_val;
 
     hl_hal_soft_i2c_api_init(HL_HAL_SOFT_I2C_NUMB_1);
-    hl_hal_soft_i2c_api_read(HL_HAL_SOFT_I2C_NUMB_1, 0x64, 0x00, &reg_val);
+    hl_hal_soft_i2c_api_read(HL_HAL_SOFT_I2C_NUMB_1, 0x64, 0x00, &reg_val, 1);
 
-    rt_kprintf("i2c1, ic_addr:%02x, chip_id:%02x\n", 0x64, reg_val);
+    rt_kprintf("i2c1, ic_addr:%02x, chip_id:%02x\n", 0x64, reg_val, 1);
 
     hl_hal_soft_i2c_api_init(HL_HAL_SOFT_I2C_NUMB_2);
-    hl_hal_soft_i2c_api_read(HL_HAL_SOFT_I2C_NUMB_2, 0x64, 0x00, &reg_val);
+    hl_hal_soft_i2c_api_read(HL_HAL_SOFT_I2C_NUMB_2, 0x64, 0x00, &reg_val, 1);
 
-    rt_kprintf("i2c2, ic_addr:%02x, chip_id:%02x\n", 0x64, reg_val);
+    rt_kprintf("i2c2, ic_addr:%02x, chip_id:%02x\n", 0x64, reg_val, 1);
 
     hl_hal_soft_i2c_api_init(HL_HAL_SOFT_I2C_NUMB_3);
-    hl_hal_soft_i2c_api_read(HL_HAL_SOFT_I2C_NUMB_3, 0x64, 0x00, &reg_val);
+    hl_hal_soft_i2c_api_read(HL_HAL_SOFT_I2C_NUMB_3, 0x64, 0x00, &reg_val, 1);
 
-    rt_kprintf("i2c3, ic_addr:%02x, chip_id:%02x\n", 0x64, reg_val);
+    rt_kprintf("i2c3, ic_addr:%02x, chip_id:%02x\n", 0x64, reg_val, 1);
 
     reg_val = 0x66;
 
-    hl_hal_soft_i2c_api_write(HL_HAL_SOFT_I2C_NUMB_1, 0x64, 0xA2, &reg_val);
-    hl_hal_soft_i2c_api_read(HL_HAL_SOFT_I2C_NUMB_1, 0x64, 0xA2, &reg_val);
+    hl_hal_soft_i2c_api_write(HL_HAL_SOFT_I2C_NUMB_1, 0x64, 0xA2, &reg_val, 1);
+    hl_hal_soft_i2c_api_read(HL_HAL_SOFT_I2C_NUMB_1, 0x64, 0xA2, &reg_val, 1);
 
-    rt_kprintf("i2c1, ic_addr:%02x, write:0x66, read:%02x\n", 0x64, reg_val);
+    rt_kprintf("i2c1, ic_addr:%02x, write:0x66, read:%02x\n", 0x64, reg_val, 1);
 
     reg_val = 0x01;
 
-    hl_hal_soft_i2c_api_write(HL_HAL_SOFT_I2C_NUMB_2, 0x64, 0x01, &reg_val);
-    hl_hal_soft_i2c_api_read(HL_HAL_SOFT_I2C_NUMB_2, 0x64, 0x01, &reg_val);
+    hl_hal_soft_i2c_api_write(HL_HAL_SOFT_I2C_NUMB_2, 0x64, 0x01, &reg_val, 1);
+    hl_hal_soft_i2c_api_read(HL_HAL_SOFT_I2C_NUMB_2, 0x64, 0x01, &reg_val, 1);
 
-    rt_kprintf("i2c2, ic_addr:%02x, write:0x01, read:%02x\n", 0x64, reg_val);
+    rt_kprintf("i2c2, ic_addr:%02x, write:0x01, read:%02x\n", 0x64, reg_val, 1);
 
     reg_val = 0x66;
     
-    hl_hal_soft_i2c_api_write(HL_HAL_SOFT_I2C_NUMB_3, 0x64, 0x34, &reg_val);
-    hl_hal_soft_i2c_api_read(HL_HAL_SOFT_I2C_NUMB_3, 0x64, 0x34, &reg_val);
+    hl_hal_soft_i2c_api_write(HL_HAL_SOFT_I2C_NUMB_3, 0x64, 0x34, &reg_val, 1);
+    hl_hal_soft_i2c_api_read(HL_HAL_SOFT_I2C_NUMB_3, 0x64, 0x34, &reg_val, 1);
 
-    rt_kprintf("i2c3, ic_addr:%02x, write:0x66, read:%02x\n", 0x64, reg_val);
+    rt_kprintf("i2c3, ic_addr:%02x, write:0x66, read:%02x\n", 0x64, reg_val, 1);
 }
 
 MSH_CMD_EXPORT(hl_hal_soft_i2c_api_test, soft I2C api test);

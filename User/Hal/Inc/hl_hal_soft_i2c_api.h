@@ -53,9 +53,9 @@ int hl_hal_soft_i2c_api_init(hl_hal_soft_i2c_numb_e i2cx);
 
 int hl_hal_soft_i2c_api_deinit(hl_hal_soft_i2c_numb_e i2cx);
 
-int hl_hal_soft_i2c_api_read(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uint8_t PointReg, uint8_t* pData);
+int hl_hal_soft_i2c_api_read(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uint8_t PointReg, uint8_t* pData, uint16_t len);
 
-int hl_hal_soft_i2c_api_write(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uint8_t PointReg, uint8_t* pData);
+int hl_hal_soft_i2c_api_write(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uint8_t PointReg, uint8_t* pData, uint16_t len);
 
 #endif
 /*
