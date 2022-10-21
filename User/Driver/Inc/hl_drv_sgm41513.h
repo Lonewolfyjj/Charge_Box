@@ -25,7 +25,7 @@
 #define _HL_DRV_SGM41513_H_
 /* Includes ------------------------------------------------------------------*/
 #include "rtdef.h"
-
+#include "stdint.h"
 /* typedef -------------------------------------------------------------------*/
 // reg00 TYPE PORV:  0001 0111
 typedef struct _hl_sgm41513_reg00_t
@@ -147,7 +147,7 @@ typedef struct _hl_sgm41513_reg05_t
 						// 0 = 80℃
 						// 1 = 120℃ (default)
 
-	rt_uint8_t CHG_TIMER	:1; // Charge Safety Timer Setting
+	rt_uint8_t CHG_TIMER:1; // Charge Safety Timer Setting
 						// 0 = 4hrs
 						// 1 = 6hrs (default)
 						
@@ -331,7 +331,7 @@ typedef struct _hl_sgm41513_reg0B_t
 	
 	rt_uint8_t PN	    	:4; // Part ID 0000 = SGM41513
 
-	rt_uint8_t reg_RST 		:1; // register Reset
+	rt_uint8_t REG_RST 		:1; // register Reset
 							// 0 = No effect (Keep current register settings)
 							// 1 = Reset R/W bits of all registers to the default and reset safety timer
 							// (It also resets itself to 0 after register reset is completed.)	
@@ -352,12 +352,58 @@ typedef struct {
 	hl_sgm41513_reg0b_t reg0b;
 }hl_sgm41513_info_t;
 
-typedef enum _hl_drv_sgm41513_charger_status{
+typedef enum _hl_drv_sgm41513_charger_status {
 	NOT_CHARGER = 0x00,
 	CHARGER_RUN,
 	CHARGER_FULL,
 
 }hl_drv_sgm41513_charger_status;
+
+typedef enum _hl_drv_sgm41513_ctrl_op_cmd {
+	SEGT_INPUT_CURRENT_LIMIT_VAL,	//设置输入电流限制值
+
+	SET_CHARGE_STATUS,				//设置充电状态
+
+	SET_FAST_CHARGE_CURRENT_VAL,	//设置恒流时的的充电电流值（快速充电时的电流大小）
+	SET_VBUS_FET_SWITCH_VAL,		//设置VBUS FET 的开关值
+	SET_BOOST_MODE_CURRENT_LIMIT_VAL,//设置Boost模式的电流限制值
+
+	SET_STOP_CHARGE_CURRENT_VAL,	//设置终止充电的电流
+	SET_PRE_CHARGE_CURRENT_VAL,		//设置预充电的电流
+
+	SET_RECHARGE_VOL_VAL,			//设置循环充电电压限制值L
+	SET_CHARGE_VOL_LIMIT_VAL,		//设置电池充电的电压阈值H	
+	SET_CHARGE_FULL_DELAY_TIME,		//设置电池充满电终止后增加充电延长时间
+
+	SET_JEITA_CHARGE_CURRENT_VAL,	//设置JEITA 充电电流值
+	SET_SAFT_TIMER_TIME_VAL,		//设置充电安全定时器时间
+
+	SET_THERMAL_REGULATION_MAX_VAL,	//设置热调节阈值（0-80，1-120）
+	SET_CHARGEE_TERMINATION_ENABLE,	//设置充电终止是否启用
+	SET_VINDPM_THRESHOLD_VAL,		//设置VINDPM阈值
+	SET_BOOST_MODE_VOL_REGULATION,	//设置Boost Mode电压调节的值
+	SET_VAC_PIN_OVER_VOL_THRESHOLD_VAL,//设置VAC Pin过压保护阈值
+
+	SET_JEITA_CHARGE_VOL_VAL,		//设置JEITA的充电电压值
+	SET_BATFET_USE_SWITCH,			//设置BATFET的是否使能
+	REST_ALL_REG_VAL,				//重置所有寄存器为默认值
+
+	GET_SYS_VOL_REGULATION_STATUS,	//获取系统电压调节状态
+	GET_THERMAL_REGULATION_STATUS,	//获取热调节状态
+	GET_INPUT_POWER_STATUS,			//获取输入电源（VBUS)状态
+	GET_CHARGE_STATUS,				//获取充电状态
+
+	GET_BATTERY_TEMP_STATUS,		//获取电池温度状态
+	GET_BATTERY_ERROR_STATUS,		//获取电池故障状态
+	GET_CHARGE_ERROR_STATUS,		//获取充电故障状态
+	GET_BOOST_MODE_ERROR_STATUS,	//获取Boost模式故障状态
+	GET_WATCHDOG_ERROR_STATUS,		//获取Watchdog故障状态
+
+	GET_INPUT_OVER_VOL_STATUS,		//获取输入过压状态（交流适配器为输入源）
+	GET_CHIP_PART_ID,				//获取该芯片部分ID
+
+	PRINTF_REG_VAL 					//打印所有寄存器的值
+}hl_drv_sgm41513_ctrl_op_cmd;
 
 /* define --------------------------------------------------------------------*/
 #define	REG00_ADDR		0x00
@@ -377,19 +423,43 @@ typedef enum _hl_drv_sgm41513_charger_status{
 #define SGM41513_WRITE_ADDR	0x1A
 #define SGM41513_READ_ADDR	0x1B
 
-#define CHARGER_OPEN		1
-#define CHARGER_CLOSE		0
+#define CHARGER_ENABLE		1
+#define CHARGER_DISABLE		0
 
+#define NORMAL						0	//正常状态
+#define EXIST_SYS_VOL_REGULATION	1	//存在系统电压调节
+#define NOT_SYS_VOL_REGULATION		0	//无系统电压调节
+#define EXIST_THERMAL_REGULATION	1	//存在热调节
+#define NOT_THERMAL_REGULATION		0	//无热调节
+#define EXIST_INPUT_POWER			1	//存在输入电源
+#define NOT_INPUT_POWER				0	//无输入电源
+/* 电池充电状态 */
+#define NOT_CHARGE					0	//未充电
+#define CHARGE_PRE					1	//预充电中
+#define CHARGE_RUN					2	//快速充电中（恒压或恒流）				
+#define CHARGE_TEMINATED			3	//充电终止				
+/* 电池温度状态 */
+#define TEMP_WARM					2
+#define TEMP_COOL					3
+#define TEMP_COLD					5
+#define TEMP_HOT					6
+#define BATTERY_OVER_VOL			1	//电池过压
+/* 充电故障状态 */
+#define CHARGE_INPUT_ERROR			1	//输入故障(VAC OVP or VBAT < VVBUS < 3.8V)
+#define CHARGE_THERMAL_SHUTDOWN		2	//热关机
+#define CHARGE_SAFT_TIMER_EXPIRED	3	//充电安全计时器过期
+#define BOOST_MODE_ERROR			1	//Boost模式故障（过载，电压过低）
+#define INPUT_OVER_VOL				1	//输入过压状态（交流适配器为输入源）	
+
+#define SGM41513_ERROR	1
+#define SGM41513_OK		0
 /* variables -----------------------------------------------------------------*/
 /* Private function(only *.c)  -----------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 
-void hl_drv_sgm41513_init();
-void hl_drv_sgm41513_deinit();
-void hl_drv_sgm41513_write_reg(rt_uint8_t w_addr, rt_uint8_t *reg_data);
-void hl_drv_sgm41513_read_reg(rt_uint8_t w_addr, rt_uint8_t *reg_data);
-
-
+uint8_t hl_drv_sgm41513_init(void);
+void hl_drv_sgm41513_deinit(void);
+uint8_t hl_drv_sgm41513_ctrl(uint8_t op_cmd, void *arg, int32_t arg_size);
 #endif
 /*
  * EOF

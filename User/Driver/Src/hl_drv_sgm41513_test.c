@@ -23,90 +23,199 @@
 /* Define to prevent recursive inclusion -------------------------------------*/
 /* Includes ------------------------------------------------------------------*/
 #include "hl_drv_sgm41513.h"
-#include <rtthread.h>
+#include "stdlib.h"
+#include "rtthread.h"
 /* typedef -------------------------------------------------------------------*/
 /* define --------------------------------------------------------------------*/
 /* variables -----------------------------------------------------------------*/
 /* Private function(only *.c)  -----------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 
-
-
-void hl_drv_sgm41513_test()
+void charge_status_printf()
 {
-    hl_sgm41513_info_t info;
     rt_uint8_t data = 0;
+    hl_drv_sgm41513_ctrl(GET_CHARGE_STATUS, &data, 1);
+    rt_kprintf("charge status: \n");
+    switch (data) {
+        case NOT_CHARGE:
+            rt_kprintf("    not charge\n");
+            break;
+        case CHARGE_PRE:
+            rt_kprintf("    pre charge\n");
+            break;
+        case CHARGE_RUN:
+            rt_kprintf("    fast charge\n");
+            break;
+        case CHARGE_TEMINATED:
+            rt_kprintf("    charge stop\n");
+            break;
+        default:
+            break;
+    }
+}
+
+void input_power_vbus_printf()
+{
+    uint8_t data = 0;
+    hl_drv_sgm41513_ctrl(GET_INPUT_POWER_STATUS, &data, 1);
+    rt_kprintf("input power status: \n");
+    if (data == EXIST_INPUT_POWER) {
+        rt_kprintf("    exist input power\n");
+    } else {
+        rt_kprintf("    not input power\n");
+    }
+}
+
+
+
+void battery_temp_status_printf()
+{
+    uint8_t data = 0;
+    hl_drv_sgm41513_ctrl(GET_BATTERY_TEMP_STATUS, &data, 1);
+    rt_kprintf("battery temp status: \n");
+    switch (data) {
+        case NORMAL:
+            rt_kprintf("    temp normal\n");
+            break;
+        case TEMP_WARM:
+            rt_kprintf("    temp warm\n");
+            break;
+        case TEMP_COOL:
+            rt_kprintf("    temp cool\n");
+            break;
+        case TEMP_COLD:
+            rt_kprintf("    temp cold\n");
+            break;
+        case TEMP_HOT:
+            rt_kprintf("    temp hot\n");
+            break;
+        default:
+            break;
+    }
+
+}
+
+void battery_error_status_printf()
+{
+    uint8_t data = 0;
+    hl_drv_sgm41513_ctrl(GET_BATTERY_ERROR_STATUS, &data, 1);
+    rt_kprintf("battery error status: \n");
+    if (data == NORMAL) {
+        rt_kprintf("    battery normal\n");
+    } else {
+        rt_kprintf("    battery error\n");
+    }
+}
+
+
+void charge_error_status_printf()
+{
+    uint8_t data = 0;
+    hl_drv_sgm41513_ctrl(GET_CHARGE_ERROR_STATUS, &data, 1);
+    rt_kprintf("charge error status: \n");
+    switch (data) {
+        case NORMAL:
+            rt_kprintf("    charge normal\n");
+            break;
+        case CHARGE_INPUT_ERROR:
+            rt_kprintf("    input error\n");
+            break;
+        case CHARGE_THERMAL_SHUTDOWN:
+            rt_kprintf("    thermal shutdown\n");
+            break;
+        case CHARGE_SAFT_TIMER_EXPIRED:
+            rt_kprintf("    safe timer expired\n");
+            break;
+        default:
+            break;
+    }
+}
+
+void temp_regulation_status_printf()
+{
+   
+   uint8_t data = 0;
+    hl_drv_sgm41513_ctrl(GET_THERMAL_REGULATION_STATUS, &data, 1);
+    rt_kprintf("temp regulation status: \n");
+    if (data == EXIST_THERMAL_REGULATION) {
+        rt_kprintf("    exist temp regulation\n");
+    } else {
+        rt_kprintf("    not exist temp regulation\n");
+    } 
+}
+
+void hl_drv_sgm41513_test(int argc, char *argv[])
+{
+    uint8_t data = 0;
+    if (argc <= 1) {
+        rt_kprintf("format : [cmd 0/1]\n");
+        return;
+    }
     hl_drv_sgm41513_init();
+    if (atoi(argv[1]) == 0) {
+        /* 重置所有寄存器的R/W位至默认值并重置安全定时器 */
+        hl_drv_sgm41513_ctrl(REST_ALL_REG_VAL, &data, 1);
 
-    hl_drv_sgm41513_read_reg(REG00_ADDR, (rt_uint8_t *)&info.reg00);
-    rt_kprintf("EN_HIZ:%x, EN_ICHG_MON:%x, IINDPM:%x\n", info.reg00.EN_HIZ, info.reg00.EN_ICHG_MON, info.reg00.IINDPM);
-    rt_kprintf("\n*************************************************************\n");
+        /* 设置充电状态为使能 */
+        data = CHARGER_ENABLE;
+        hl_drv_sgm41513_ctrl(SET_CHARGE_STATUS, &data, 1);
 
-    hl_drv_sgm41513_read_reg(REG01_ADDR, (rt_uint8_t *)&info.reg01);
-    rt_kprintf("PFM_DIS:%x, WD_RST:%x, OTG_CONFIG:%x, CHG_CONFIG:%x, SYS_MIN:%x, MIN_BAT_SEL:%x\n", info.reg01.PFM_DIS, info.reg01.WD_RST, 
-                                        info.reg01.OTG_CONFIG, info.reg01.CHG_CONFIG, info.reg01.SYS_MIN, info.reg01.MIN_BAT_SEL);
-    rt_kprintf("\n*************************************************************\n");
-
-    hl_drv_sgm41513_read_reg(REG02_ADDR, (rt_uint8_t *)&info.reg02);
-    rt_kprintf("BOOST_LIM:%x, Q1_FULLON:%x, ICHG:%x\n", info.reg02.BOOST_LIM, info.reg02.Q1_FULLON, info.reg02.ICHG);
-    rt_kprintf("\n*************************************************************\n");
-
-    hl_drv_sgm41513_read_reg(REG03_ADDR, (rt_uint8_t *)&info.reg03);
-    rt_kprintf("IPRECHG:%x, ITERM:%x\n", info.reg03.IPRECHG, info.reg03.ITERM);
-    rt_kprintf("\n*************************************************************\n");
-
-    hl_drv_sgm41513_read_reg(REG04_ADDR, (rt_uint8_t *)&info.reg04);
-    rt_kprintf("VREG:%x, TOPOFF_TIMER:%x, VRECHG:%x\n", info.reg04.VREG, info.reg04.TOPOFF_TIMER, info.reg04.VRECHG);
-    rt_kprintf("\n*************************************************************\n");
-
-    hl_drv_sgm41513_read_reg(REG05_ADDR, (rt_uint8_t *)&info.reg05);
-    rt_kprintf("EN_TERM:%x, ITERM_TIMER:%x, WATCHDOG:%x, EN_TIMER:%x, CHG_TIMER:%x, TREG:%x, JEITA_ISET:%x\n", 
-    info.reg05.EN_TERM, info.reg05.ITERM_TIMER, info.reg05.WATCHDOG, info.reg05.EN_TIMER, 
-    info.reg05.CHG_TIMER, info.reg05.TREG, info.reg05.JEITA_ISET);
-    rt_kprintf("\n*************************************************************\n");
-
-    hl_drv_sgm41513_read_reg(REG06_ADDR, (rt_uint8_t *)&info.reg06);
-    rt_kprintf("OVP:%x, BOOSTV:%x, VINDPM:%x\n", info.reg06.OVP, info.reg06.BOOSTV, info.reg06.VINDPM);
-    rt_kprintf("\n*************************************************************\n");
-
-    hl_drv_sgm41513_read_reg(REG07_ADDR, (rt_uint8_t *)&info.reg07);
-    rt_kprintf("IINDET_EN:%x, TMR2X_EN:%x, BATFET_RST_EN:%x, JEITA_VSET:%x, BATFET_DLY:%x, BATFET_RST_EN:%x, VDPM_BAT_TRACK:%x\n",
-    info.reg07.IINDET_EN, info.reg07.TMR2X_EN, info.reg07.BATFET_RST_EN, info.reg07.JEITA_VSET, info.reg07.BATFET_DLY,
-    info.reg07.BATFET_RST_EN, info.reg07.VDPM_BAT_TRACK);
-    rt_kprintf("\n*************************************************************\n");
-
-    while (1) {
-        hl_drv_sgm41513_read_reg(REG08_ADDR, (rt_uint8_t *)&info.charge_stu);
-        rt_kprintf("VBUS_STAT:%x, CHRG_STAT:%x, PG_STAT:%x, THERM_STAT:%x, VSYS_STAT:%x\n", 
-        info.charge_stu.VBUS_STAT, info.charge_stu.CHRG_STAT, info.charge_stu.PG_STAT, info.charge_stu.THERM_STAT, info.charge_stu.VSYS_STAT);
-        rt_kprintf("\n*************************************************************\n");
-
-        hl_drv_sgm41513_read_reg(REG09_ADDR, (rt_uint8_t *)&info.fault_stu);
-        rt_kprintf("WATCHDOG_FAULT:%x, BOOST_FAULT:%x, CHRG_FAULT:%x, BAT_FAULT:%x, NTC_FAULT:%x\n", 
-        info.fault_stu.WATCHDOG_FAULT, info.fault_stu.BOOST_FAULT, info.fault_stu.CHRG_FAULT, info.fault_stu.BAT_FAULT, info.fault_stu.NTC_FAULT);
-        rt_kprintf("\n*************************************************************\n");
-
-        hl_drv_sgm41513_read_reg(REG0A_ADDR, (rt_uint8_t *)&info.vol_stu);
-        rt_kprintf("VBUS_GD:%x, VINDPM_STAT:%x, IINDPM_STAT:%x, TOPOFF_ACTIVE:%x, ACOV_STAT:%x, VINDPM_INT_MASK:%x, IINDPM_INT_MASK:%x\n",
-        info.vol_stu.VBUS_GD, info.vol_stu.VINDPM_STAT, info.vol_stu.IINDPM_STAT, info.vol_stu.TOPOFF_ACTIVE, 
-        info.vol_stu.ACOV_STAT, info.vol_stu.VINDPM_INT_MASK, info.vol_stu.IINDPM_INT_MASK);
-        rt_kprintf("\n*************************************************************\n");
-
-        hl_drv_sgm41513_read_reg(REG0B_ADDR, (rt_uint8_t *)&info.reg0b);
-        rt_kprintf("reg_RST:%x, PN:%x, SGMPART:%x, DEV_REV:%x\n", info.reg0b.reg_RST, info.reg0b.PN, info.reg0b.SGMPART, info.reg0b.DEV_REV);
-        rt_kprintf("\n*************************************************************\n");
+        /* 设置充电终止为使能 */
+        data = CHARGER_ENABLE;
+        hl_drv_sgm41513_ctrl(SET_CHARGEE_TERMINATION_ENABLE, &data, 1);
         
+        /* 设置恒流时的的充电电流值（快速充电时的电流大小） */
+        data = 0x34;    //1980mA (110100)
+        hl_drv_sgm41513_ctrl(SET_FAST_CHARGE_CURRENT_VAL, &data, 1);
+        
+        /* 设置预充电的电流 */
+        data = 0x00;    //10mA
+        hl_drv_sgm41513_ctrl(SET_PRE_CHARGE_CURRENT_VAL, &data, 1);
 
-        hl_drv_sgm41513_read_reg(REG08_ADDR, &data);
-        rt_kprintf("--usb--bit 7-5 : %d, %d, %d\n", (data >> 7) & 0x1, (data >> 6) & 0x1, (data >> 5) & 0x1);
-        rt_kprintf("--usb--bit 4-3 : %d, %d\n", (data >> 4) & 0x01, (data >> 3) & 0x1);
-        rt_kprintf("--usb--bit 2 : %d\n", (data >> 2) & 0x01);
-        rt_kprintf("--usb--bit 1 : %d\n", (data >> 1) & 0x01);
-        rt_kprintf("--usb--bit 0 : %d\n", data & 0x01);
-        rt_kprintf("\n*************************************************************\n");
-        rt_thread_mdelay(1000);
+        /* 设置终止充电的电流 */
+        data = 0x0a;    //120mA (1010)
+        hl_drv_sgm41513_ctrl(SET_STOP_CHARGE_CURRENT_VAL, &data, 1);
+
+        /* 设置循环充电电压限制值L */
+        data = 0x00;    //100mV
+        hl_drv_sgm41513_ctrl(SET_RECHARGE_VOL_VAL, &data, 1);
+
+        /* 设置电池充电的电压阈值H  */
+        data = 0x0b;    //4.208V (01011)
+        hl_drv_sgm41513_ctrl(SET_CHARGE_VOL_LIMIT_VAL, &data, 1);
+
+        /* 设置输入电压动态电源管理阈值  */
+        data = 0x06;    //4.5V (0110)
+        hl_drv_sgm41513_ctrl(SET_VINDPM_THRESHOLD_VAL, &data, 1);
+
+        /* 设置热调节阈值 （0-80，1-120）*/
+        data = 0x01;    //4.5V (0110)
+        hl_drv_sgm41513_ctrl(SET_VINDPM_THRESHOLD_VAL, &data, 1);
+
+    } else {
+        /* 打印所有寄存器的值 */
+        hl_drv_sgm41513_ctrl(PRINTF_REG_VAL, &data, 1);
+
+        /* 打印充电状态 */
+        charge_status_printf();
+
+        /* 打印输入电源（VBUS)状态 */
+        input_power_vbus_printf();
+
+        /* 获取电池温度状态 */
+        battery_temp_status_printf();
+
+        /* 获取电池故障状态 */
+        battery_error_status_printf();
+
+	    /* 获取充电故障状态 */
+        charge_error_status_printf();
+
+        /* 打印热调节状态 */
+        temp_regulation_status_printf();
     }
     
+
 }
 
 MSH_CMD_EXPORT(hl_drv_sgm41513_test, sgm41513 driver test);
