@@ -1,9 +1,9 @@
 /**
- * @file hl_hal_uart_test.c
+ * @file hl_hal_usb_cdc.h
  * @author lilin (lin.li@hollyland-tech.com)
  * @brief 
  * @version 1.0
- * @date 2022-10-17
+ * @date 2022-10-20
  * 
  * ██╗  ██╗ ██████╗ ██╗     ██╗  ██╗   ██╗██╗      █████╗ ███╗   ██╗██████╗ 
  * ██║  ██║██╔═══██╗██║     ██║  ╚██╗ ██╔╝██║     ██╔══██╗████╗  ██║██╔══██╗
@@ -16,57 +16,38 @@
  * @par 修改日志:
  * <table>
  * <tr><th>Date           <th>Version  <th>Author         <th>Description
- * <tr><td>2022-10-17     <td>v1.0     <td>lilin     <td>内容
+ * <tr><td>2022-10-20     <td>v1.0     <td>lilin     <td>内容
  * </table>
  * 
- */
+ */ 
 /* Define to prevent recursive inclusion -------------------------------------*/
+
+#ifndef __HL_HAL_USB_CDC_H__
+#define __HL_HAL_USB_CDC_H__
+
 /* Includes ------------------------------------------------------------------*/
 
-#include "hl_hal_uart.h"
 #include "rtthread.h"
-#include "stdlib.h"
-
-#include "hl_hal_gpio.h"
-#include "n32l40x.h"
+#include "stdint.h"
+#include "stdbool.h"
 
 /* typedef -------------------------------------------------------------------*/
 /* define --------------------------------------------------------------------*/
+
+#define HL_HAL_USB_CDC_FUNC_OK 0
+#define HL_HAL_USB_CDC_FUNC_ERR 1
+
 /* variables -----------------------------------------------------------------*/
 /* Private function(only *.c)  -----------------------------------------------*/
-
-static void _uart1_callback(uint8_t data)
-{
-    rt_kprintf("uart1:%c\n", data);
-}
-
-static void _uart2_callback(uint8_t data)
-{
-    rt_kprintf("lpuart:%c\n", data);
-}
-
-static void _uart3_callback(uint8_t data)
-{
-    rt_kprintf("uart3:%c\n", data);
-}
-
 /* Exported functions --------------------------------------------------------*/
-static void hl_hal_uart_test(int argc, char* argv[])  //首先需要把PA8引脚拉高，给电平转换芯片供电。
-{
-    rt_kprintf("init uart1, Tx:PB6, Rx:PB7\n");
-    hl_hal_uart_init(HL_HAL_UART_NUMB_1, 115200);
-    hl_hal_uart_receive_reg(HL_HAL_UART_NUMB_1, _uart1_callback);
+int hl_hal_usb_cdc_init();
 
-    rt_kprintf("init lpuart, Tx:PA1, Rx:PA0\n");
-    hl_hal_uart_init(HL_HAL_UART_NUMB_2, 115200);
-    hl_hal_uart_receive_reg(HL_HAL_UART_NUMB_2, _uart2_callback);
+int hl_hal_usb_cdc_deinit();
 
-    rt_kprintf("init uart3, Tx:PB10, Rx:PB11\n");
-    hl_hal_uart_init(HL_HAL_UART_NUMB_3, 115200);
-    hl_hal_uart_receive_reg(HL_HAL_UART_NUMB_3, _uart3_callback);
-}
+int hl_hal_usb_cdc_read(uint8_t *buf, uint32_t len, uint32_t *p_size);
 
-MSH_CMD_EXPORT(hl_hal_uart_test, hal uart test);
+int hl_hal_usb_cdc_write(uint8_t *buf, uint32_t len, uint32_t *p_size);
+#endif
 /*
  * EOF
  */

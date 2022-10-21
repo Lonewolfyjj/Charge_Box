@@ -17,5 +17,6 @@
 /* Exported functions --------------------------------------------------------*/
 void hl_hal_console_init(void);
 void hl_hal_console_deinit(void);
+void hl_hal_console_detach(bool flag);
 
 #endif /* APPLICATIONS_DRIVER_RTX1290_HL_DRV_RTX1290_H_ */

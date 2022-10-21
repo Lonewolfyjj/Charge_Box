@@ -125,22 +125,22 @@ static void _uart1_gpio_init(void)
     GPIO_InitType GPIO_InitStructure;
 
     /* Enable GPIO clock */
-    RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOA, ENABLE);
+    RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOB, ENABLE);
 
     /* Initialize GPIO_InitStructure */
     GPIO_InitStruct(&GPIO_InitStructure);
 
     /* Configure USARTx Tx as alternate function push-pull */
-    GPIO_InitStructure.Pin            = GPIO_PIN_4;
+    GPIO_InitStructure.Pin            = GPIO_PIN_6;
     GPIO_InitStructure.GPIO_Mode      = GPIO_Mode_AF_PP;
-    GPIO_InitStructure.GPIO_Alternate = GPIO_AF1_USART1;
-    GPIO_InitPeripheral(GPIOA, &GPIO_InitStructure);
+    GPIO_InitStructure.GPIO_Alternate = GPIO_AF0_USART1;
+    GPIO_InitPeripheral(GPIOB, &GPIO_InitStructure);
 
     /* Configure USARTx Rx as alternate function push-pull and pull-up */
-    GPIO_InitStructure.Pin            = GPIO_PIN_5;
+    GPIO_InitStructure.Pin            = GPIO_PIN_7;
     GPIO_InitStructure.GPIO_Pull      = GPIO_Pull_Up;
-    GPIO_InitStructure.GPIO_Alternate = GPIO_AF4_USART1;
-    GPIO_InitPeripheral(GPIOA, &GPIO_InitStructure);
+    GPIO_InitStructure.GPIO_Alternate = GPIO_AF0_USART1;
+    GPIO_InitPeripheral(GPIOB, &GPIO_InitStructure);
 }
 
 static void _uart1_gpio_deinit(void)
