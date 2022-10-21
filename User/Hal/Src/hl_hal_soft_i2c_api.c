@@ -65,9 +65,9 @@ static const soft_i2c_info i2c3_info = {
     hl_hal_us_delay  //微秒级延时函数名
 };
 
-static rt_mutex_t i2c1_mutex = RT_NULL;
-static rt_mutex_t i2c2_mutex = RT_NULL;
-static rt_mutex_t i2c3_mutex = RT_NULL;
+static struct rt_mutex i2c1_mutex = { 0 };
+static struct rt_mutex i2c2_mutex = { 0 };
+static struct rt_mutex i2c3_mutex = { 0 };
 
 static bool i2c1_init_flag = false;
 static bool i2c2_init_flag = false;
@@ -116,8 +116,7 @@ int hl_hal_soft_i2c_api_init(hl_hal_soft_i2c_numb_e i2cx)
 
             /* I2C引脚初始化，并使能I2C引脚对应的GPIO组外设时钟 */
             hl_hal_soft_i2c_init((soft_i2c_info*)&i2c1_info);
-            i2c1_mutex = rt_mutex_create("i2c1_mutex", RT_IPC_FLAG_PRIO);
-
+            rt_mutex_init(&i2c1_mutex, "i2c1_mutex", RT_IPC_FLAG_PRIO);
             i2c1_init_flag = true;
         } break;
         case HL_HAL_SOFT_I2C_NUMB_2: {
@@ -127,7 +126,7 @@ int hl_hal_soft_i2c_api_init(hl_hal_soft_i2c_numb_e i2cx)
 
             /* I2C引脚初始化，并使能I2C引脚对应的GPIO组外设时钟 */
             hl_hal_soft_i2c_init((soft_i2c_info*)&i2c2_info);
-            i2c2_mutex = rt_mutex_create("i2c2_mutex", RT_IPC_FLAG_PRIO);
+            rt_mutex_init(&i2c2_mutex, "i2c2_mutex", RT_IPC_FLAG_PRIO);
 
             i2c2_init_flag = true;
         } break;
@@ -138,7 +137,7 @@ int hl_hal_soft_i2c_api_init(hl_hal_soft_i2c_numb_e i2cx)
 
             /* I2C引脚初始化，并使能I2C引脚对应的GPIO组外设时钟 */
             hl_hal_soft_i2c_init((soft_i2c_info*)&i2c3_info);
-            i2c3_mutex = rt_mutex_create("i2c3_mutex", RT_IPC_FLAG_PRIO);
+            rt_mutex_init(&i2c3_mutex, "i2c3_mutex", RT_IPC_FLAG_PRIO);
 
             i2c3_init_flag = true;
         } break;
@@ -158,7 +157,7 @@ int hl_hal_soft_i2c_api_deinit(hl_hal_soft_i2c_numb_e i2cx)
             }
 
             hl_hal_soft_i2c_deinit((soft_i2c_info*)&i2c1_info);
-            rt_mutex_delete(i2c1_mutex);
+            rt_mutex_detach(&i2c1_mutex);
 
             i2c1_init_flag = false;
         } break;
@@ -168,7 +167,7 @@ int hl_hal_soft_i2c_api_deinit(hl_hal_soft_i2c_numb_e i2cx)
             }
 
             hl_hal_soft_i2c_deinit((soft_i2c_info*)&i2c2_info);
-            rt_mutex_delete(i2c2_mutex);
+            rt_mutex_detach(&i2c2_mutex);
 
             i2c2_init_flag = false;
         } break;
@@ -178,7 +177,7 @@ int hl_hal_soft_i2c_api_deinit(hl_hal_soft_i2c_numb_e i2cx)
             }
 
             hl_hal_soft_i2c_deinit((soft_i2c_info*)&i2c3_info);
-            rt_mutex_delete(i2c3_mutex);
+            rt_mutex_detach(&i2c3_mutex);
 
             i2c3_init_flag = false;
         } break;
@@ -189,7 +188,8 @@ int hl_hal_soft_i2c_api_deinit(hl_hal_soft_i2c_numb_e i2cx)
     return SOFT_I2C_API_FUNC_RET_OK;
 }
 
-int hl_hal_soft_i2c_api_read(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uint8_t PointReg, uint8_t* pData, uint16_t len)
+int hl_hal_soft_i2c_api_read(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uint8_t PointReg, uint8_t* pData,
+                             uint16_t len)
 {
     soft_i2c_dev_addr_info i2c_addr;
 
@@ -203,27 +203,27 @@ int hl_hal_soft_i2c_api_read(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uint
                 return SOFT_I2C_API_FUNC_RET_ERR;
             }
 
-            rt_mutex_take(i2c1_mutex, RT_WAITING_FOREVER);
+            rt_mutex_take(&i2c1_mutex, RT_WAITING_FOREVER);
             hl_hal_soft_i2c_read((soft_i2c_info*)&i2c1_info, &i2c_addr, pData, len);
-            rt_mutex_release(i2c1_mutex);
+            rt_mutex_release(&i2c1_mutex);
         } break;
         case HL_HAL_SOFT_I2C_NUMB_2: {
             if (i2c2_init_flag != true) {
                 return SOFT_I2C_API_FUNC_RET_ERR;
             }
 
-            rt_mutex_take(i2c2_mutex, RT_WAITING_FOREVER);
+            rt_mutex_take(&i2c2_mutex, RT_WAITING_FOREVER);
             hl_hal_soft_i2c_read((soft_i2c_info*)&i2c2_info, &i2c_addr, pData, len);
-            rt_mutex_release(i2c2_mutex);
+            rt_mutex_release(&i2c2_mutex);
         } break;
         case HL_HAL_SOFT_I2C_NUMB_3: {
             if (i2c3_init_flag != true) {
                 return SOFT_I2C_API_FUNC_RET_ERR;
             }
 
-            rt_mutex_take(i2c3_mutex, RT_WAITING_FOREVER);
+            rt_mutex_take(&i2c3_mutex, RT_WAITING_FOREVER);
             hl_hal_soft_i2c_read((soft_i2c_info*)&i2c3_info, &i2c_addr, pData, len);
-            rt_mutex_release(i2c3_mutex);
+            rt_mutex_release(&i2c3_mutex);
         } break;
         default:
             break;
@@ -232,7 +232,8 @@ int hl_hal_soft_i2c_api_read(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uint
     return SOFT_I2C_API_FUNC_RET_OK;
 }
 
-int hl_hal_soft_i2c_api_write(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uint8_t PointReg, uint8_t* pData, uint16_t len)
+int hl_hal_soft_i2c_api_write(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uint8_t PointReg, uint8_t* pData,
+                              uint16_t len)
 {
     soft_i2c_dev_addr_info i2c_addr;
 
@@ -246,27 +247,27 @@ int hl_hal_soft_i2c_api_write(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uin
                 return SOFT_I2C_API_FUNC_RET_ERR;
             }
 
-            rt_mutex_take(i2c1_mutex, RT_WAITING_FOREVER);
+            rt_mutex_take(&i2c1_mutex, RT_WAITING_FOREVER);
             hl_hal_soft_i2c_write((soft_i2c_info*)&i2c1_info, &i2c_addr, pData, len);
-            rt_mutex_release(i2c1_mutex);
+            rt_mutex_release(&i2c1_mutex);
         } break;
         case HL_HAL_SOFT_I2C_NUMB_2: {
             if (i2c2_init_flag != true) {
                 return SOFT_I2C_API_FUNC_RET_ERR;
             }
 
-            rt_mutex_take(i2c2_mutex, RT_WAITING_FOREVER);
+            rt_mutex_take(&i2c2_mutex, RT_WAITING_FOREVER);
             hl_hal_soft_i2c_write((soft_i2c_info*)&i2c2_info, &i2c_addr, pData, len);
-            rt_mutex_release(i2c2_mutex);
+            rt_mutex_release(&i2c2_mutex);
         } break;
         case HL_HAL_SOFT_I2C_NUMB_3: {
             if (i2c3_init_flag != true) {
                 return SOFT_I2C_API_FUNC_RET_ERR;
             }
 
-            rt_mutex_take(i2c3_mutex, RT_WAITING_FOREVER);
+            rt_mutex_take(&i2c3_mutex, RT_WAITING_FOREVER);
             hl_hal_soft_i2c_write((soft_i2c_info*)&i2c3_info, &i2c_addr, pData, len);
-            rt_mutex_release(i2c3_mutex);
+            rt_mutex_release(&i2c3_mutex);
         } break;
         default:
             break;
