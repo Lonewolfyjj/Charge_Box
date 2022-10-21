@@ -189,8 +189,8 @@ void hl_drv_sgm41513_test(int argc, char *argv[])
         hl_drv_sgm41513_ctrl(SET_VINDPM_THRESHOLD_VAL, &data, 1);
 
         /* 设置热调节阈值 （0-80，1-120）*/
-        data = 0x01;    //4.5V (0110)
-        hl_drv_sgm41513_ctrl(SET_VINDPM_THRESHOLD_VAL, &data, 1);
+        data = 0x01;
+        hl_drv_sgm41513_ctrl(SET_THERMAL_REGULATION_MAX_VAL, &data, 1);
 
     } else {
         /* 打印所有寄存器的值 */
