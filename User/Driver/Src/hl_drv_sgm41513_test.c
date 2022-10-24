@@ -148,7 +148,7 @@ void temp_regulation_status_printf()
 }
 
 /* Private function(only *.c)  -----------------------------------------------*/
-void hl_hal_gpio_test_irq_process(void *args)
+void hl_driver_charge_test_irq_process(void *args)
 {
     HL_GPIO_PORT_E gpio_pin_e = *(HL_GPIO_PORT_E *)args;
 
@@ -187,7 +187,7 @@ void hl_drv_sgm41513_test(int argc, char *argv[])
     hl_hal_gpio_init(gpio_pin_e);
     irq_arg_table[gpio_pin_e] = gpio_pin_e;
     hl_hal_gpio_init(gpio_pin_e);
-    hl_hal_gpio_attach_irq(gpio_pin_e, PIN_IRQ_MODE_FALLING, hl_hal_gpio_test_irq_process, &irq_arg_table[gpio_pin_e]);
+    hl_hal_gpio_attach_irq(gpio_pin_e, PIN_IRQ_MODE_FALLING, hl_driver_charge_test_irq_process, &irq_arg_table[gpio_pin_e]);
     hl_hal_gpio_irq_enable(gpio_pin_e, PIN_IRQ_ENABLE);
 
     rt_kprintf("charge_INT val :%d\n", hl_hal_gpio_read(4));
@@ -235,6 +235,25 @@ void hl_drv_sgm41513_test(int argc, char *argv[])
     } else {
         /* 打印所有寄存器的值 */
         hl_drv_sgm41513_ctrl(PRINTF_REG_VAL, &data, 1);
+        /* 打印充电状态 */
+        charge_status_printf();
+
+        /* 打印输入电源（VBUS)状态 */
+        input_power_vbus_printf();
+
+        /* 获取电池温度状态 */
+        battery_temp_status_printf();
+
+        /* 获取电池故障状态 */
+        battery_error_status_printf();
+
+        /* 获取充电故障状态 */
+        charge_error_status_printf();
+
+        /* 打印热调节状态 */
+        temp_regulation_status_printf();
+
+        rt_kprintf("\n*************************************************************\n");
     }
     
 
