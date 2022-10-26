@@ -66,8 +66,8 @@ typedef struct {
 
 void hl_hal_soft_spi_init(hl_hal_soft_spi_info *spi_info);
 uint8_t hl_hal_soft_spi_send_recv(hl_hal_soft_spi_info *spi_info, uint8_t wdata);
+void hl_hal_soft_spi_deinit(hl_hal_soft_spi_info *spi_info);
 
-void hl_hal_soft_spi_test(void);
 #endif
 /*
  * EOF

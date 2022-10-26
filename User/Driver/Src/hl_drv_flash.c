@@ -306,7 +306,7 @@ int hl_drv_flash_deinit(void)
 	if (flash_init_flag == false) {
 		return FLASH_RET_ERR;
 	}
-
+	hl_hal_soft_spi_deinit(&spi_info);
 	flash_init_flag = false;
 	return FLASH_RET_OK;
 }
