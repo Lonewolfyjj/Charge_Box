@@ -8,36 +8,36 @@
 
 #if defined(RTE_USING_FINSH)
 #define RT_USING_FINSH
-#endif //RTE_USING_FINSH
+#endif  //RTE_USING_FINSH
 
-#endif //(__CC_ARM) || (__CLANG_ARM)
+#endif  //(__CC_ARM) || (__CLANG_ARM)
 
 // <<< Use Configuration Wizard in Context Menu >>>
 // <h>Basic Configuration
 // <o>Maximal level of thread priority <8-256>
 //  <i>Default: 32
-#define RT_THREAD_PRIORITY_MAX  8
+#define RT_THREAD_PRIORITY_MAX 8
 // <o>OS tick per second
 //  <i>Default: 1000   (1ms)
-#define RT_TICK_PER_SECOND  1000
+#define RT_TICK_PER_SECOND 1000
 // <o>Alignment size for CPU architecture data access
 //  <i>Default: 4
-#define RT_ALIGN_SIZE   4
+#define RT_ALIGN_SIZE 4
 // <o>the max length of object name<2-16>
 //  <i>Default: 8
-#define RT_NAME_MAX    8
+#define RT_NAME_MAX 8
 // <c1>Using RT-Thread components initialization
 //  <i>Using RT-Thread components initialization
 #define RT_USING_COMPONENTS_INIT
 // </c>
 
 #define RT_USING_USER_MAIN
-#define RT_USING_HEAP
+// #define RT_USING_HEAP
 #define RT_USING_FINSH
 
 // <o>the stack size of main thread<1-4086>
 //  <i>Default: 512
-#define RT_MAIN_THREAD_STACK_SIZE     256
+#define RT_MAIN_THREAD_STACK_SIZE 256
 
 // </h>
 
@@ -68,16 +68,16 @@
 
 // <e>Software timers Configuration
 // <i> Enables user timers
-#define RT_USING_TIMER_SOFT         0
+#define RT_USING_TIMER_SOFT 0
 #if RT_USING_TIMER_SOFT == 0
-    #undef RT_USING_TIMER_SOFT
+#undef RT_USING_TIMER_SOFT
 #endif
 // <o>The priority level of timer thread <0-31>
 //  <i>Default: 4
-#define RT_TIMER_THREAD_PRIO        4
+#define RT_TIMER_THREAD_PRIO 4
 // <o>The stack size of timer thread <0-8192>
 //  <i>Default: 512
-#define RT_TIMER_THREAD_STACK_SIZE  512
+#define RT_TIMER_THREAD_STACK_SIZE 512
 // </e>
 
 // <h>IPC(Inter-process communication) Configuration
@@ -87,7 +87,7 @@
 // </c>
 // <c1>Using Mutex
 //  <i>Using Mutex
-//#define RT_USING_MUTEX
+#define RT_USING_MUTEX
 // </c>
 // <c1>Using Event
 //  <i>Using Event
@@ -126,29 +126,31 @@
 // <o>the buffer size of console <1-1024>
 //  <i>the buffer size of console
 //  <i>Default: 128  (128Byte)
-#define RT_CONSOLEBUF_SIZE          128
+#define RT_CONSOLEBUF_SIZE 128
 // </h>
 
 #if defined(RT_USING_FINSH)
-    #define FINSH_USING_MSH
-    #define FINSH_USING_MSH_ONLY
-    // <h>Finsh Configuration
-    // <o>the priority of finsh thread <1-7>
-    //  <i>the priority of finsh thread
-    //  <i>Default: 6
-    #define __FINSH_THREAD_PRIORITY     5
-    #define FINSH_THREAD_PRIORITY       (RT_THREAD_PRIORITY_MAX / 8 * __FINSH_THREAD_PRIORITY + 1)
-    // <o>the stack of finsh thread <1-4096>
-    //  <i>the stack of finsh thread
-    //  <i>Default: 4096  (4096Byte)
-    #define FINSH_THREAD_STACK_SIZE     512
-    // <o>the history lines of finsh thread <1-32>
-    //  <i>the history lines of finsh thread
-    //  <i>Default: 5
-    #define FINSH_HISTORY_LINES         1
+#define FINSH_USING_MSH
+#define FINSH_USING_MSH_ONLY
+// <h>Finsh Configuration
+// <o>the priority of finsh thread <1-7>
+//  <i>the priority of finsh thread
+//  <i>Default: 6
+#define __FINSH_THREAD_PRIORITY 5
+#define FINSH_THREAD_PRIORITY (RT_THREAD_PRIORITY_MAX / 8 * __FINSH_THREAD_PRIORITY + 1)
+// <o>the stack of finsh thread <1-4096>
+//  <i>the stack of finsh thread
+//  <i>Default: 4096  (4096Byte)
+#define FINSH_THREAD_STACK_SIZE 512
+// <o>the history lines of finsh thread <1-32>
+//  <i>the history lines of finsh thread
+//  <i>Default: 5
+#define FINSH_HISTORY_LINES 5
 
-    #define FINSH_USING_SYMTAB
-    // </h>
+#define FINSH_USING_SYMTAB
+#define FINSH_USING_HISTORY
+#define FINSH_USING_DESCRIPTION
+// </h>
 #endif
 
 // <<< end of configuration section >>>

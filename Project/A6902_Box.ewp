@@ -355,7 +355,7 @@
                     <state>$PROJ_DIR$\..\rtthread</state>
                     <state>$PROJ_DIR$\..\rtthread\include</state>
                     <state>$PROJ_DIR$\..\rtthread\components\finsh</state>
-                    <state>F:\LiLinsFile\MacrophoneGroup\6902_box\6902_box_app\User\Utility</state>
+                    <state>$PROJ_DIR$\..\User\Utility</state>
                     <state>$PROJ_DIR$\..\User\Module\Inc</state>
                     <state>$PROJ_DIR$\..\User\Hal\Inc</state>
                     <state>$PROJ_DIR$\..\User\Driver\Inc</state>
@@ -364,6 +364,8 @@
                     <state>$PROJ_DIR$\..\User\Utility\fifo</state>
                     <state>$PROJ_DIR$\..\User\Utility\hup</state>
                     <state>$PROJ_DIR$\..\User\Utility\xor_calc</state>
+                    <state>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver</state>
+                    <state>$PROJ_DIR$\..\Libraries\n32l40x_usbfs_driver\inc</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1089,6 +1091,48 @@
     </group>
     <group>
         <name>libarary</name>
+        <group>
+            <name>usb_cdc</name>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver\hw_config.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver\usb_desc.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver\usb_endp.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver\usb_istr.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver\usb_prop.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver\usb_pwr.c</name>
+            </file>
+        </group>
+        <group>
+            <name>usb_fs</name>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usbfs_driver\src\usb_core.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usbfs_driver\src\usb_init.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usbfs_driver\src\usb_int.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usbfs_driver\src\usb_mem.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usbfs_driver\src\usb_regs.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usbfs_driver\src\usb_sil.c</name>
+            </file>
+        </group>
         <file>
             <name>$PROJ_DIR$\..\Libraries\n32l40x_std_periph_driver\src\misc.c</name>
         </file>
@@ -1133,6 +1177,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\Libraries\n32l40x_std_periph_driver\src\n32l40x_lptim.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Libraries\n32l40x_std_periph_driver\src\n32l40x_lpuart.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\Libraries\n32l40x_std_periph_driver\src\n32l40x_opamp.c</name>
@@ -1237,9 +1284,15 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_uart.c</name>
-                <excluded>
-                    <configuration>Release</configuration>
-                </excluded>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_uart_test.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_uart_test.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_usb_cdc.c</name>
             </file>
         </group>
         <group>
