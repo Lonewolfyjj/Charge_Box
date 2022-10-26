@@ -32,7 +32,9 @@
 #define debug_printf    rt_kprintf
 #define REG_BIT_VAL(n)  (((n) == 0) ? (0):(1))
 /* variables -----------------------------------------------------------------*/
+
 static bool sgm41513_init_status = false;
+
 /* Private function(only *.c)  -----------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 
@@ -549,24 +551,35 @@ uint8_t hl_drv_sgm41513_init(void)
 {
     uint8_t re_val = 0;
     hl_sgm41513_reg0b_t reg_val;
+    if (sgm41513_init_status == true) {
+        debug_printf("[error] sgm41513 drv already init!\n");
+        return SGM41513_ERROR;
+    }
     re_val = hl_hal_soft_i2c_api_init(HL_HAL_SOFT_I2C_NUMB_2);
     if (SOFT_I2C_API_FUNC_RET_ERR == re_val) {
         sgm41513_init_status = false;
+        debug_printf("[error] sgm41513 drv init failed 1 !\n");
         return SGM41513_ERROR;
     }
     hl_drv_sgm41513_read_reg(REG0B_ADDR, (uint8_t *)&reg_val);
     if (reg_val.PN != 0) {
         sgm41513_init_status = false;
+        debug_printf("[error] sgm41513 drv init failed 2 !\n");
         return SGM41513_ERROR;
     }
     sgm41513_init_status = true;
     return SGM41513_OK; 
-
 }
 
-void hl_drv_sgm41513_deinit()
-{
+uint8_t hl_drv_sgm41513_deinit(void)
+{   
+    if (sgm41513_init_status == false) {
+        debug_printf("[error] sgm41513 drv not init!\n");
+        return SGM41513_ERROR;
+    }
     hl_hal_soft_i2c_api_deinit(HL_HAL_SOFT_I2C_NUMB_2);
+    sgm41513_init_status == false;
+    return SGM41513_OK;
 }
 
 /*

@@ -458,7 +458,7 @@ typedef enum _hl_drv_sgm41513_ctrl_op_cmd {
 /* Exported functions --------------------------------------------------------*/
 
 uint8_t hl_drv_sgm41513_init(void);
-void hl_drv_sgm41513_deinit(void);
+uint8_t hl_drv_sgm41513_deinit(void);
 uint8_t hl_drv_sgm41513_ctrl(uint8_t op_cmd, void *arg, int32_t arg_size);
 #endif
 /*
