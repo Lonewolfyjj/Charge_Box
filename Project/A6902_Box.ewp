@@ -49,16 +49,16 @@
                 <option>
                     <name>GRuntimeLibSelect</name>
                     <version>0</version>
-                    <state>2</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>GRuntimeLibSelectSlave</name>
                     <version>0</version>
-                    <state>2</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>RTDescription</name>
-                    <state>Use the full configuration of the C/C++ runtime library. Full locale interface, C locale, file descriptor support, multibytes in printf and scanf, and hex floats in strtod.</state>
+                    <state>Use the normal configuration of the C/C++ runtime library. No locale interface, C locale, no file descriptor support, no multibytes in printf and scanf, and no hex floats in strtod.</state>
                 </option>
                 <option>
                     <name>OGProductVersion</name>
@@ -66,7 +66,7 @@
                 </option>
                 <option>
                     <name>OGLastSavedByProductVersion</name>
-                    <state>8.32.1.18618</state>
+                    <state>8.32.4.20866</state>
                 </option>
                 <option>
                     <name>GeneralEnableMisra</name>
@@ -82,7 +82,7 @@
                 </option>
                 <option>
                     <name>GenLowLevelInterface</name>
-                    <state>1</state>
+                    <state>0</state>
                 </option>
                 <option>
                     <name>GEndianModeBE</name>
@@ -112,11 +112,11 @@
                 </option>
                 <option>
                     <name>RTConfigPath2</name>
-                    <state>$TOOLKIT_DIR$\inc\c\DLib_Config_Full.h</state>
+                    <state>$TOOLKIT_DIR$\inc\c\DLib_Config_Normal.h</state>
                 </option>
                 <option>
                     <name>GBECoreSlave</name>
-                    <version>26</version>
+                    <version>27</version>
                     <state>39</state>
                 </option>
                 <option>
@@ -133,7 +133,7 @@
                 </option>
                 <option>
                     <name>CoreVariant</name>
-                    <version>26</version>
+                    <version>27</version>
                     <state>39</state>
                 </option>
                 <option>
@@ -156,7 +156,7 @@
                 </option>
                 <option>
                     <name>GFPUCoreSlave2</name>
-                    <version>26</version>
+                    <version>27</version>
                     <state>39</state>
                 </option>
                 <option>
@@ -355,7 +355,7 @@
                     <state>$PROJ_DIR$\..\rtthread</state>
                     <state>$PROJ_DIR$\..\rtthread\include</state>
                     <state>$PROJ_DIR$\..\rtthread\components\finsh</state>
-                    <state>F:\LiLinsFile\MacrophoneGroup\6902_box\6902_box_app\User\Utility</state>
+                    <state>$PROJ_DIR$\..\User\Utility</state>
                     <state>$PROJ_DIR$\..\User\Module\Inc</state>
                     <state>$PROJ_DIR$\..\User\Hal\Inc</state>
                     <state>$PROJ_DIR$\..\User\Driver\Inc</state>
@@ -364,7 +364,8 @@
                     <state>$PROJ_DIR$\..\User\Utility\fifo</state>
                     <state>$PROJ_DIR$\..\User\Utility\hup</state>
                     <state>$PROJ_DIR$\..\User\Utility\xor_calc</state>
-                    <state>$PROJ_DIR$\..\User\Driver\Inc</state>
+                    <state>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver</state>
+                    <state>$PROJ_DIR$\..\Libraries\n32l40x_usbfs_driver\inc</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1090,6 +1091,48 @@
     </group>
     <group>
         <name>libarary</name>
+        <group>
+            <name>usb_cdc</name>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver\hw_config.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver\usb_desc.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver\usb_endp.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver\usb_istr.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver\usb_prop.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver\usb_pwr.c</name>
+            </file>
+        </group>
+        <group>
+            <name>usb_fs</name>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usbfs_driver\src\usb_core.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usbfs_driver\src\usb_init.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usbfs_driver\src\usb_int.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usbfs_driver\src\usb_mem.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usbfs_driver\src\usb_regs.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usbfs_driver\src\usb_sil.c</name>
+            </file>
+        </group>
         <file>
             <name>$PROJ_DIR$\..\Libraries\n32l40x_std_periph_driver\src\misc.c</name>
         </file>
@@ -1134,6 +1177,9 @@
         </file>
         <file>
             <name>$PROJ_DIR$\..\Libraries\n32l40x_std_periph_driver\src\n32l40x_lptim.c</name>
+        </file>
+        <file>
+            <name>$PROJ_DIR$\..\Libraries\n32l40x_std_periph_driver\src\n32l40x_lpuart.c</name>
         </file>
         <file>
             <name>$PROJ_DIR$\..\Libraries\n32l40x_std_periph_driver\src\n32l40x_opamp.c</name>
@@ -1228,6 +1274,30 @@
         <group>
             <name>driver</name>
             <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_aw2016a.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_aw2016a_test.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_cw2215.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_cw2215_test.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_flash.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_flash_test.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_pcf85063atl.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_pcf85063atl_test.c</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_sgm41513.c</name>
             </file>
             <file>
@@ -1237,13 +1307,28 @@
         <group>
             <name>hal</name>
             <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_boot_jump.c</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_console.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_gpio.c</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_gpio_test.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_lowpower.c</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_i2c.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_i2c_api.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_i2c_api_test.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_i2c_test.c</name>
@@ -1256,9 +1341,12 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_uart.c</name>
-                <excluded>
-                    <configuration>Release</configuration>
-                </excluded>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_uart_test.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_usb_cdc.c</name>
             </file>
         </group>
         <group>
