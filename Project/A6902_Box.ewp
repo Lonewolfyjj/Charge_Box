@@ -1273,9 +1273,42 @@
         </group>
         <group>
             <name>driver</name>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_aw2016a.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_aw2016a_test.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_cw2215.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_cw2215_test.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_flash.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_flash_test.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_pcf85063atl.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_pcf85063atl_test.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_sgm41513.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_sgm41513_test.c</name>
+            </file>
         </group>
         <group>
             <name>hal</name>
+            <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_boot_jump.c</name>
+            </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_console.c</name>
             </file>
@@ -1283,10 +1316,31 @@
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_gpio.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_uart.c</name>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_gpio_test.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_uart_test.c</name>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_lowpower.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_i2c.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_i2c_api.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_i2c_api_test.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_i2c_test.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_spi.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_spi_test.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_uart.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_uart_test.c</name>
