@@ -296,6 +296,7 @@ rt_err_t rt_pin_irq_enable(rt_base_t pin, rt_uint32_t enabled)
     GPIO_InitType GPIO_InitStruct;
     EXTI_InitType EXTI_InitStruct;
 
+    
     index = get_pin(pin);
     if (index == RT_NULL) {
         return RT_ENOSYS;
@@ -315,9 +316,11 @@ rt_err_t rt_pin_irq_enable(rt_base_t pin, rt_uint32_t enabled)
         }
 
         irqmap = &pin_irq_map[irqindex];
-
         /* Configure GPIO_InitStructure */
-        GPIO_InitStruct.Pin = index->pin;        
+        GPIO_InitStruct.Pin = index->pin; 
+        GPIO_InitStruct.GPIO_Slew_Rate = GPIO_Slew_Rate_Low;
+        GPIO_InitStruct.GPIO_Current = GPIO_DC_4mA;
+        GPIO_InitStruct.GPIO_Alternate = GPIO_NO_AF;           
         switch (pin_irq_hdr_tab[irqindex].mode) {
             case PIN_IRQ_MODE_RISING:
                 GPIO_InitStruct.GPIO_Pull  = GPIO_Pull_Down;
@@ -337,8 +340,8 @@ rt_err_t rt_pin_irq_enable(rt_base_t pin, rt_uint32_t enabled)
             default:
                 break;
         }
-        GPIO_InitPeripheral(index->gpio, &GPIO_InitStruct);
 
+        GPIO_InitPeripheral(index->gpio, &GPIO_InitStruct);
         RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_AFIO, ENABLE);
 
         /* configure EXTI line */
@@ -351,13 +354,11 @@ rt_err_t rt_pin_irq_enable(rt_base_t pin, rt_uint32_t enabled)
         EXTI_InitPeripheral(&EXTI_InitStruct);
         
         EXTI_ClrITPendBit(index->pin);
-        
         /* enable and set interrupt priority */
         NVIC_SetPriority(irqmap->irqno, 5);
         NVIC_EnableIRQ(irqmap->irqno);
                
         pin_irq_enable_mask |= irqmap->pinbit;
-
         rt_hw_interrupt_enable(level);
     } else if (enabled == PIN_IRQ_DISABLE) {
         irqmap = get_pin_irq_map(index->pin);
@@ -404,7 +405,9 @@ void rt_pin_mode(rt_base_t pin, rt_base_t mode)
     
     /* Configure GPIO_InitStructure */
     GPIO_InitStructure.Pin = index->pin;
-    
+    GPIO_InitStructure.GPIO_Slew_Rate = GPIO_Slew_Rate_Low;
+    GPIO_InitStructure.GPIO_Current = GPIO_DC_4mA;
+    GPIO_InitStructure.GPIO_Alternate = GPIO_NO_AF;
     if (mode == PIN_MODE_OUTPUT) {
         /* output setting */
         GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
