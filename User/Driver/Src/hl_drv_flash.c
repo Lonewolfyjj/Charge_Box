@@ -111,13 +111,21 @@ static uint8_t hl_drv_w25q32_read_status_reg01(void)
  * <tr><td>2022-10-25      <td>yijiujun     <td>新建
  * </table>
  */
-static void hl_drv_w25q32_erase_sector(uint32_t addr)
+static uint8_t hl_drv_w25q32_erase_sector(uint32_t addr)
 {
+	int err_val = 0;
     addr *= 4096;
 	//addr &= 0xFFF000;//得到这个地址对应的扇区首地址
 
 	hl_drv_w25q32_write_enable(); 
-	while ((hl_drv_w25q32_read_status_reg01() & 0x02) != 0x02);         //等待完全写使能
+	while ((hl_drv_w25q32_read_status_reg01() & 0x02) != 0x02) {         //等待完全写使能
+		err_val++;
+		rt_thread_mdelay(1);
+		if (err_val >= 100) {
+			debug_printf("[error] hl_drv_w25q32_erase_sector 1\n");
+			return FLASH_RET_ERR;
+		}
+	}
 	
 	HL_HAL_SPI_CS_LOW(spi_info.spi_cs_pin_num, spi_info.gpiox_base);
 	hl_hal_soft_spi_send_recv(&spi_info, W25X_SectorErase);         	//发送扇区擦除指令 
@@ -127,8 +135,18 @@ static void hl_drv_w25q32_erase_sector(uint32_t addr)
 	HL_HAL_SPI_CS_HIGH(spi_info.spi_cs_pin_num, spi_info.gpiox_base); 
 	
 	hl_drv_w25q32_write_disable();
-	while ((hl_drv_w25q32_read_status_reg01() & 0x01) == 0x01);          //等待擦除完成
-}
+
+	err_val = 0;
+	while ((hl_drv_w25q32_read_status_reg01() & 0x01) == 0x01) {		//等待擦除完成
+		err_val++;
+		rt_thread_mdelay(1);
+		if (err_val >= 100) {
+			debug_printf("[error] hl_drv_w25q32_erase_sector 2\n");
+			return FLASH_RET_ERR;
+		}
+	}
+	return FLASH_RET_OK;
+}          
 
 /**
  * @brief 将数据写入对应的地址，最多写一页（256个字节）
@@ -148,12 +166,19 @@ static void hl_drv_w25q32_erase_sector(uint32_t addr)
  */
 static int hl_drv_w25q32_write_page(uint32_t addr, uint8_t *w_data, int32_t len)
 {
+	int err_val = 0;
     if (w_data == NULL) {
         return -1;
     }
 	//hl_drv_w25q32_erase_sector(addr);
 	hl_drv_w25q32_write_enable(); 
-	while ((hl_drv_w25q32_read_status_reg01() & 0x02) != 0x02);   		//等待完全写使能
+	while ((hl_drv_w25q32_read_status_reg01() & 0x02) != 0x02) {   		//等待完全写使能
+		err_val++;
+		rt_thread_mdelay(1);
+		if (err_val >= 100) {
+			return FLASH_RET_ERR;
+		}
+	}
 
 	HL_HAL_SPI_CS_LOW(spi_info.spi_cs_pin_num, spi_info.gpiox_base);
 	hl_hal_soft_spi_send_recv(&spi_info, W25X_WritePage);               //发送写页指令   0x02
@@ -167,7 +192,14 @@ static int hl_drv_w25q32_write_page(uint32_t addr, uint8_t *w_data, int32_t len)
 	HL_HAL_SPI_CS_HIGH(spi_info.spi_cs_pin_num, spi_info.gpiox_base);
 	
 	hl_drv_w25q32_write_disable();
-	while ((hl_drv_w25q32_read_status_reg01() & 0x01) == 0x01); 		// 等待写入结束
+	err_val = 0;
+	while ((hl_drv_w25q32_read_status_reg01() & 0x01) == 0x01) { 		// 等待写入结束
+		err_val++;
+		rt_thread_mdelay(1);
+		if (err_val >= 100) {
+			return FLASH_RET_ERR;
+		}
+	}
     return 0;
 }
 
@@ -259,9 +291,10 @@ int hl_drv_flash_read(uint32_t addr, uint8_t *r_data, uint32_t len)
  */
 int hl_drv_flash_write(uint32_t addr, uint8_t *w_data, uint32_t len)
 {
+	uint8_t ret;
 	uint32_t pager;
 	if (w_data == NULL || flash_init_flag == false) {
-		debug_printf("[error] hl_drv_flash_write\n");
+		debug_printf("[error] hl_drv_flash_write failed 1\n");
         return FLASH_RET_ERR;
     }
 	pager = 256 - addr%256;    	//单页剩余的字节数
@@ -269,10 +302,17 @@ int hl_drv_flash_write(uint32_t addr, uint8_t *w_data, uint32_t len)
 		pager = len;			//不大于256字节
 	}
 
-	hl_drv_w25q32_erase_sector(addr);
+	if (hl_drv_w25q32_erase_sector(addr) == FLASH_RET_ERR) {
+		debug_printf("[error] hl_drv_flash_write failed 2\n");
+		return FLASH_RET_ERR;
+	}
 
 	while (1) {
-		hl_drv_w25q32_write_page(addr, w_data, pager);
+		ret = hl_drv_w25q32_write_page(addr, w_data, pager);
+		if (ret == FLASH_RET_ERR) {
+			debug_printf("[error] hl_drv_flash_write failed 3\n");
+			return FLASH_RET_ERR;
+		}
 		if(len == pager) {
 			break;				//全部写入
 		}
@@ -285,6 +325,7 @@ int hl_drv_flash_write(uint32_t addr, uint8_t *w_data, uint32_t len)
 			pager = len;        //已经不足256字节
 		}
 	}
+	rt_thread_mdelay(3);		//等待完全写完
 	return FLASH_RET_OK;
 }
 

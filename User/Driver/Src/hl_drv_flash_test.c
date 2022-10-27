@@ -36,38 +36,32 @@
 
 int hl_drv_flash_test(int argc, char *argv[])
 {
-    int count, len;
-    uint8_t data[260] = {0};
+    int count, len, ret;
+    uint8_t data[50] = {0};     //这里数组过大，会导致线程空间不足，程序出现停止运行的可能
 
     if (argc <= 1) {
-        rt_kprintf("format : [cmd datalen] max_len:260\n");
+        rt_kprintf("format : [cmd datalen] max_len:50\n");
         return -1;
     }
     len = atoi(argv[1]);
-    if (len > 260) {
-        rt_kprintf("[error] max_len:260\n");
+    if (len > 50) {
+        rt_kprintf("[error] max_len:50\n");
         return -1;
     }
 
     /* flash初始化 */
     hl_drv_flash_init();
     
-    if (len <= 256) {   /* 写入数据小于等于256个 */
-        for (count = 0; count < len; count++) {
-            data[count] = count;
-        }
-    } else {            /* 写入数据大于256个，写完256个之后，从第257个开始，数据是依次从255递减 */
-        for (count = 0; count < 256; count++) {
-            data[count] = count;
-        }
-        for (count = 256; count < len; count++) {
-            data[count] = 511 - count;
-        } 
+    for (count = 0; count < len; count++) {
+        data[count] = count;
     }
 
-    /* 往flash中写入len个数据，不分页写 */
-    hl_drv_flash_write(0x000000, data, len);
-    rt_kprintf("write [%d] data ok\n", len);
+    /* 往flash中写入len个数据，可以跨页写 */
+    ret = hl_drv_flash_write(0x000000, data, len);
+    if (ret == FLASH_RET_OK) {
+        rt_kprintf("write [%d] data ok\n", len);
+    }
+
     rt_memset(data, 0, sizeof(data));
 
     /* 从flash中读取len个数据，并打印 */
