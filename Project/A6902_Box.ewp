@@ -1362,9 +1362,6 @@
                 <name>$PROJ_DIR$\..\User\Utility\config\hl_util_config.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\User\Utility\config\hl_util_config.h</name>
-            </file>
-            <file>
                 <name>$PROJ_DIR$\..\User\Utility\fifo\hl_util_fifo.c</name>
             </file>
             <file>
