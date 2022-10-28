@@ -1271,6 +1271,9 @@
         <name>User</name>
         <group>
             <name>App</name>
+            <file>
+                <name>$PROJ_DIR$\..\User\App\Src\hl_app_pt.c</name>
+            </file>
         </group>
         <group>
             <name>driver</name>
