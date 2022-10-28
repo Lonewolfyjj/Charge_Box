@@ -366,6 +366,7 @@
                     <state>$PROJ_DIR$\..\User\Utility\xor_calc</state>
                     <state>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver</state>
                     <state>$PROJ_DIR$\..\Libraries\n32l40x_usbfs_driver\inc</state>
+                    <state>$PROJ_DIR$\..\User\Utility\config</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1354,6 +1355,12 @@
         </group>
         <group>
             <name>utility</name>
+            <file>
+                <name>$PROJ_DIR$\..\User\Utility\config\hl_util_config.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Utility\config\hl_util_config.h</name>
+            </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Utility\fifo\hl_util_fifo.c</name>
             </file>
