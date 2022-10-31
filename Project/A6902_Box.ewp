@@ -66,7 +66,7 @@
                 </option>
                 <option>
                     <name>OGLastSavedByProductVersion</name>
-                    <state>8.32.4.20866</state>
+                    <state>8.32.1.18618</state>
                 </option>
                 <option>
                     <name>GeneralEnableMisra</name>
@@ -116,7 +116,7 @@
                 </option>
                 <option>
                     <name>GBECoreSlave</name>
-                    <version>27</version>
+                    <version>26</version>
                     <state>39</state>
                 </option>
                 <option>
@@ -133,7 +133,7 @@
                 </option>
                 <option>
                     <name>CoreVariant</name>
-                    <version>27</version>
+                    <version>26</version>
                     <state>39</state>
                 </option>
                 <option>
@@ -156,7 +156,7 @@
                 </option>
                 <option>
                     <name>GFPUCoreSlave2</name>
-                    <version>27</version>
+                    <version>26</version>
                     <state>39</state>
                 </option>
                 <option>
@@ -1351,6 +1351,12 @@
         </group>
         <group>
             <name>module</name>
+            <file>
+                <name>$PROJ_DIR$\..\User\Module\Src\hl_mod_pm.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Module\Src\hl_mod_pm_test.c</name>
+            </file>
         </group>
         <group>
             <name>utility</name>
