@@ -70,14 +70,14 @@ typedef struct _hl_mod_pm_hall_info_st {
     bool                  box_irq_flag;
 }hl_mod_pm_hall_info_st;
 typedef struct _hl_mod_pm_info_st {
-    bool                  pm_init_flag;
-    bool                  pth_start_flag;
-    bool                  update_flag;
-    bool                  charge_it_update_flag;
-    bool                  soc_it_update_flag;
-    void*                 msg_hd;
-    struct rt_thread      pm_thread;
-    int                   thread_exit_flag; 
+    bool                  pm_init_flag;             //PM模块初始化标志
+    bool                  pth_start_flag;           //线程启动标志
+    bool                  init_bat_update_flag;     //程序运行后，电池信息第一次更新标志
+    bool                  charge_it_update_flag;    //充电状态中断更新标志
+    bool                  soc_it_update_flag;       //电量计中断更新标志
+    void*                 msg_hd;                   //消息队列句柄指针
+    struct rt_thread      pm_thread;                //线程ID
+    int                   thread_exit_flag;         //线程运行，退出标志
 }hl_mod_pm_info_st;
 
 typedef enum _hl_mod_pm_bat_info_e {
@@ -225,10 +225,28 @@ static inline void _charge_gpio_irq_deinit()
     hl_hal_gpio_deinit(GPIO_CH_INT_N);
 }
 
+static inline void _charge_gpio_irq_enable(bool flag)
+{
+    if (flag) {
+        hl_hal_gpio_irq_enable(GPIO_CH_INT_N, PIN_IRQ_ENABLE);
+    } else {
+        hl_hal_gpio_irq_enable(GPIO_CH_INT_N, PIN_IRQ_DISABLE);
+    }
+}
 
-
-
-
+/**
+ * @brief 负载TX1的中断服务函数
+ * @param [in] args 
+ * @date 2022-10-31
+ * @author yijiujun (jiujun.yi@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-10-31      <td>yijiujun     <td>新建
+ * </table>
+ */
 static void _hall_load_tx1_irq_handle(void* args)
 {
     hall_info.tx1_irq_flag = true;
@@ -250,7 +268,7 @@ static void _hall_box_irq_handle(void* args)
 }
 
 /**
- * @brief 霍尔传感器的引脚初始化
+ * @brief 霍尔传感器上，负载对应的引脚初始化
  * @date 2022-10-27
  * @author yijiujun (jiujun.yi@hollyland-tech.com)
  * @details 
@@ -286,19 +304,31 @@ static void _hall_gpio_init()
 
 static void _hall_gpio_deinit()
 {
-    hl_hal_gpio_irq_enable(GPIO_TX2_POW_EN, PIN_IRQ_DISABLE);
     hl_hal_gpio_deinit(GPIO_TX2_POW_EN);
-    hl_hal_gpio_irq_enable(GPIO_TX1_POW_EN, PIN_IRQ_DISABLE);
     hl_hal_gpio_deinit(GPIO_TX1_POW_EN);
-    hl_hal_gpio_irq_enable(GPIO_RX_POW_EN, PIN_IRQ_DISABLE);
     hl_hal_gpio_deinit(GPIO_RX_POW_EN);
-    hl_hal_gpio_irq_enable(GPIO_HALL_BOX, PIN_IRQ_DISABLE);
     hl_hal_gpio_deinit(GPIO_HALL_BOX);
 
     hl_hal_gpio_deinit(GPIO_HALL_RX);
     hl_hal_gpio_deinit(GPIO_HALL_TX1);
     hl_hal_gpio_deinit(GPIO_HALL_BOX);
     hl_hal_gpio_deinit(GPIO_HALL_TX2);
+}
+
+static inline void _hall_gpio_irq_enable(bool flag)
+{
+    if (flag) {
+        hl_hal_gpio_irq_enable(GPIO_HALL_RX, PIN_IRQ_ENABLE);
+        hl_hal_gpio_irq_enable(GPIO_HALL_TX1, PIN_IRQ_ENABLE);
+        hl_hal_gpio_irq_enable(GPIO_HALL_BOX, PIN_IRQ_ENABLE);
+        hl_hal_gpio_irq_enable(GPIO_HALL_TX2, PIN_IRQ_ENABLE);
+    } else {
+        hl_hal_gpio_irq_enable(GPIO_HALL_RX, PIN_IRQ_DISABLE);
+        hl_hal_gpio_irq_enable(GPIO_HALL_TX1, PIN_IRQ_DISABLE);
+        hl_hal_gpio_irq_enable(GPIO_HALL_BOX, PIN_IRQ_DISABLE);
+        hl_hal_gpio_irq_enable(GPIO_HALL_TX2, PIN_IRQ_DISABLE);
+        
+    }
 }
 
 
@@ -372,6 +402,11 @@ static inline void _pm_update_bat_info_check(void)
         pm_mod_info.soc_it_update_flag = false;
     }
 
+    if (pm_mod_info.init_bat_update_flag == true) {
+        update_flag         = true;
+        pm_mod_info.init_bat_update_flag = false;
+    }
+
     if (update_flag == true) {
         _pm_update_bat_info(HL_MOD_PM_BAT_INFO_SOC);
         _pm_update_bat_info(HL_MOD_PM_BAT_INFO_VOL);
@@ -379,8 +414,6 @@ static inline void _pm_update_bat_info_check(void)
         _pm_update_bat_info(HL_MOD_PM_BAT_INFO_TEMP);
     }
 }
-
-
 
 /**
  * @brief 充电状态信息获取
@@ -405,7 +438,19 @@ static void _pm_get_charge_status_info()
     hl_drv_sgm41513_ctrl(GET_WATCHDOG_ERROR_STATUS, &new_charge_error_info.watchdog_error_status, 1);
 }
 
-
+/**
+ * @brief 充电状态的变化检测，并处理
+ * @param [in] val 
+ * @date 2022-10-31
+ * @author yijiujun (jiujun.yi@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-10-31      <td>yijiujun     <td>新建
+ * </table>
+ */
 static void _pm_charge_irq_pair_deal(uint8_t val)
 {
     switch (val) {
@@ -467,17 +512,6 @@ static void _pm_charge_irq_pair_deal(uint8_t val)
             break;
     }
 }
-static void _pm_charge_irq_status_check()
-{
-    uint8_t count;
-
-    _pm_get_charge_status_info();
-
-    for (count = 0; count < 10; count++) {
-        _pm_charge_irq_pair_deal(count);
-    }
-    
-}
 
 /**
  * @brief 充电状态的检测，是否有充电中断产生
@@ -493,10 +527,15 @@ static void _pm_charge_irq_status_check()
  */
 static void _pm_charge_status_info_check(void)
 {
-
+    uint8_t count;
     if (pm_mod_info.charge_it_update_flag == true) { 
         DBG_LOG("\n*************charge*******it********\n");      
-        _pm_charge_irq_status_check();
+        
+        _pm_get_charge_status_info();
+
+        for (count = 0; count < 10; count++) {
+            _pm_charge_irq_pair_deal(count);
+        }
 
         old_charge_info = new_charge_info;
         old_charge_error_info = new_charge_error_info;
@@ -647,8 +686,11 @@ int hl_mod_pm_start(void)
     }
 
     pm_mod_info.soc_it_update_flag = false;
+    pm_mod_info.init_bat_update_flag = true;
 
     _guage_soc_gpio_irq_enable(true);
+    _charge_gpio_irq_enable(true);
+    _hall_gpio_irq_enable(true);
 
     pm_mod_info.thread_exit_flag = 0;
 
@@ -681,9 +723,10 @@ int hl_mod_pm_stop(void)
     }
 
     _guage_soc_gpio_irq_enable(false);
+    _charge_gpio_irq_enable(false);
+    _hall_gpio_irq_enable(true);
 
     pm_mod_info.thread_exit_flag = 1;
-
     DBG_LOG("wait pm thread exit\n");
 
     while (pm_mod_info.thread_exit_flag != -1) {
