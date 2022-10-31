@@ -32,6 +32,22 @@
 #include "stdbool.h"
 
 /* typedef -------------------------------------------------------------------*/
+
+typedef enum _hl_mod_extcom_op_e
+{
+    /// 进入升级模式，使用 usb_cdc 进行通信，无法使用 finsh 终端，参数类型为<bool*>。
+    HL_MOD_EXTCOM_ENTER_UPGRADE,
+} hl_mod_extcom_op_e;
+
+typedef enum _hl_mod_extcom_object_e
+{
+    HL_MOD_EXTCOM_OBJECT_RX = 0,
+    HL_MOD_EXTCOM_OBJECT_TX1,
+    HL_MOD_EXTCOM_OBJECT_TX2,
+    HL_MOD_EXTCOM_OBJECT_BOX,
+    NUM_OF_HL_MOD_EXTCOM_OBJECT,
+} hl_mod_extcom_object_e;
+
 /* define --------------------------------------------------------------------*/
 
 #define HL_MOD_EXTCOM_FUNC_ERR 1
@@ -49,7 +65,7 @@ int hl_mod_extcom_start(void);
 
 int hl_mod_extcom_stop(void);
 
-int hl_mod_extcom_ctrl(int op, void* arg, int arg_size);
+int hl_mod_extcom_ctrl(hl_mod_extcom_op_e op, void* arg, int arg_size);
 
 #endif
 /*

@@ -139,7 +139,12 @@ int hl_util_hup_decode(hl_util_hup_t* hup_ptr, uint8_t data_byte)
         case EM_HUP_STATE_DATA_LEN_L:
             hup_ptr->hup_frame.data_len_l = data_byte;
             hup_ptr->frame_data_len       = hup_ptr->frame_data_len | data_byte;
-            hup_ptr->state                = EM_HUP_STATE_DATA;
+            if (hup_ptr->frame_data_len == 0) {
+                hup_ptr->state                = EM_HUP_STATE_CRC;
+            } else {
+                hup_ptr->state                = EM_HUP_STATE_DATA;
+            }
+
             hup_ptr->xor8                 = hup_ptr->xor8 ^ data_byte;
             break;
 

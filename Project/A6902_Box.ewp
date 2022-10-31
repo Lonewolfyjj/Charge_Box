@@ -1355,6 +1355,12 @@
         </group>
         <group>
             <name>module</name>
+            <file>
+                <name>$PROJ_DIR$\..\User\Module\Src\hl_mod_extcom.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Module\Src\hl_mod_extcom_test.c</name>
+            </file>
         </group>
         <group>
             <name>utility</name>

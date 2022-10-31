@@ -29,6 +29,7 @@
 
 #include "n32l40x.h"
 #include "hl_util_config.h"
+#include "hl_mod_extcom.h"
 
 /* typedef -------------------------------------------------------------------*/
 /* define --------------------------------------------------------------------*/
@@ -58,8 +59,16 @@ static void hl_app_pt_enter_lowpower(void)
     __NVIC_SystemReset();                                      //重启
 }
 
+static void hl_app_pt_enter_upgrade(void)
+{
+    bool flag = true;
+
+    hl_mod_extcom_ctrl(HL_MOD_EXTCOM_ENTER_UPGRADE, &flag, sizeof(flag));
+}
+
 MSH_CMD_EXPORT(hl_app_pt_enter_boot, 进入boot模式);
 MSH_CMD_EXPORT(hl_app_pt_enter_lowpower, 进入低功耗模式);
+MSH_CMD_EXPORT(hl_app_pt_enter_upgrade, 进入升级模式);
 /*
  * EOF
  */
