@@ -65,6 +65,11 @@ typedef struct _hl_mod_extcom_st
 
 #define EXTCOM_THREAD_STACK_SIZE 512
 
+#define HUP_MAX_READ_BUFSZ 256
+#define HUP_MAX_SEND_BUFSZ 256
+
+#define HUP_PROT_SIZE 6
+
 /* variables -----------------------------------------------------------------*/
 
 static uint8_t hup_buf_rx[HL_MOD_EXTCOM_HUP_RX_BUFSZ]   = { 0 };
@@ -92,6 +97,34 @@ static hl_mod_extcom_st _extcom_mod = {
 
 /* Private function(only *.c)  -----------------------------------------------*/
 
+static int _object_send_data(hl_mod_extcom_object_e object, char cmd, char* buf, int len)
+{
+    if (len + HUP_PROT_SIZE > HUP_MAX_SEND_BUFSZ) {
+        return HL_MOD_EXTCOM_FUNC_ERR;
+    }
+
+    int      size;
+    uint32_t write_size;
+    uint8_t  buf_send[HUP_MAX_SEND_BUFSZ] = { 0 };
+
+    size = hl_util_hup_encode(objects[object].hup.hup_handle.role, cmd, buf_send, sizeof(buf_send), buf, len);
+    if (size == -1) {
+        return HL_MOD_EXTCOM_FUNC_ERR;
+    }
+
+    if (object == HL_MOD_EXTCOM_OBJECT_BOX) {
+        if (_extcom_mod.use_usb_cdc_flag == true) {
+            hl_hal_usb_cdc_write(buf_send, size, &write_size);
+        } else {
+            return HL_MOD_EXTCOM_FUNC_ERR;
+        }
+    } else {
+        hl_hal_uart_send(objects[object].uart_num, buf_send, size);
+    }
+
+    return HL_MOD_EXTCOM_FUNC_OK;
+}
+
 static void rx_hup_success_handle_func(hup_protocol_type_t hup_frame)
 {
     uint16_t len = ((uint16_t)(hup_frame.data_len_h) << 8) | hup_frame.data_len_l;
@@ -100,9 +133,11 @@ static void rx_hup_success_handle_func(hup_protocol_type_t hup_frame)
         default:
             break;
     }
+
+    _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, hup_frame.cmd, RT_NULL, 0);
 }
 
-static void tx1_tx2_hup_success_handle_func(hup_protocol_type_t hup_frame)
+static void tx1_hup_success_handle_func(hup_protocol_type_t hup_frame)
 {
     uint16_t len = ((uint16_t)(hup_frame.data_len_h) << 8) | hup_frame.data_len_l;
 
@@ -110,6 +145,20 @@ static void tx1_tx2_hup_success_handle_func(hup_protocol_type_t hup_frame)
         default:
             break;
     }
+
+    _object_send_data(HL_MOD_EXTCOM_OBJECT_TX1, hup_frame.cmd, RT_NULL, 0);
+}
+
+static void tx2_hup_success_handle_func(hup_protocol_type_t hup_frame)
+{
+    uint16_t len = ((uint16_t)(hup_frame.data_len_h) << 8) | hup_frame.data_len_l;
+
+    switch (hup_frame.cmd) {
+        default:
+            break;
+    }
+
+    _object_send_data(HL_MOD_EXTCOM_OBJECT_TX2, hup_frame.cmd, RT_NULL, 0);
 }
 
 static void box_hup_success_handle_func(hup_protocol_type_t hup_frame)
@@ -120,6 +169,8 @@ static void box_hup_success_handle_func(hup_protocol_type_t hup_frame)
         default:
             break;
     }
+
+    _object_send_data(HL_MOD_EXTCOM_OBJECT_BOX, hup_frame.cmd, RT_NULL, 0);
 }
 
 static int _hup_init(void)
@@ -141,7 +192,7 @@ static int _hup_init(void)
     objects[HL_MOD_EXTCOM_OBJECT_TX1].hup.hup_handle.timer_state    = EM_HUP_TIMER_DISABLE;
 
     ret = hl_util_hup_init(&(objects[HL_MOD_EXTCOM_OBJECT_TX1].hup), hup_buf_tx1, RT_NULL,
-                           tx1_tx2_hup_success_handle_func);
+                           tx1_hup_success_handle_func);
     if (ret == -1) {
         DBG_LOG("hup init err!");
         return HL_MOD_EXTCOM_FUNC_ERR;
@@ -152,7 +203,7 @@ static int _hup_init(void)
     objects[HL_MOD_EXTCOM_OBJECT_TX2].hup.hup_handle.timer_state    = EM_HUP_TIMER_DISABLE;
 
     ret = hl_util_hup_init(&(objects[HL_MOD_EXTCOM_OBJECT_TX2].hup), hup_buf_tx2, RT_NULL,
-                           tx1_tx2_hup_success_handle_func);
+                           tx2_hup_success_handle_func);
     if (ret == -1) {
         DBG_LOG("hup init err!");
         return HL_MOD_EXTCOM_FUNC_ERR;
@@ -252,7 +303,7 @@ static int _objects_init(void)
 
 static void _rx_uart_msg_poll(void)
 {
-    uint8_t buf[64];
+    uint8_t buf[HUP_MAX_READ_BUFSZ];
     int     size;
 
     size = hl_util_fifo_read(&(objects[HL_MOD_EXTCOM_OBJECT_RX].fifo), buf, sizeof(buf));
@@ -267,7 +318,7 @@ static void _rx_uart_msg_poll(void)
 
 static void _tx1_uart_msg_poll(void)
 {
-    uint8_t buf[64];
+    uint8_t buf[HUP_MAX_READ_BUFSZ];
     int     size;
 
     size = hl_util_fifo_read(&(objects[HL_MOD_EXTCOM_OBJECT_TX1].fifo), buf, sizeof(buf));
@@ -282,7 +333,7 @@ static void _tx1_uart_msg_poll(void)
 
 static void _tx2_uart_msg_poll(void)
 {
-    uint8_t buf[64];
+    uint8_t buf[HUP_MAX_READ_BUFSZ];
     int     size;
 
     size = hl_util_fifo_read(&(objects[HL_MOD_EXTCOM_OBJECT_TX2].fifo), buf, sizeof(buf));
@@ -301,13 +352,13 @@ static void _box_uart_msg_poll(void)
         return;
     }
 
-    uint8_t buf[64];
+    uint8_t buf[HUP_MAX_READ_BUFSZ];
     int     size;
 
     hl_hal_usb_cdc_read(buf, sizeof(buf), &size);
 
     for (int i = 0; i < size; i++) {
-        hl_util_hup_decode(&(objects[HL_MOD_EXTCOM_OBJECT_RX].hup), buf[i]);
+        hl_util_hup_decode(&(objects[HL_MOD_EXTCOM_OBJECT_BOX].hup), buf[i]);
     }
 }
 
