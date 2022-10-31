@@ -24,9 +24,11 @@
 /* Includes ------------------------------------------------------------------*/
 
 #include "hl_mod_pm.h"
+#include "n32l40x.h"
 #include "hl_drv_cw2215.h"
 #include "hl_drv_sgm41513.h"
 #include "hl_hal_gpio.h"
+#include "hl_util_config.h"
 #include "pin.h"
 
 /* typedef -------------------------------------------------------------------*/
@@ -56,11 +58,17 @@ typedef struct _hl_mod_pm_charge_info_st {
     uint8_t                iindpm_status;       //IINDPM 电流动态电源管理状态
 } hl_mod_pm_charge_info_st;
 
-typedef struct {
-    bool                  pth_start_flag;
-    bool                  update_flag;
-}hl_mod_pm_run_pthread_st;
 
+typedef struct _hl_mod_pm_hall_info_st {
+    uint8_t                 tx1_status;
+    uint8_t                 tx2_status;
+    uint8_t                 rx_status;
+    uint8_t                 box_status;
+    bool                  tx1_irq_flag;
+    bool                  tx2_irq_flag;
+    bool                  rx_irq_flag;
+    bool                  box_irq_flag;
+}hl_mod_pm_hall_info_st;
 typedef struct _hl_mod_pm_info_st {
     bool                  pm_init_flag;
     bool                  pth_start_flag;
@@ -81,63 +89,64 @@ typedef enum _hl_mod_pm_bat_info_e {
     HL_MOD_PM_BAT_INFO_CYCLE,
 } hl_mod_pm_bat_info_e;
 
-typedef enum _hl_mod_pm_charge_status_e {
-    HL_MOD_PM_CHAR_STAT = 0,
-    HL_MOD_PM_VBUS_STAT,
-    HL_MOD_PM_INPUT_STAT,
-    HL_MOD_PM_VINDPM_STAT,
-    HL_MOD_PM_IINDPM_STAT,
-    HL_MOD_PM_SYS_VOL_STAT,
-    HL_MOD_PM_BAT_ERR_STAT,
-    HL_MOD_PM_CHAR_ERR_STAT,
-    HL_MOD_PM_BOOST_ERR_STAT,
-    HL_MOD_PM_WATCHDOG_ERR_STAT
-};
+
 /* define --------------------------WATCHDOG_ERR_STAT------------------------------------------*/
 
 #define DBG_LOG rt_kprintf
 
 #define PM_THREAD_STACK_SIZE 512
 
+#define PM_STAT_COMPARE(m, n) ((m) == (n) ? (0) : (1))
+
 /* variables -----------------------------------------------------------------*/
 
 static hl_mod_pm_info_st  pm_mod_info = {
-    .pm_init_flag     = false,
-    .pth_start_flag   = false,
-    .update_flag      = false,
+    .pm_init_flag               = false,
+    .pth_start_flag             = false,
     .charge_it_update_flag      = false,
-    .soc_it_update_flag  = false,
-    .msg_hd           = RT_NULL,
-    .pm_thread        = { 0 },
-    .thread_exit_flag = 0
+    .soc_it_update_flag         = false,
+    .msg_hd                     = RT_NULL,
+    .pm_thread                  = { 0 },
+    .thread_exit_flag           = 0
 };
 
 static hl_mod_pm_bat_info_st bat_info = {
-    .soc_val.soc     = 0,
-    .soc_val.soc_d   = 0,
-    .current     = 0,
-    .cycle       = 0,
-    .soh         = 0,
-    .temp.temp   = 0,
-    .temp.temp_d = 0,
-    .voltage     = 0,
+    .soc_val.soc    = 0,
+    .soc_val.soc_d  = 0,
+    .current        = 0,
+    .cycle          = 0,
+    .soh            = 0,
+    .temp.temp      = 0,
+    .temp.temp_d    = 0,
+    .voltage        = 0
 };
 
 static hl_mod_pm_charge_info_st old_charge_info = {
-    .charge_status = 0,
-    .vbus_status = 0,
+    .charge_status      = 0,
+    .vbus_status        = 0,
     .input_power_status = 0,
-    .vindpm_status = 0,
-    .iindpm_status = 0
+    .sys_vol_status     = 0,
+    .vindpm_status      = 0,
+    .iindpm_status      = 0
 };
 
 static hl_mod_pm_error_info_st old_charge_error_info = {
-    .bat_error_status = 0,
-    .charge_error_status = 0,
-    .boost_mode_status = 0,
-    .watchdog_error_status = 0,
+    .bat_error_status       = 0,
+    .charge_error_status    = 0,
+    .boost_mode_status      = 0,
+    .watchdog_error_status  = 0
 };
 
+static hl_mod_pm_hall_info_st hall_info = {
+    .tx1_status = 0,
+    .tx2_status = 0,
+    .rx_status  = 0,
+    .box_status = 0,
+    .tx1_irq_flag = false,
+    .tx2_irq_flag = false,
+    .rx_irq_flag  = false,
+    .box_irq_flag = false
+};
 static hl_mod_pm_charge_info_st new_charge_info;
 static hl_mod_pm_error_info_st new_charge_error_info;
 
@@ -216,6 +225,30 @@ static inline void _charge_gpio_irq_deinit()
     hl_hal_gpio_deinit(GPIO_CH_INT_N);
 }
 
+
+
+
+
+static void _hall_load_tx1_irq_handle(void* args)
+{
+    hall_info.tx1_irq_flag = true;
+}
+
+static void _hall_load_tx2_irq_handle(void* args)
+{
+    hall_info.tx2_irq_flag = true;
+}
+
+static void _hall_load_rx_irq_handle(void* args)
+{
+    hall_info.rx_irq_flag = true;
+}
+
+static void _hall_box_irq_handle(void* args)
+{
+    hall_info.box_irq_flag = true;
+}
+
 /**
  * @brief 霍尔传感器的引脚初始化
  * @date 2022-10-27
@@ -231,9 +264,20 @@ static inline void _charge_gpio_irq_deinit()
 static void _hall_gpio_init()
 {
     hl_hal_gpio_init(GPIO_HALL_TX2);
+    hl_hal_gpio_attach_irq(GPIO_HALL_TX2, PIN_IRQ_MODE_RISING_FALLING, _hall_load_tx2_irq_handle, RT_NULL);
+    hl_hal_gpio_irq_enable(GPIO_HALL_TX2, PIN_IRQ_ENABLE);
+
     hl_hal_gpio_init(GPIO_HALL_BOX);
+    hl_hal_gpio_attach_irq(GPIO_HALL_BOX, PIN_IRQ_MODE_RISING_FALLING, _hall_box_irq_handle, RT_NULL);
+    hl_hal_gpio_irq_enable(GPIO_HALL_BOX, PIN_IRQ_ENABLE);
+
     hl_hal_gpio_init(GPIO_HALL_TX1);
+    hl_hal_gpio_attach_irq(GPIO_HALL_TX1, PIN_IRQ_MODE_RISING_FALLING, _hall_load_tx1_irq_handle, RT_NULL);
+    hl_hal_gpio_irq_enable(GPIO_HALL_TX1, PIN_IRQ_ENABLE);
+
     hl_hal_gpio_init(GPIO_HALL_RX);
+    hl_hal_gpio_attach_irq(GPIO_HALL_RX, PIN_IRQ_MODE_RISING_FALLING, _hall_load_rx_irq_handle, RT_NULL);
+    hl_hal_gpio_irq_enable(GPIO_HALL_RX, PIN_IRQ_ENABLE);
 
     hl_hal_gpio_init(GPIO_RX_POW_EN);
     hl_hal_gpio_init(GPIO_TX1_POW_EN);
@@ -242,9 +286,14 @@ static void _hall_gpio_init()
 
 static void _hall_gpio_deinit()
 {
+    hl_hal_gpio_irq_enable(GPIO_TX2_POW_EN, PIN_IRQ_DISABLE);
     hl_hal_gpio_deinit(GPIO_TX2_POW_EN);
+    hl_hal_gpio_irq_enable(GPIO_TX1_POW_EN, PIN_IRQ_DISABLE);
     hl_hal_gpio_deinit(GPIO_TX1_POW_EN);
+    hl_hal_gpio_irq_enable(GPIO_RX_POW_EN, PIN_IRQ_DISABLE);
     hl_hal_gpio_deinit(GPIO_RX_POW_EN);
+    hl_hal_gpio_irq_enable(GPIO_HALL_BOX, PIN_IRQ_DISABLE);
+    hl_hal_gpio_deinit(GPIO_HALL_BOX);
 
     hl_hal_gpio_deinit(GPIO_HALL_RX);
     hl_hal_gpio_deinit(GPIO_HALL_TX1);
@@ -253,9 +302,19 @@ static void _hall_gpio_deinit()
 }
 
 
-
-
-
+/**
+ * @brief 电池信息更新获取
+ * @param [in] type 
+ * @date 2022-10-29
+ * @author yijiujun (jiujun.yi@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-10-29      <td>yijiujun     <td>新建
+ * </table>
+ */
 static void _pm_update_bat_info(hl_mod_pm_bat_info_e type)
 {
     hl_mod_pm_bat_info_st* p_bat_info;
@@ -323,167 +382,190 @@ static inline void _pm_update_bat_info_check(void)
 
 
 
+/**
+ * @brief 充电状态信息获取
+ * @date 2022-10-29
+ * @author yijiujun (jiujun.yi@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-10-29      <td>yijiujun     <td>新建
+ * </table>
+ */
 
-
-static void _pm_charge_status_info()
+static void _pm_get_charge_status_info()
 {
-    uint8_t reg_val;
-
     hl_drv_sgm41513_ctrl(GET_CHARGE_STATUS, &new_charge_info.charge_status, 1);
-
     hl_drv_sgm41513_ctrl(GET_INPUT_POWER_STATUS, &new_charge_info.input_power_status, 1);
-
     hl_drv_sgm41513_ctrl(GET_BATTERY_ERROR_STATUS, &new_charge_error_info.bat_error_status, 1);
-
     hl_drv_sgm41513_ctrl(GET_CHARGE_ERROR_STATUS, &new_charge_error_info.charge_error_status, 1);
-
     hl_drv_sgm41513_ctrl(GET_BOOST_MODE_ERROR_STATUS, &new_charge_error_info.boost_mode_status, 1);
-
     hl_drv_sgm41513_ctrl(GET_WATCHDOG_ERROR_STATUS, &new_charge_error_info.watchdog_error_status, 1);
 }
 
-static inline uint8_t _pm_charge_it_status(uint8_t old_status, uint8_t new_status)
+
+static void _pm_charge_irq_pair_deal(uint8_t val)
 {
-    if (old_status == new_status) {
-        return 0;
-    } else {
-        return 1;
-    }
-}
-
-static void pm_charge_it_status_check()
-{
-    uint8_t count, change_arr[10] = {0};
-
-    _pm_charge_status_info();
-
-    change_arr[0] = _pm_charge_it_status(old_charge_info.charge_status, new_charge_info.charge_status);
-    change_arr[1] = _pm_charge_it_status(old_charge_info.vbus_status, new_charge_info.vbus_status);
-    change_arr[2] = _pm_charge_it_status(old_charge_info.input_power_status, new_charge_info.input_power_status);
-    change_arr[3] = _pm_charge_it_status(old_charge_info.vindpm_status, new_charge_info.vindpm_status);
-    change_arr[4] = _pm_charge_it_status(old_charge_info.iindpm_status, new_charge_info.iindpm_status);
-    change_arr[5] = _pm_charge_it_status(old_charge_error_info.bat_error_status, new_charge_error_info.bat_error_status);
-    change_arr[6] = _pm_charge_it_status(old_charge_error_info.charge_error_status, new_charge_error_info.charge_error_status);
-    change_arr[7] = _pm_charge_it_status(old_charge_error_info.boost_mode_status, new_charge_error_info.boost_mode_status);
-    change_arr[8] = _pm_charge_it_status(old_charge_error_info.watchdog_error_status, new_charge_error_info.watchdog_error_status);
-    
-    for (count = 0; count < 9; count++) {
-        if (change_arr[count] == 1) {
-            break;
-        }
-    }
-    switch (count) {
+    switch (val) {
         case HL_MOD_PM_CHAR_STAT:
-            rt_kprintf("    0\n");
+            if (PM_STAT_COMPARE(old_charge_info.charge_status, new_charge_info.charge_status) == 1) {
+                DBG_LOG("    0, charge status :%d, input:%d, bat_err:%d, charge_err:%d\n", 
+                new_charge_info.charge_status, 
+                new_charge_info.input_power_status,
+                new_charge_error_info.bat_error_status,
+                new_charge_error_info.charge_error_status);
+            }
             break;
         case HL_MOD_PM_VBUS_STAT:
-            rt_kprintf("    1\n");
+            if (PM_STAT_COMPARE(old_charge_info.vbus_status, new_charge_info.vbus_status) == 1) {
+                DBG_LOG("    1, vbus status\n");
+            }
             break;
         case HL_MOD_PM_INPUT_STAT:
-            rt_kprintf("    2\n");
+            if (PM_STAT_COMPARE(old_charge_info.input_power_status, new_charge_info.input_power_status) == 1) {
+                DBG_LOG("    2, input power status\n");
+            }
             break;
         case HL_MOD_PM_VINDPM_STAT:
-            rt_kprintf("    3\n");
+            if (PM_STAT_COMPARE(old_charge_info.vindpm_status, new_charge_info.vindpm_status) == 1) {
+                DBG_LOG("    3\n");
+            }           
             break;
         case HL_MOD_PM_IINDPM_STAT:
-            rt_kprintf("    4\n");
+            if (PM_STAT_COMPARE(old_charge_info.iindpm_status, new_charge_info.iindpm_status) == 1) {
+                DBG_LOG("    4\n");
+            }
             break;
-        case HL_MOD_PM_SYS_VOL_STAT:
-            rt_kprintf("    5\n");
+        case HL_MOD_PM_SYS_VOL_STAT:           
+            if (PM_STAT_COMPARE(old_charge_info.sys_vol_status, new_charge_info.sys_vol_status) == 1) {
+                DBG_LOG("    5\n");
+            }
             break;
-        case HL_MOD_PM_BAT_ERR_STAT:
-            rt_kprintf("    6\n");
+        case HL_MOD_PM_BAT_ERR_STAT:          
+            if (PM_STAT_COMPARE(old_charge_error_info.bat_error_status, new_charge_error_info.bat_error_status) == 1) {
+                DBG_LOG("    6\n");
+            }
             break;
         case HL_MOD_PM_CHAR_ERR_STAT:
-            rt_kprintf("    7\n");
+            if (PM_STAT_COMPARE(old_charge_error_info.charge_error_status, new_charge_error_info.charge_error_status) == 1) {
+                DBG_LOG("    7\n");
+            }
             break;
         case HL_MOD_PM_BOOST_ERR_STAT:
-            rt_kprintf("    8\n");
+            if (PM_STAT_COMPARE(old_charge_error_info.boost_mode_status, new_charge_error_info.boost_mode_status) == 1) {
+                DBG_LOG("    8\n");
+            }
             break;
         case HL_MOD_PM_WATCHDOG_ERR_STAT:
-            rt_kprintf("    9\n");
+            if (PM_STAT_COMPARE(old_charge_error_info.watchdog_error_status, new_charge_error_info.watchdog_error_status) == 1) {
+                DBG_LOG("    9\n");
+            }
             break;
         default:
             break;
     }
+}
+static void _pm_charge_irq_status_check()
+{
+    uint8_t count;
 
+    _pm_get_charge_status_info();
+
+    for (count = 0; count < 10; count++) {
+        _pm_charge_irq_pair_deal(count);
+    }
+    
 }
 
+/**
+ * @brief 充电状态的检测，是否有充电中断产生
+ * @date 2022-10-29
+ * @author yijiujun (jiujun.yi@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-10-29      <td>yijiujun     <td>新建
+ * </table>
+ */
 static void _pm_charge_status_info_check(void)
 {
-    hl_sgm41513_charge_status_t charge_stu;
-    if (pm_mod_info.charge_it_update_flag == true) {
-        hl_drv_sgm41513_ctrl(PRINTF_REG_VAL, RT_NULL, 1);
-        
-        pm_charge_it_status_check();
-        hl_drv_sgm41513_read_reg(REG08_ADDR, (rt_uint8_t *)&charge_stu);
-        rt_kprintf("VBUS_STAT:%x, CHRG_STAT:%x, PG_STAT:%x, THERM_STAT:%x, VSYS_STAT:%x\n", 
-        charge_stu.VBUS_STAT, charge_stu.CHRG_STAT, charge_stu.PG_STAT, charge_stu.THERM_STAT, charge_stu.VSYS_STAT);
-        rt_kprintf("\n*************charge*******it********\n\n");
-        // switch (new_charge_info.charge_status) {
-        //     case NOT_CHARGE:
-        //         rt_kprintf("    not charge\n");
-        //         break;
-        //     case CHARGE_PRE:
-        //         rt_kprintf("    pre charge\n");
-        //         break;
-        //     case CHARGE_RUN:
-        //         rt_kprintf("    fast charge\n");
-        //         break;
-        //     case CHARGE_TEMINATED:
-        //         rt_kprintf("    charge stop\n");
-        //         break;
-        //     default:
-        //         break;
-        // }
-        // if (new_charge_info.input_power_status == EXIST_INPUT_POWER) {
-        //     rt_kprintf("    exist input power\n");
-        // } else {
-        //     rt_kprintf("    not input power\n");
-        // }
-        // switch (new_charge_error_info.charge_error_status) {
-        //     case NORMAL:
-        //         rt_kprintf("    charge normal\n");
-        //         break;
-        //     case CHARGE_INPUT_ERROR:
-        //         rt_kprintf("    input error\n");
-        //         break;
-        //     case CHARGE_THERMAL_SHUTDOWN:
-        //         rt_kprintf("    thermal shutdown\n");
-        //         break;
-        //     case CHARGE_SAFT_TIMER_EXPIRED:
-        //         rt_kprintf("    safe timer expired\n");
-        //         break;
-        //     default:
-        //         break;
-        // }
+
+    if (pm_mod_info.charge_it_update_flag == true) { 
+        DBG_LOG("\n*************charge*******it********\n");      
+        _pm_charge_irq_status_check();
+
         old_charge_info = new_charge_info;
         old_charge_error_info = new_charge_error_info;
         pm_mod_info.charge_it_update_flag = false;
     }
 }
 
-static void _pm_hall_load_info()
-{
-
-}
-
+/**
+ * @brief 霍尔检测，是否负载发生插入拔出动作
+ * @date 2022-10-29
+ * @author yijiujun (jiujun.yi@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-10-29      <td>yijiujun     <td>新建
+ * </table>
+ */
 static void _pm_hall_load_info_check(void)
 {
-    
+    if (hall_info.tx1_irq_flag == true) {
+        hall_info.tx1_status = hl_hal_gpio_read(GPIO_HALL_TX1);
+        DBG_LOG("    tx1:%d\n", hall_info.tx1_status);
+        hall_info.tx1_irq_flag = false;
+    }
+    if (hall_info.tx2_irq_flag == true) {
+        hall_info.tx1_status = hl_hal_gpio_read(GPIO_HALL_TX2);
+        DBG_LOG("    tx2:%d\n", hall_info.tx2_status);
+        hall_info.tx2_irq_flag = false;
+    }
+    if (hall_info.rx_irq_flag == true) {
+        hall_info.tx1_status = hl_hal_gpio_read(GPIO_HALL_RX);
+        DBG_LOG("    rx:%d\n", hall_info.rx_status);
+        hall_info.rx_irq_flag = false;
+    }
+    if (hall_info.box_irq_flag == true) {
+        hall_info.tx1_status = hl_hal_gpio_read(GPIO_HALL_BOX);
+        DBG_LOG("    box:%d\n", hall_info.box_status);
+        hall_info.box_irq_flag = false;
+    }
 }
 
 
 static void _pm_thread_entry(void* arg)
 {
     while (pm_mod_info.thread_exit_flag == 0) {
+
         _pm_update_bat_info_check();
 
         _pm_charge_status_info_check();
+
+        _pm_hall_load_info_check();
+
         rt_thread_mdelay(10);
     }
 
     pm_mod_info.thread_exit_flag = -1;
+}
+
+static void _hl_mod_pm_lowpower_enter(void)
+{
+     hl_util_config_st_p config;
+
+    hl_util_config_get(&config);
+    config->lowpower_flag = 1;
+    hl_util_config_save();
+
+    __NVIC_SystemReset();                                      //重启
 }
 
 /* Exported functions --------------------------------------------------------*/
@@ -526,6 +608,7 @@ int hl_mod_pm_deinit(void)
         return HL_MOD_PM_FUNC_RET_ERR;
     }
     hl_mod_pm_stop();
+
     _hall_gpio_deinit();
 
     _charge_gpio_irq_deinit();
@@ -621,14 +704,8 @@ int hl_mod_pm_ctrl(int op, void* arg, int arg_size)
         return HL_MOD_PM_FUNC_RET_ERR;
     }
     switch (op) {
-        case SEGT_INPUT_CURRENT_LIMIT_VAL:
-            set_input_current_limit(1);
-            break;
-        case SET_CHARGE_STATUS:
-            set_charge_status(1);
-            break;
-        case SET_FAST_CHARGE_CURRENT_VAL:
-            set_fast_charge_current(1);
+        case HL_MOD_PM_ENTER_LOWPOWER:
+            _hl_mod_pm_lowpower_enter();
             break;
         default:
             break;

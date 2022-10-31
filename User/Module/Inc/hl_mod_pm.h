@@ -33,6 +33,23 @@
 #include "stdbool.h"
 
 /* typedef -------------------------------------------------------------------*/
+
+typedef enum _hl_mod_pm_op_e{
+    HL_MOD_PM_ENTER_LOWPOWER
+}hl_mod_pm_op_e;
+typedef enum _hl_mod_pm_charge_status_e {
+    HL_MOD_PM_CHAR_STAT = 0,
+    HL_MOD_PM_VBUS_STAT,
+    HL_MOD_PM_INPUT_STAT,
+    HL_MOD_PM_VINDPM_STAT,
+    HL_MOD_PM_IINDPM_STAT,
+    HL_MOD_PM_SYS_VOL_STAT,
+    HL_MOD_PM_BAT_ERR_STAT,
+    HL_MOD_PM_CHAR_ERR_STAT,
+    HL_MOD_PM_BOOST_ERR_STAT,
+    HL_MOD_PM_WATCHDOG_ERR_STAT
+}hl_mod_pm_charge_status_e;
+
 /* define --------------------------------------------------------------------*/
 
 #define HL_MOD_PM_FUNC_RET_OK 0

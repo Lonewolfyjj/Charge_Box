@@ -36,7 +36,7 @@
 void hl_mod_pm_test(int argc, char *argv[])
 {
     if (argc <= 1) {
-        rt_kprintf("format : [cmd 1/2] 1:deinit 2:init_start\n");
+        rt_kprintf("format : [cmd 1/2] 1:deinit 2:init_start 3:pm_lowpower\n");
         return;
     }
 
@@ -44,8 +44,10 @@ void hl_mod_pm_test(int argc, char *argv[])
         hl_mod_pm_deinit();
     } else if (atoi(argv[1]) == 2) {
         hl_mod_pm_init(RT_NULL);
-
         hl_mod_pm_start();
+    } else if (atoi(argv[1]) == 3) {
+        /* 低功耗模式 */
+        hl_mod_pm_ctrl(HL_MOD_PM_ENTER_LOWPOWER, RT_NULL, 1);
     }
      
 }
