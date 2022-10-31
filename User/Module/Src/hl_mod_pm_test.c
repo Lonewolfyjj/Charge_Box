@@ -24,6 +24,7 @@
 /* Includes ------------------------------------------------------------------*/
 
 #include "hl_mod_pm.h"
+#include "stdlib.h"
 
 /* typedef -------------------------------------------------------------------*/
 /* define --------------------------------------------------------------------*/
@@ -34,7 +35,19 @@
 
 void hl_mod_pm_test(int argc, char *argv[])
 {
-    
+    if (argc <= 1) {
+        rt_kprintf("format : [cmd 1/2] 1:deinit 2:init_start\n");
+        return;
+    }
+
+    if (atoi(argv[1]) == 1) {
+        hl_mod_pm_deinit();
+    } else if (atoi(argv[1]) == 2) {
+        hl_mod_pm_init(RT_NULL);
+
+        hl_mod_pm_start();
+    }
+     
 }
 
 MSH_CMD_EXPORT(hl_mod_pm_test, pm mod start test);
