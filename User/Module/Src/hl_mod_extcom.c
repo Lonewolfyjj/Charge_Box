@@ -36,6 +36,8 @@ typedef struct _hl_mod_extcom_object_st
 {
     hl_util_hup_t      hup;
     hl_util_fifo_t     fifo;
+    struct rt_timer    timer;
+    bool               timeout_flag;
     hl_hal_uart_numb_e uart_num;
 } hl_mod_extcom_object_st;
 
@@ -191,8 +193,7 @@ static int _hup_init(void)
     objects[HL_MOD_EXTCOM_OBJECT_TX1].hup.hup_handle.role           = EM_HUP_ROLE_MASTER;
     objects[HL_MOD_EXTCOM_OBJECT_TX1].hup.hup_handle.timer_state    = EM_HUP_TIMER_DISABLE;
 
-    ret = hl_util_hup_init(&(objects[HL_MOD_EXTCOM_OBJECT_TX1].hup), hup_buf_tx1, RT_NULL,
-                           tx1_hup_success_handle_func);
+    ret = hl_util_hup_init(&(objects[HL_MOD_EXTCOM_OBJECT_TX1].hup), hup_buf_tx1, RT_NULL, tx1_hup_success_handle_func);
     if (ret == -1) {
         DBG_LOG("hup init err!");
         return HL_MOD_EXTCOM_FUNC_ERR;
@@ -202,8 +203,7 @@ static int _hup_init(void)
     objects[HL_MOD_EXTCOM_OBJECT_TX2].hup.hup_handle.role           = EM_HUP_ROLE_MASTER;
     objects[HL_MOD_EXTCOM_OBJECT_TX2].hup.hup_handle.timer_state    = EM_HUP_TIMER_DISABLE;
 
-    ret = hl_util_hup_init(&(objects[HL_MOD_EXTCOM_OBJECT_TX2].hup), hup_buf_tx2, RT_NULL,
-                           tx2_hup_success_handle_func);
+    ret = hl_util_hup_init(&(objects[HL_MOD_EXTCOM_OBJECT_TX2].hup), hup_buf_tx2, RT_NULL, tx2_hup_success_handle_func);
     if (ret == -1) {
         DBG_LOG("hup init err!");
         return HL_MOD_EXTCOM_FUNC_ERR;
@@ -277,6 +277,59 @@ static int _uart_init(void)
     return HL_HAL_USB_CDC_FUNC_OK;
 }
 
+static void object_timer_timeout_handle(void* arg)
+{
+    hl_mod_extcom_object_st* p_object = (hl_mod_extcom_object_st*)arg;
+
+    p_object->timeout_flag = true;
+
+    DBG_LOG("object %p timeout!\n", p_object);
+}
+
+static int _timer_init(void)
+{
+    rt_timer_init(&(objects[HL_MOD_EXTCOM_OBJECT_RX].timer), "object_rx_timer", object_timer_timeout_handle,
+                  &(objects[HL_MOD_EXTCOM_OBJECT_RX]), 1000, RT_TIMER_FLAG_ONE_SHOT | RT_TIMER_FLAG_SOFT_TIMER);
+
+    rt_timer_init(&(objects[HL_MOD_EXTCOM_OBJECT_TX1].timer), "object_tx1_timer", object_timer_timeout_handle,
+                  &(objects[HL_MOD_EXTCOM_OBJECT_TX1]), 1000, RT_TIMER_FLAG_ONE_SHOT | RT_TIMER_FLAG_SOFT_TIMER);
+
+    rt_timer_init(&(objects[HL_MOD_EXTCOM_OBJECT_TX2].timer), "object_tx2_timer", object_timer_timeout_handle,
+                  &(objects[HL_MOD_EXTCOM_OBJECT_TX2]), 1000, RT_TIMER_FLAG_ONE_SHOT | RT_TIMER_FLAG_SOFT_TIMER);
+
+    rt_timer_init(&(objects[HL_MOD_EXTCOM_OBJECT_BOX].timer), "object_box_timer", object_timer_timeout_handle,
+                  &(objects[HL_MOD_EXTCOM_OBJECT_BOX]), 1000, RT_TIMER_FLAG_ONE_SHOT | RT_TIMER_FLAG_SOFT_TIMER);
+
+    objects[HL_MOD_EXTCOM_OBJECT_RX].timeout_flag  = false;
+    objects[HL_MOD_EXTCOM_OBJECT_TX1].timeout_flag = false;
+    objects[HL_MOD_EXTCOM_OBJECT_TX2].timeout_flag = false;
+    objects[HL_MOD_EXTCOM_OBJECT_BOX].timeout_flag = false;
+
+    return HL_HAL_USB_CDC_FUNC_OK;
+}
+
+static int _timer_start(hl_mod_extcom_object_e object, rt_tick_t timeout)
+{
+    rt_timer_control(&(objects[object].timer), RT_TIMER_CTRL_SET_TIME, &timeout);
+
+    rt_timer_start(&(objects[object].timer));
+}
+
+static int _timer_stop(hl_mod_extcom_object_e object)
+{
+    rt_timer_stop(&(objects[object].timer));
+}
+
+static bool _timer_timeout_check(hl_mod_extcom_object_e object)
+{
+    if (objects[object].timeout_flag == true) {
+        objects[object].timeout_flag = false;
+        return true;
+    } else {
+        return false;
+    }
+}
+
 static int _objects_init(void)
 {
     int ret;
@@ -294,6 +347,11 @@ static int _objects_init(void)
     }
 
     ret = _uart_init();
+    if (ret == HL_MOD_EXTCOM_FUNC_ERR) {
+        return HL_MOD_EXTCOM_FUNC_ERR;
+    }
+
+    ret = _timer_init();
     if (ret == HL_MOD_EXTCOM_FUNC_ERR) {
         return HL_MOD_EXTCOM_FUNC_ERR;
     }
