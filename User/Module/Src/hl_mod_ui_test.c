@@ -24,12 +24,26 @@
 /* Includes ------------------------------------------------------------------*/
 
 #include "hl_mod_ui.h"
+#include "rtthread.h"
 
 /* typedef -------------------------------------------------------------------*/
 /* define --------------------------------------------------------------------*/
 /* variables -----------------------------------------------------------------*/
 /* Private function(only *.c)  -----------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
+
+static void hl_mod_ui_test(int argc, char *argv[])
+{
+    if (argc <= 1) {
+        rt_kprintf("format: cmd 1\n");
+        return;
+    }
+    hl_mod_ui_init(RT_NULL);
+
+    
+}
+
+MSH_CMD_EXPORT(hl_mod_ui_test, ui mod test);
 /*
  * EOF
  */

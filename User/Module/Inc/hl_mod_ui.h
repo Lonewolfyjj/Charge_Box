@@ -33,7 +33,12 @@
 
 /* typedef -------------------------------------------------------------------*/
 
-typedef enum _hl_mod_ui_op_cmd_e {
+typedef enum _hl_mod_ui_page_list {
+    HL_MOD_UI_BATTERY_PAGE,
+    HL_MOD_UI_UPGRADE_PAGE,
+    HL_MOD_UI_ERROR_PAGE,
+}hl_mod_ui_op_cmd_e;
+typedef enum _hl_mod_ui_state_list {
     HL_MOD_UI_CHARGING,
     HL_MOD_UI_OUT_CHARGE,
     HL_MOD_UI_SOC_LEVEL_0,
@@ -49,13 +54,17 @@ typedef enum _hl_mod_ui_op_cmd_e {
     HL_MOD_UI_CHARGER_ERR,
     HL_MOD_UI_RTC_ERR,
     HL_MOD_UI_FLASH_ERR
-}hl_mod_ui_op_cmd_e;
+}hl_mod_ui_state_list_e;
+
+typedef struct {
+    uint8_t charge_state;
+    uint8_t soc_level;
+}hl_mod_ui_charge_soc_st;
 
 /* define --------------------------------------------------------------------*/
 
 #define HL_MOD_UI_FUNC_ERR  1
 #define HL_MOD_UI_FUNC_OK   0
-
 
 /* variables -----------------------------------------------------------------*/
 /* Private function(only *.c)  -----------------------------------------------*/
