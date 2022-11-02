@@ -30,6 +30,8 @@
 #include "hl_hal_usb_cdc.h"
 #include "hl_hal_console.h"
 
+#include "hl_mod_typedef.h"
+
 /* typedef -------------------------------------------------------------------*/
 
 typedef struct _hl_mod_extcom_object_st
@@ -87,6 +89,8 @@ static hl_mod_extcom_object_st objects[NUM_OF_HL_MOD_EXTCOM_OBJECT] = { 0 };
 
 static uint8_t extcom_thread_stack[EXTCOM_THREAD_STACK_SIZE] = { 0 };
 
+static hl_mod_msg_handle_st _extcom_msg_hd = { 0 };
+
 static hl_mod_extcom_st _extcom_mod = {
     .init_flag        = false,
     .start_flag       = false,
@@ -98,6 +102,20 @@ static hl_mod_extcom_st _extcom_mod = {
 };
 
 /* Private function(only *.c)  -----------------------------------------------*/
+
+static int _mod_msg_send(uint8_t cmd, void* param, uint16_t len)
+{
+    int ret;
+
+    if (_extcom_mod.msg_hd != RT_NULL && _extcom_msg_hd.msg_send != RT_NULL) {
+        ret = _extcom_msg_hd.msg_send(_extcom_msg_hd.msg_id, cmd, param, len);
+        if (ret == 0) {
+            return HL_MOD_EXTCOM_FUNC_OK;
+        }
+    }
+
+    return HL_MOD_EXTCOM_FUNC_ERR;
+}
 
 static int _object_send_data(hl_mod_extcom_object_e object, char cmd, char* buf, int len)
 {
@@ -462,7 +480,14 @@ int hl_mod_extcom_init(void* msg_hd)
 
     DBG_LOG("extcom mod init success\n");
 
-    _extcom_mod.msg_hd    = msg_hd;
+    if (msg_hd != RT_NULL) {
+        _extcom_msg_hd.msg_id   = ((hl_mod_msg_handle_st*)(msg_hd))->msg_id;
+        _extcom_msg_hd.msg_send = ((hl_mod_msg_handle_st*)(msg_hd))->msg_send;
+        _extcom_mod.msg_hd      = &_extcom_msg_hd;
+    } else {
+        _extcom_mod.msg_hd = RT_NULL;
+    }
+
     _extcom_mod.init_flag = true;
 
     return HL_MOD_EXTCOM_FUNC_OK;

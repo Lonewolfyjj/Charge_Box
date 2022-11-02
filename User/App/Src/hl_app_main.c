@@ -26,6 +26,9 @@
 #include "hl_app_main.h"
 #include "hl_app_msg.h"
 
+#include "hl_mod_typedef.h"
+#include "hl_mod_extcom.h"
+
 /* typedef -------------------------------------------------------------------*/
 
 typedef struct _hl_app_main_st
@@ -55,22 +58,74 @@ static uint8_t main_thread_stack[APP_MAIN_THREAD_STACK_SIZE] = { 0 };
 
 /* Private function(only *.c)  -----------------------------------------------*/
 
+static void _msg_proc(hl_app_msg_st* msg)
+{
+    DBG_LOG("main app recv msg: id %d, cmd %d\n", msg->msg_id, msg->cmd);
+}
+
 static void _app_main_thread_entry(void* arg)
 {
-    while (_main_app.thread_exit_flag == 0) {
+    hl_app_msg_st msg;
+    int           ret;
 
-        rt_thread_mdelay(10);
+    while (_main_app.thread_exit_flag == 0) {
+        ret = hl_app_msg_recv(&msg, RT_WAITING_FOREVER);
+        if (ret == HL_APP_MSG_FUNC_ERR) {
+            continue;
+        }
+
+        _msg_proc(&msg);
     }
 
     _main_app.thread_exit_flag = -1;
+}
+
+static int _mod_init(void)
+{
+    int                  ret;
+    hl_mod_msg_handle_st msg_hd;
+
+    msg_hd.msg_id   = HL_APP_MSG_ID_EXTCOM_MOD;
+    msg_hd.msg_send = hl_app_msg_send;
+
+    ret = hl_mod_extcom_init(&msg_hd);
+    if (ret == HL_MOD_EXTCOM_FUNC_ERR) {
+        return HL_APP_MAIN_FUNC_REE;
+    }
+
+    return HL_APP_MAIN_FUNC_OK;
+}
+
+static int _mod_start(void)
+{
+    int ret;
+
+    ret = hl_mod_extcom_start();
+    if (ret == HL_MOD_EXTCOM_FUNC_ERR) {
+        return HL_APP_MAIN_FUNC_REE;
+    }
+
+    return HL_APP_MAIN_FUNC_OK;
 }
 
 /* Exported functions --------------------------------------------------------*/
 
 int hl_app_main_init(void)
 {
+    int ret;
+
     if (_main_app.init_flag == true) {
         DBG_LOG("main app already inited!\n");
+        return HL_APP_MAIN_FUNC_REE;
+    }
+
+    ret = hl_app_msg_init();
+    if (ret == HL_APP_MSG_FUNC_ERR) {
+        return HL_APP_MAIN_FUNC_REE;
+    }
+
+    ret = _mod_init();
+    if (ret == HL_APP_MAIN_FUNC_REE) {
         return HL_APP_MAIN_FUNC_REE;
     }
 
@@ -88,6 +143,8 @@ int hl_app_main_deinit(void)
         return HL_APP_MAIN_FUNC_REE;
     }
 
+    hl_app_msg_deinit();
+
     hl_app_main_stop();
 
     DBG_LOG("main app deinit success!\n");
@@ -100,6 +157,7 @@ int hl_app_main_deinit(void)
 int hl_app_main_start(void)
 {
     rt_err_t rt_err;
+    int      ret;
 
     if (_main_app.init_flag == false) {
         DBG_LOG("main app not init yet!\n");
@@ -121,6 +179,11 @@ int hl_app_main_start(void)
     }
 
     rt_thread_startup(&(_main_app.main_thread));
+
+    ret = _mod_start();
+    if (ret == HL_APP_MAIN_FUNC_REE) {
+        return HL_APP_MAIN_FUNC_REE;
+    }
 
     DBG_LOG("main app start success!\n");
 

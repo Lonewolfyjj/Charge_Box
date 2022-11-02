@@ -1,9 +1,9 @@
 /**
- * @file hl_app_msg.h
+ * @file hl_mod_typedef.h
  * @author lilin (lin.li@hollyland-tech.com)
  * @brief 
  * @version 1.0
- * @date 2022-11-01
+ * @date 2022-11-02
  * 
  * ██╗  ██╗ ██████╗ ██╗     ██╗  ██╗   ██╗██╗      █████╗ ███╗   ██╗██████╗ 
  * ██║  ██║██╔═══██╗██║     ██║  ╚██╗ ██╔╝██║     ██╔══██╗████╗  ██║██╔══██╗
@@ -16,14 +16,14 @@
  * @par 修改日志:
  * <table>
  * <tr><th>Date           <th>Version  <th>Author         <th>Description
- * <tr><td>2022-11-01     <td>v1.0     <td>lilin     <td>内容
+ * <tr><td>2022-11-02     <td>v1.0     <td>lilin     <td>内容
  * </table>
  * 
  */
 /* Define to prevent recursive inclusion -------------------------------------*/
 
-#ifndef __HL_APP_MSG_H__
-#define __HL_APP_MSG_H__
+#ifndef __HL_MOD_TYPEDEF_H__
+#define __HL_MOD_TYPEDEF_H__
 
 /* Includes ------------------------------------------------------------------*/
 
@@ -33,40 +33,16 @@
 
 /* typedef -------------------------------------------------------------------*/
 
-typedef enum _hl_app_msg_id_e
+typedef struct _hl_mod_msg_handle_st
 {
-    HL_APP_MSG_ID_PT_APP = 0,
-    HL_APP_MSG_ID_PM_MOD,
-    HL_APP_MSG_ID_UI_MOD,
-    HL_APP_MSG_ID_EXTCOM_MOD,
-    HL_APP_MSG_ID_UPGRADE_MOD,
-    NUM_OF_HL_APP_MSG_ID,
-} hl_app_msg_id_e;
-
-typedef struct _hl_app_msg_st
-{
-    hl_app_msg_id_e msg_id;
-    uint8_t         cmd;
-    uint16_t        len;
-    void*           param;
-} hl_app_msg_st;
+    int msg_id;
+    int (*msg_send)(int msg_id, uint8_t cmd, void* param, uint16_t len);
+} hl_mod_msg_handle_st;
 
 /* define --------------------------------------------------------------------*/
 /* variables -----------------------------------------------------------------*/
 /* Private function(only *.c)  -----------------------------------------------*/
-
-#define HL_APP_MSG_FUNC_ERR 1
-#define HL_APP_MSG_FUNC_OK 0
-
 /* Exported functions --------------------------------------------------------*/
-
-int hl_app_msg_init(void);
-
-int hl_app_msg_deinit(void);
-
-int hl_app_msg_send(int msg_id, uint8_t cmd, void* param, uint16_t len);
-
-int hl_app_msg_recv(hl_app_msg_st* msg, int timeout);
 
 #endif
 /*

@@ -90,7 +90,7 @@ int hl_app_msg_deinit(void)
     return HL_APP_MSG_FUNC_OK;
 }
 
-int hl_app_msg_send(hl_app_msg_id_e msg_id, uint8_t cmd, void* param, uint16_t len, int timeout)
+int hl_app_msg_send(int msg_id, uint8_t cmd, void* param, uint16_t len)
 {
     rt_err_t      rt_err;
     hl_app_msg_st msg;
@@ -105,7 +105,7 @@ int hl_app_msg_send(hl_app_msg_id_e msg_id, uint8_t cmd, void* param, uint16_t l
     msg.param  = param;
     msg.len    = len;
 
-    rt_err = rt_mq_send_wait(&(_msg_app.msg_queue), &msg, sizeof(msg), timeout);
+    rt_err = rt_mq_send(&(_msg_app.msg_queue), &msg, sizeof(msg));
     if (rt_err != RT_EOK) {
         return HL_APP_MSG_FUNC_ERR;
     }
