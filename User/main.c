@@ -1,8 +1,10 @@
 /* Includes ------------------------------------------------------------------*/
+
 #include <stdint.h>
 #include <rtthread.h>
 
-#include "hl_hal_gpio.h"
+#include "hl_app_main.h"
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -13,6 +15,12 @@ int main(void)
 {
     /* Output a message on Hyperterminal using printf function */
     rt_kprintf("hollyland A6902_box start\n");
+
+    hl_app_main_init();
+
+    hl_app_main_start();
+
+    return 0;
 }
 
 #ifdef USE_FULL_ASSERT

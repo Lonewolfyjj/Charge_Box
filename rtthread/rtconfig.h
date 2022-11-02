@@ -95,11 +95,11 @@
 // </c>
 // <c1>Using MailBox
 //  <i>Using MailBox
-#define RT_USING_MAILBOX
+//#define RT_USING_MAILBOX
 // </c>
 // <c1>Using Message Queue
 //  <i>Using Message Queue
-//#define RT_USING_MESSAGEQUEUE
+#define RT_USING_MESSAGEQUEUE
 // </c>
 // </h>
 
@@ -110,7 +110,7 @@
 // </c>
 // <c1>using small memory
 //  <i>using small memory
-#define RT_USING_SMALL_MEM
+//#define RT_USING_SMALL_MEM
 // </c>
 // <c1>using tiny size of memory
 //  <i>using tiny size of memory
