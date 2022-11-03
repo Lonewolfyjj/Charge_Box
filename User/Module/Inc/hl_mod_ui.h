@@ -32,12 +32,36 @@
 #include "stdbool.h"
 
 /* typedef -------------------------------------------------------------------*/
-
+/**
+ * @brief UI显示的三个页面，分充电页面，升级页面，故障页面
+ * @date 2022-11-03
+ * @author yijiujun (jiujun.yi@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-11-03      <td>yijiujun     <td>新建
+ * </table>
+ */
 typedef enum _hl_mod_ui_page_list {
     HL_MOD_UI_BATTERY_PAGE,
     HL_MOD_UI_UPGRADE_PAGE,
     HL_MOD_UI_ERROR_PAGE,
 }hl_mod_ui_op_cmd_e;
+
+/**
+ * @brief UI对应页面的参数类型
+ * @date 2022-11-03
+ * @author yijiujun (jiujun.yi@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-11-03      <td>yijiujun     <td>新建
+ * </table>
+ */
 typedef enum _hl_mod_ui_state_list {
     HL_MOD_UI_CHARGING,
     HL_MOD_UI_OUT_CHARGE,
