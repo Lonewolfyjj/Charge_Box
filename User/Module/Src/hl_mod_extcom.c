@@ -440,6 +440,9 @@ static void _box_uart_msg_poll(void)
 
 static void _extcom_thread_entry(void* arg)
 {
+
+    _mod_msg_send(HL_MOD_EXTCOM_MSG_START, RT_NULL, 0);
+
     while (_extcom_mod.thread_exit_flag == 0) {
         _rx_uart_msg_poll();
         _tx1_uart_msg_poll();

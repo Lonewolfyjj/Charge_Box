@@ -48,6 +48,11 @@ typedef enum _hl_mod_extcom_object_e
     NUM_OF_HL_MOD_EXTCOM_OBJECT,
 } hl_mod_extcom_object_e;
 
+typedef enum _hl_mod_extcom_msg_e
+{
+    HL_MOD_EXTCOM_MSG_START,
+} hl_mod_extcom_msg_e;
+
 /* define --------------------------------------------------------------------*/
 
 #define HL_MOD_EXTCOM_FUNC_ERR 1
