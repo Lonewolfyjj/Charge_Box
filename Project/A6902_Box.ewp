@@ -1275,6 +1275,9 @@
                 <name>$PROJ_DIR$\..\User\App\Src\hl_app_main.c</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\..\User\App\Src\hl_app_mng.c</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\User\App\Src\hl_app_msg.c</name>
             </file>
             <file>
