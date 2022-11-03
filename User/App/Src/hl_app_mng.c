@@ -24,17 +24,16 @@
 /* Includes ------------------------------------------------------------------*/
 
 #include "hl_app_mng.h"
-#include "hl_app_msg.h"
 
 /* typedef -------------------------------------------------------------------*/
 
-typedef struct _hl_app_mng_st
+typedef struct _hl_app_mng_handle_st
 {
     bool             init_flag;
     bool             start_flag;
     struct rt_thread mng_thread;
     int              thread_exit_flag;
-} hl_app_mng_st;
+} hl_app_mng_handle_st;
 
 /* define --------------------------------------------------------------------*/
 
@@ -46,12 +45,14 @@ typedef struct _hl_app_mng_st
 
 static uint8_t mng_thread_stack[APP_MNG_THREAD_STACK_SIZE] = { 0 };
 
-static hl_app_mng_st _mng_app = {
+static hl_app_mng_handle_st _mng_app = {
     .init_flag        = false,
     .start_flag       = false,
     .mng_thread       = { 0 },
     .thread_exit_flag = 0,
 };
+
+static hl_app_mng_st _mng_st = { 0 };
 
 /* Private function(only *.c)  -----------------------------------------------*/
 
@@ -59,6 +60,10 @@ static void _msg_proc(hl_app_msg_st* msg)
 {
     DBG_LOG("mng app recv msg: id %d, cmd %d\n", msg->msg_id, msg->cmd);
     
+    hl_app_mng_charger_proc(msg);
+    hl_app_mng_ui_proc(msg);
+    hl_app_mng_extcom_proc(msg);
+    hl_app_mng_upgrade_proc(msg);
 }
 
 static void _app_mng_thread_entry(void* arg)
@@ -167,6 +172,11 @@ int hl_app_mng_stop(void)
     _mng_app.start_flag = false;
 
     return HL_APP_MNG_FUNC_OK;
+}
+
+hl_app_mng_st* hl_app_mng_get(void)
+{
+    return &_mng_st;
 }
 
 /*
