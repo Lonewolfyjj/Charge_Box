@@ -72,8 +72,9 @@ static void _app_mng_thread_entry(void* arg)
     int           ret;
 
     while (_mng_app.thread_exit_flag == 0) {
-        ret = hl_app_msg_recv(&msg, RT_WAITING_FOREVER);
+        ret = hl_app_msg_recv(&msg, 0);
         if (ret == HL_APP_MSG_FUNC_ERR) {
+            rt_thread_mdelay(10);
             continue;
         }
 
@@ -118,7 +119,7 @@ int hl_app_mng_deinit(void)
 int hl_app_mng_start(void)
 {
     rt_err_t rt_err;
-        
+
     if (_mng_app.init_flag == false) {
         DBG_LOG("mng app not init yet!\n");
         return HL_APP_MNG_FUNC_ERR;
