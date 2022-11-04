@@ -24,6 +24,9 @@
 /* Includes ------------------------------------------------------------------*/
 
 #include "hl_app_mng.h"
+#include "hl_app_msg.h"
+#include "hl_app_mng_task.h"
+#include "hl_mod_extcom.h"
 
 /* typedef -------------------------------------------------------------------*/
 
@@ -56,16 +59,6 @@ static hl_app_mng_st _mng_st = { 0 };
 
 /* Private function(only *.c)  -----------------------------------------------*/
 
-static void _msg_proc(hl_app_msg_st* msg)
-{
-    DBG_LOG("mng app recv msg: id %d, cmd %d\n", msg->msg_id, msg->cmd);
-    
-    hl_app_mng_charger_proc(msg);
-    hl_app_mng_ui_proc(msg);
-    hl_app_mng_extcom_proc(msg);
-    hl_app_mng_upgrade_proc(msg);
-}
-
 static void _app_mng_thread_entry(void* arg)
 {
     hl_app_msg_st msg;
@@ -73,12 +66,13 @@ static void _app_mng_thread_entry(void* arg)
 
     while (_mng_app.thread_exit_flag == 0) {
         ret = hl_app_msg_recv(&msg, 0);
-        if (ret == HL_APP_MSG_FUNC_ERR) {
-            rt_thread_mdelay(10);
-            continue;
+        if (ret == HL_APP_MSG_FUNC_OK) {
+            hl_app_mng_task_msg_proc(&msg);
         }
 
-        _msg_proc(&msg);
+        hl_app_mng_task_proc();
+
+        rt_thread_mdelay(10);
     }
 
     _mng_app.thread_exit_flag = -1;

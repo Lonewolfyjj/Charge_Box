@@ -31,10 +31,6 @@
 #include "stdint.h"
 #include "stdbool.h"
 
-#include "hl_app_msg.h"
-
-#include "hl_mod_extcom.h"
-
 /* typedef -------------------------------------------------------------------*/
 
 typedef struct _hl_app_mng_st
@@ -60,14 +56,6 @@ int hl_app_mng_start(void);
 int hl_app_mng_stop(void);
 
 hl_app_mng_st* hl_app_mng_get(void);
-      
-int hl_app_mng_extcom_proc(hl_app_msg_st* msg);
-
-int hl_app_mng_ui_proc(hl_app_msg_st* msg);
-
-int hl_app_mng_charger_proc(hl_app_msg_st* msg);
-
-int hl_app_mng_upgrade_proc(hl_app_msg_st* msg);
 
 #endif
 /*

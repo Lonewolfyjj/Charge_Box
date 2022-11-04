@@ -1278,16 +1278,7 @@
                 <name>$PROJ_DIR$\..\User\App\Src\hl_app_mng.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\User\App\Src\hl_app_mng_charger.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\User\App\Src\hl_app_mng_extcom.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\User\App\Src\hl_app_mng_ui.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\User\App\Src\hl_app_mng_upgrade.c</name>
+                <name>$PROJ_DIR$\..\User\App\Src\hl_app_mng_task.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\App\Src\hl_app_msg.c</name>
