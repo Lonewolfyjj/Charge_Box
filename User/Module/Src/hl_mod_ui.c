@@ -66,6 +66,19 @@ static hl_mod_ui_st _ui_info = {
     .msg_hd     = RT_NULL
 };
 
+static struct rt_timer  s_upgrade_syn_timer;
+
+static bool timer_run_flag;
+
+static hl_drv_aw2016a_breath_param_st pattern_param = {
+   .repeat   = UI_BREATH_PARAM_REPEAT,
+    .t0       = UI_BREATH_PARAM_T0,
+    .t1       = UI_BREATH_PARAM_T1,
+    .t2       = UI_BREATH_PARAM_T2,
+    .t3       = UI_BREATH_PARAM_T3,
+    .t4       = UI_BREATH_PARAM_T4,
+};
+
 /* Private function(only *.c)  -----------------------------------------------*/
 /**
  * @brief 设置灯为呼吸灯显示，先设置呼吸时间的6个参数，再设置为Pattern模式（自主呼吸模式）
@@ -83,19 +96,13 @@ static hl_mod_ui_st _ui_info = {
 static void set_ledx_breath_mod(uint8_t ledx)
 {
     uint8_t led_chan, hl_drv_aw2016_ledx;
-    hl_drv_aw2016a_breath_param_st pattern_param;
+    
     if (ledx >= HL_MOD_UI_RED_LED) {
         ledx -= 5;
         hl_drv_aw2016_ledx = HL_DRV_AW2016A_LED1;
     } else {
         hl_drv_aw2016_ledx = HL_DRV_AW2016A_LED0;
     }
-    pattern_param.repeat   = 0;
-    pattern_param.t0       = UI_BREATH_PARAM_T0;
-    pattern_param.t1       = UI_BREATH_PARAM_T1;
-    pattern_param.t2       = UI_BREATH_PARAM_T2;
-    pattern_param.t3       = UI_BREATH_PARAM_T3;
-    pattern_param.t4       = UI_BREATH_PARAM_T4;
 
     switch (ledx) {
         case HL_MOD_UI_LED1:
@@ -203,6 +210,48 @@ static void set_led_all_close(uint8_t aw2016_ledx)
     hl_drv_aw2016a_ctrl(aw2016_ledx, HL_DRV_AW2016A_SET_LED_LIGHT_EFFECT, &light, sizeof(light));
 }
 
+static int _load_state_display(uint8_t *state)
+{
+    if (state == RT_NULL) {
+        return HL_MOD_UI_FUNC_ERR;
+    }
+
+    switch (*state) {
+        case HL_MOD_UI_LOAD_TX1_BREATH:
+            set_ledx_lighting_mod(HL_MOD_UI_LED1, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
+            set_ledx_breath_mod(HL_MOD_UI_LED1);
+            break;
+        case HL_MOD_UI_LOAD_TX1_LIGHTING:
+            set_ledx_lighting_mod(HL_MOD_UI_LED1, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
+            break;
+        case HL_MOD_UI_LOAD_TX1_NOT_LIGHTING:
+            set_ledx_lighting_mod(HL_MOD_UI_LED1, 0, 0);
+            break;
+        case HL_MOD_UI_LOAD_TX2_BREATH:
+            set_ledx_lighting_mod(HL_MOD_UI_LED2, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
+            set_ledx_breath_mod(HL_MOD_UI_LED2);
+            break;
+        case HL_MOD_UI_LOAD_TX2_LIGHTING:
+            set_ledx_lighting_mod(HL_MOD_UI_LED2, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
+            break;
+        case HL_MOD_UI_LOAD_TX2_NOT_LIGHTING:
+            set_ledx_lighting_mod(HL_MOD_UI_LED2, 0, 0);
+            break;
+        case HL_MOD_UI_LOAD_RX_BREATH:
+            set_ledx_lighting_mod(HL_MOD_UI_LED3, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
+            set_ledx_breath_mod(HL_MOD_UI_LED3);
+            break;
+        case HL_MOD_UI_LOAD_RX_LIGHTING:
+            set_ledx_lighting_mod(HL_MOD_UI_LED3, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
+            break;
+        case HL_MOD_UI_LOAD_RX_NOT_LIGHTING:
+            set_ledx_lighting_mod(HL_MOD_UI_LED3, 0, 0);
+            break;
+        default :
+            break;
+    }
+    return HL_MOD_UI_FUNC_OK;
+}
 /**
  * @brief 充电页面的LED显示情况，分不充电和充电两种情况
  * @param [in] soc_st 充电状态结构体
@@ -216,29 +265,32 @@ static void set_led_all_close(uint8_t aw2016_ledx)
  * <tr><td>2022-11-03      <td>yijiujun     <td>新建
  * </table>
  */
-static void _battery_soc_state_display(hl_mod_ui_charge_soc_st *soc_st)
+static int _battery_soc_state_display(hl_mod_ui_charge_soc_st *soc_st)
 {
     if (soc_st == RT_NULL) {
         return HL_MOD_UI_FUNC_ERR;
     }
-    uint8_t ret;
-    set_led_all_close(HL_DRV_AW2016A_LED1);
-
     DBG_LOG("set led light \n");
     if (soc_st->charge_state == HL_MOD_UI_OUT_CHARGE) {   //未充电中
         switch (soc_st->soc_level) {
             case HL_MOD_UI_SOC_LEVEL_0:
-                DBG_LOG("charge soc level 0\n");
-                set_ledx_lighting_mod(HL_MOD_UI_LED1, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
-                set_ledx_breath_mod(HL_MOD_UI_LED1);
+                set_led_all_close(HL_DRV_AW2016A_LED0);
+                set_ledx_lighting_mod(HL_MOD_UI_RED_LED, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
                 break;
             case HL_MOD_UI_SOC_LEVEL_1:
-                set_ledx_lighting_mod(HL_MOD_UI_LED1, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
+                set_led_all_close(HL_DRV_AW2016A_LED0);
+                set_ledx_lighting_mod(HL_MOD_UI_RGB_ALL_LED, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
                 break;
             case HL_MOD_UI_SOC_LEVEL_2: 
-                set_ledx_lighting_mod(HL_MOD_UI_LED_1_2, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
+                set_ledx_lighting_mod(HL_MOD_UI_RGB_ALL_LED, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
+                set_ledx_lighting_mod(HL_MOD_UI_LED1, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
                 break;
             case HL_MOD_UI_SOC_LEVEL_3: 
+                set_ledx_lighting_mod(HL_MOD_UI_RGB_ALL_LED, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
+                set_ledx_lighting_mod(HL_MOD_UI_LED_1_2, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
+                break;
+            case HL_MOD_UI_SOC_LEVEL_4: 
+                set_ledx_lighting_mod(HL_MOD_UI_RGB_ALL_LED, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
                 set_ledx_lighting_mod(HL_MOD_UI_LED_ALL, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
                 break;
             default:
@@ -247,19 +299,28 @@ static void _battery_soc_state_display(hl_mod_ui_charge_soc_st *soc_st)
     } else {
         switch (soc_st->soc_level) {                    //充电中
             case HL_MOD_UI_SOC_LEVEL_0:
+                set_led_all_close(HL_DRV_AW2016A_LED0);
+                set_ledx_lighting_mod(HL_MOD_UI_RGB_ALL_LED, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
+                set_ledx_breath_mod(HL_MOD_UI_RGB_ALL_LED);
+                break;
+            case HL_MOD_UI_SOC_LEVEL_1:
+                set_ledx_lighting_mod(HL_MOD_UI_RGB_ALL_LED, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
                 set_ledx_lighting_mod(HL_MOD_UI_LED1, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
                 set_ledx_breath_mod(HL_MOD_UI_LED1);
                 break;
-            case HL_MOD_UI_SOC_LEVEL_1:
+            case HL_MOD_UI_SOC_LEVEL_2: 
+                set_ledx_lighting_mod(HL_MOD_UI_RGB_ALL_LED, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
                 set_ledx_lighting_mod(HL_MOD_UI_LED_1_2, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
                 set_ledx_breath_mod(HL_MOD_UI_LED2);
                 break;
-            case HL_MOD_UI_SOC_LEVEL_2: 
+            case HL_MOD_UI_SOC_LEVEL_3: 
+                set_ledx_lighting_mod(HL_MOD_UI_RGB_ALL_LED, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
                 set_ledx_lighting_mod(HL_MOD_UI_LED_ALL, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
                 set_ledx_breath_mod(HL_MOD_UI_LED3);
                 break;
-            case HL_MOD_UI_SOC_LEVEL_3: 
-                set_ledx_lighting_mod(HL_MOD_UI_LED_ALL, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);    //充满电
+            case HL_MOD_UI_SOC_LEVEL_4: 
+                set_ledx_lighting_mod(HL_MOD_UI_RGB_ALL_LED, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);    //充满电
+                set_ledx_lighting_mod(HL_MOD_UI_LED_ALL, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
                 break;
             default:
                 break;            
@@ -267,8 +328,22 @@ static void _battery_soc_state_display(hl_mod_ui_charge_soc_st *soc_st)
     }
     return HL_MOD_UI_FUNC_OK;
 }
+
+static void _upgrade_syn_timer_start()
+{
+    if (timer_run_flag == false) {
+        rt_timer_start(&s_upgrade_syn_timer);
+        timer_run_flag = true;
+    }
+}
+static void _upgrade_syn_timer_stop()
+{
+    timer_run_flag = false;
+    rt_timer_stop(&s_upgrade_syn_timer);
+}
+
 /**
- * @brief 升级页面LED显示状态，分升级准备，升级中，升级成功三种情况
+ * @brief 升级页面LED显示状态，分升级中，升级成功两种情况
  * @param [in] up_st 升级状态
  * @date 2022-11-03
  * @author yijiujun (jiujun.yi@hollyland-tech.com)
@@ -280,27 +355,36 @@ static void _battery_soc_state_display(hl_mod_ui_charge_soc_st *soc_st)
  * <tr><td>2022-11-03      <td>yijiujun     <td>新建
  * </table>
  */
-static void _upgrading_state_display(uint8_t *up_st)
+static int _upgrading_state_display(uint8_t *up_st)
 {
     if (up_st == RT_NULL) {
         return HL_MOD_UI_FUNC_ERR;
     }
-    DBG_LOG("set upd led light \n");
-    set_led_all_close(HL_DRV_AW2016A_LED0);
+
     switch (*up_st) {
-        case HL_MOD_UI_UPGRADING_READY:
-            set_ledx_lighting_mod(HL_MOD_UI_RED_LED, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
+        case HL_MOD_UI_UPGRADING_RUN:                   //升级中
+            _upgrade_syn_timer_start();
+            set_ledx_lighting_mod(HL_MOD_UI_RGB_ALL_LED, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
+            set_ledx_breath_mod(HL_MOD_UI_RGB_ALL_LED);
+            set_ledx_lighting_mod(HL_MOD_UI_LED_ALL, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
+            set_ledx_breath_mod(HL_MOD_UI_LED_ALL);
             break;
-        case HL_MOD_UI_UPGRADING_RUN:
-            set_ledx_lighting_mod(HL_MOD_UI_GREEN_LED, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
-            break;
-        case HL_MOD_UI_UPGRADING_OK: 
-            set_ledx_lighting_mod(HL_MOD_UI_BLUE_LED, UI_LED_OUTPUT_CUR, UI_LED_PWM_CCR);
+        case HL_MOD_UI_UPGRADING_OK:                    //升级成功
+            _upgrade_syn_timer_stop();
+            set_led_all_close(HL_DRV_AW2016A_LED0);
+            set_led_all_close(HL_DRV_AW2016A_LED1);
             break;
         default:
             break;   
     }
+    
     return HL_MOD_UI_FUNC_OK;
+}
+
+static void upgrade_syn_timeout_handle(void *arg)
+{
+    uint8_t val = HL_MOD_UI_UPGRADING_RUN;
+    _upgrading_state_display(&val);
 }
 
 /**
@@ -360,16 +444,16 @@ static int _error_state_display(uint8_t *err_st)
  * <tr><td>2022-11-03      <td>yijiujun     <td>新建
  * </table>
  */
-static void _led_init_config(uint8_t aw2016_ledx)
+static int _led_init_config(uint8_t aw2016_ledx)
 {
-    int                            ret;
-    uint8_t                        led_chan;
-    uint8_t                        work_mode;
+    int     ret;
+    uint8_t led_chan;
+    uint8_t work_mode;
 
     work_mode = HL_DRV_AW2016A_ACTIVE_MODE;
     ret = hl_drv_aw2016a_ctrl(aw2016_ledx, HL_DRV_AW2016A_SET_WORK_MODE, &work_mode, sizeof(work_mode));
     if (ret == AW2016A_FUNC_RET_ERR) {
-        return ;
+        return HL_MOD_UI_FUNC_ERR;
     }
 
     DBG_LOG("set work mode\n");
@@ -378,7 +462,7 @@ static void _led_init_config(uint8_t aw2016_ledx)
     ret = hl_drv_aw2016a_ctrl(aw2016_ledx, HL_DRV_AW2016A_SET_GLOBAL_MAX_OUTPUT_CURRENT, &work_mode,
                               sizeof(work_mode));
     if (ret == AW2016A_FUNC_RET_ERR) {
-        return ;
+        return HL_MOD_UI_FUNC_ERR;
     }
     DBG_LOG("set g current max\n");
 
@@ -386,11 +470,55 @@ static void _led_init_config(uint8_t aw2016_ledx)
 
     ret = hl_drv_aw2016a_ctrl(aw2016_ledx, HL_DRV_AW2016A_OPEN_LED_CHANNEL, &led_chan, sizeof(led_chan));
     if (ret == AW2016A_FUNC_RET_ERR) {
-        return ;
+        return HL_MOD_UI_FUNC_ERR;
     }
 
     DBG_LOG("open led \n");
+    return HL_MOD_UI_FUNC_OK;
+}
 
+static int _ui_mod_lowpower_state(uint8_t *state_val)
+{
+    int     ret;
+    uint8_t led_chan;
+    uint8_t work_mode;
+
+    if (state_val == RT_NULL) {
+        return HL_MOD_UI_FUNC_ERR;
+    }
+    if (*state_val == HL_MOD_UI_LOWPOWER) {
+
+        _upgrade_syn_timer_stop();                  //关闭升级同步定时器
+
+        set_led_all_close(HL_DRV_AW2016A_LED0);     //清除之前的配置
+        set_led_all_close(HL_DRV_AW2016A_LED1);
+                                                    // LED模块停止工作
+        led_chan = HL_DRV_AW2016A_LED_CHANNEL1 | HL_DRV_AW2016A_LED_CHANNEL2 | HL_DRV_AW2016A_LED_CHANNEL3;
+        ret = hl_drv_aw2016a_ctrl(HL_DRV_AW2016A_LED0, HL_DRV_AW2016A_CLOSE_LED_CHANNEL, &led_chan, sizeof(led_chan));
+        if (ret == AW2016A_FUNC_RET_ERR) {
+            return HL_MOD_UI_FUNC_ERR;
+        }
+        ret = hl_drv_aw2016a_ctrl(HL_DRV_AW2016A_LED1, HL_DRV_AW2016A_CLOSE_LED_CHANNEL, &led_chan, sizeof(led_chan));
+        if (ret == AW2016A_FUNC_RET_ERR) {
+            return HL_MOD_UI_FUNC_ERR;
+        }
+
+        work_mode = HL_DRV_AW2016A_STANDBY_MODE;    //LED驱动进入待机状态
+        ret = hl_drv_aw2016a_ctrl(HL_DRV_AW2016A_LED0, HL_DRV_AW2016A_SET_WORK_MODE, &work_mode, sizeof(work_mode));
+        if (ret == AW2016A_FUNC_RET_ERR) {
+            return HL_MOD_UI_FUNC_ERR;
+        }
+        ret = hl_drv_aw2016a_ctrl(HL_DRV_AW2016A_LED1, HL_DRV_AW2016A_SET_WORK_MODE, &work_mode, sizeof(work_mode));
+        if (ret == AW2016A_FUNC_RET_ERR) {
+            return HL_MOD_UI_FUNC_ERR;
+        }
+
+        DBG_LOG("ui enter lowpower\n");
+    } else {
+        _led_init_config(HL_DRV_AW2016A_LED0);      //LED驱动进入活跃状态，LED输出启用
+        _led_init_config(HL_DRV_AW2016A_LED1);
+    }
+    return HL_MOD_UI_FUNC_OK;
 }
 
 /* Exported functions --------------------------------------------------------*/
@@ -406,6 +534,9 @@ int hl_mod_ui_init(void *msg_hd)
     _led_init_config(HL_DRV_AW2016A_LED0);
     _led_init_config(HL_DRV_AW2016A_LED1);
 
+    rt_timer_init(&s_upgrade_syn_timer, "upgrade_syn_timer", upgrade_syn_timeout_handle,
+                  RT_NULL, 5000, RT_TIMER_FLAG_PERIODIC | RT_TIMER_FLAG_SOFT_TIMER);
+    timer_run_flag = false;
     DBG_LOG("ui mod init success\n");
 
     _ui_info.msg_hd = msg_hd;
@@ -420,6 +551,7 @@ int hl_mod_ui_deinit(void)
         DBG_LOG("ui mod not init!\n");
         return HL_MOD_UI_FUNC_ERR;
     }
+    rt_timer_detach(&s_upgrade_syn_timer);
 
     val = HL_DRV_AW2016A_LED_CHANNEL1 | HL_DRV_AW2016A_LED_CHANNEL2 | HL_DRV_AW2016A_LED_CHANNEL3;
     hl_drv_aw2016a_ctrl(HL_DRV_AW2016A_LED0, HL_DRV_AW2016A_CLOSE_LED_CHANNEL, &val, sizeof(val));
@@ -442,6 +574,13 @@ int hl_mod_ui_ctrl(int op, void *arg, int arg_size)
     }
     
     switch (op) {
+        case HL_MOD_UI_LOAD_PAGE:
+            if (arg_size != sizeof(uint8_t)) {
+                DBG_LOG("size err, ctrl arg need <hl_mod_ui_charge_soc_st> type pointer!\n");
+                return HL_MOD_UI_FUNC_ERR;
+            }
+            _load_state_display((uint8_t *)arg);
+            break;
         case HL_MOD_UI_BATTERY_PAGE:
             if (arg_size != sizeof(hl_mod_ui_charge_soc_st)) {
                 DBG_LOG("size err, ctrl arg need <hl_mod_ui_charge_soc_st> type pointer!\n");
@@ -462,6 +601,13 @@ int hl_mod_ui_ctrl(int op, void *arg, int arg_size)
                 return HL_MOD_UI_FUNC_ERR;
             } 
             _error_state_display((uint8_t *)arg);
+            break;
+        case HL_MOD_UI_LOWPOWER_PAGE:
+            if (arg_size != sizeof(uint8_t)) {
+                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                return HL_MOD_UI_FUNC_ERR;
+            } 
+            _ui_mod_lowpower_state((uint8_t *)arg);
             break;
         default:
             DBG_LOG("op err, hl_mod_ui_ctrl!\n");

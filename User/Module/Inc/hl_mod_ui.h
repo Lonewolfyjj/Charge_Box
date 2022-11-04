@@ -45,9 +45,11 @@
  * </table>
  */
 typedef enum _hl_mod_ui_page_list {
+    HL_MOD_UI_LOAD_PAGE,
     HL_MOD_UI_BATTERY_PAGE,
     HL_MOD_UI_UPGRADE_PAGE,
     HL_MOD_UI_ERROR_PAGE,
+    HL_MOD_UI_LOWPOWER_PAGE
 }hl_mod_ui_op_cmd_e;
 
 /**
@@ -63,21 +65,34 @@ typedef enum _hl_mod_ui_page_list {
  * </table>
  */
 typedef enum _hl_mod_ui_state_list {
-    HL_MOD_UI_CHARGING,
+    HL_MOD_UI_CHARGING = 0,
     HL_MOD_UI_OUT_CHARGE,
     HL_MOD_UI_SOC_LEVEL_0,
     HL_MOD_UI_SOC_LEVEL_1,
     HL_MOD_UI_SOC_LEVEL_2,
     HL_MOD_UI_SOC_LEVEL_3,
+    HL_MOD_UI_SOC_LEVEL_4,
 
-    HL_MOD_UI_UPGRADING_READY,
     HL_MOD_UI_UPGRADING_RUN,
     HL_MOD_UI_UPGRADING_OK,
 
     HL_MOD_UI_GUAGE_ERR,
     HL_MOD_UI_CHARGER_ERR,
     HL_MOD_UI_RTC_ERR,
-    HL_MOD_UI_FLASH_ERR
+    HL_MOD_UI_FLASH_ERR,
+
+    HL_MOD_UI_LOAD_TX1_BREATH,
+    HL_MOD_UI_LOAD_TX1_LIGHTING,
+    HL_MOD_UI_LOAD_TX1_NOT_LIGHTING,
+    HL_MOD_UI_LOAD_TX2_BREATH,
+    HL_MOD_UI_LOAD_TX2_LIGHTING,
+    HL_MOD_UI_LOAD_TX2_NOT_LIGHTING,
+    HL_MOD_UI_LOAD_RX_BREATH,
+    HL_MOD_UI_LOAD_RX_LIGHTING,
+    HL_MOD_UI_LOAD_RX_NOT_LIGHTING,
+    
+    HL_MOD_UI_LOWPOWER,
+    HL_MOD_UI_WAKE_UP
 }hl_mod_ui_state_list_e;
 
 typedef struct {
@@ -89,6 +104,7 @@ typedef struct {
 
 #define HL_MOD_UI_FUNC_ERR  1
 #define HL_MOD_UI_FUNC_OK   0
+
 
 /* variables -----------------------------------------------------------------*/
 /* Private function(only *.c)  -----------------------------------------------*/

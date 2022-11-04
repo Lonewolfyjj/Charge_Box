@@ -69,15 +69,36 @@ static void hl_mod_ui_test(int argc, char *argv[])
                 soc_st.soc_level = HL_MOD_UI_SOC_LEVEL_3;
                 hl_mod_ui_ctrl(HL_MOD_UI_BATTERY_PAGE, &soc_st, sizeof(hl_mod_ui_charge_soc_st));
                 break;
+            case 4:
+                soc_st.soc_level = HL_MOD_UI_SOC_LEVEL_4;
+                hl_mod_ui_ctrl(HL_MOD_UI_BATTERY_PAGE, &soc_st, sizeof(hl_mod_ui_charge_soc_st));
+                break;
             default:
                 break;
         }
-    } else if (atoi(argv[1]) == 2) {     //升级页面 (cmd  2   0/1/2)
-        val = atoi(argv[2]) + 6;
+
+    /* val的值是根据---> hl_mod_ui_state_list_e 中的状态值而来*/
+
+    } else if (atoi(argv[1]) == 2) {     //升级页面 (cmd  2   0/1)
+
+        val = atoi(argv[2]) + 7;
         hl_mod_ui_ctrl(HL_MOD_UI_UPGRADE_PAGE, &val, sizeof(uint8_t));
+
     } else if (atoi(argv[1]) == 3) {     //错误页面 (cmd  3   0/1/2/3)
+
         val = atoi(argv[2]) + 9;
         hl_mod_ui_ctrl(HL_MOD_UI_ERROR_PAGE, &val, sizeof(uint8_t));
+
+    } else if (atoi(argv[1]) == 4) {     //负载页面 (cmd  4   0~8)
+
+        val = atoi(argv[2]) + 13;
+        hl_mod_ui_ctrl(HL_MOD_UI_LOAD_PAGE, &val, sizeof(uint8_t));
+
+    } else if (atoi(argv[1]) == 5) {     //低功耗页面 (cmd  5   0(open)/1(close))
+
+        val = atoi(argv[2]) + 22;
+        hl_mod_ui_ctrl(HL_MOD_UI_LOWPOWER_PAGE, &val, sizeof(uint8_t));
+        
     } else {
         rt_kprintf("format: cmd 1(page) 1(mod/charge_mod) 1(soc_type)\n");
     }
