@@ -26,6 +26,7 @@
 #include "hl_app_mng_task.h"
 #include "hl_app_mng.h"
 #include "hl_mod_extcom.h"
+#include "hl_mod_pm.h"
 
 /* typedef -------------------------------------------------------------------*/
 /* define --------------------------------------------------------------------*/
@@ -52,9 +53,12 @@ static void _extcom_mod_msg_proc(hl_app_msg_st* msg)
 
 static void _pm_mod_msg_proc(hl_app_msg_st* msg)
 {
+    hl_app_mng_st* mng_st = hl_app_mng_get();
+    
     switch (msg->cmd) {
-        case HL_MOD_EXTCOM_MSG_START: {
-
+        case HL_MOD_PM_MSG_START: {
+            DBG_LOG("pm mod thread start!\n");
+            mng_st->pm_start_flag = true;
         } break;
 
         default:

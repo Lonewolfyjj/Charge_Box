@@ -36,6 +36,7 @@
 typedef struct _hl_app_mng_st
 {
     bool extcom_start_flag;
+    bool pm_start_flag;
 } hl_app_mng_st;
 
 /* define --------------------------------------------------------------------*/
