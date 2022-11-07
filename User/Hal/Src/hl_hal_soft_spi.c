@@ -31,7 +31,16 @@
 
 static struct rt_mutex spi_mutex = { 0 };
 
+static bool _mutex_enbale_flag = false;
+
 /* Private function(only *.c)  -----------------------------------------------*/
+
+static int _mutex_enable()
+{
+    _mutex_enbale_flag = true;
+    return 0;
+}
+
 /* Exported functions --------------------------------------------------------*/
 
 
@@ -53,7 +62,9 @@ static struct rt_mutex spi_mutex = { 0 };
 uint8_t hl_hal_soft_spi_send_recv(hl_hal_soft_spi_info *spi_info, uint8_t wdata)
 {
     uint8_t count, reg_val = 0;
-    rt_mutex_take(&spi_mutex, RT_WAITING_FOREVER);       
+    if (_mutex_enbale_flag == true) {
+        rt_mutex_take(&spi_mutex, RT_WAITING_FOREVER); 
+    }
     for (count = 0; count < 8; count++) {
         SPI_SCK(spi_info->spi_sck_pin_num, spi_info->gpiox_base) = 0;
         if (wdata & 0x80) {     //在下降沿处，主机发送一位数据给从机
@@ -68,7 +79,9 @@ uint8_t hl_hal_soft_spi_send_recv(hl_hal_soft_spi_info *spi_info, uint8_t wdata)
             reg_val |= 0x01;
         }              
     }
-    rt_mutex_release(&spi_mutex);
+    if (_mutex_enbale_flag == true) {
+        rt_mutex_release(&spi_mutex);
+    }
     return reg_val;
 }
 #else
@@ -149,6 +162,8 @@ void hl_hal_soft_spi_deinit(hl_hal_soft_spi_info *spi_info)
 
     rt_mutex_detach(&spi_mutex);
 }
+
+INIT_APP_EXPORT(_mutex_enable);
 /*
  * EOF
  */
