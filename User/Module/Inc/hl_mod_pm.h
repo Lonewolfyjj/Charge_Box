@@ -34,21 +34,25 @@
 
 /* typedef -------------------------------------------------------------------*/
 
-typedef enum _hl_mod_pm_op_e{
-    HL_MOD_PM_ENTER_LOWPOWER
+typedef enum _hl_mod_pm_op_e {
+    HL_MOD_PM_ENTER_LOWPOWER,
+    HL_MOD_PM_GET_SOC,
+    HL_MOD_PM_GET_CHARGE_STAT,
+    HL_MOD_PM_GET_TX1_STAT,
+    HL_MOD_PM_GET_TX2_STAT,
+    HL_MOD_PM_GET_RX_STAT,
+    HL_MOD_PM_GET_BOX_STAT
 }hl_mod_pm_op_e;
-typedef enum _hl_mod_pm_charge_status_e {
-    HL_MOD_PM_CHAR_STAT = 0,
-    HL_MOD_PM_VBUS_STAT,
-    HL_MOD_PM_INPUT_STAT,
-    HL_MOD_PM_VINDPM_STAT,
-    HL_MOD_PM_IINDPM_STAT,
-    HL_MOD_PM_SYS_VOL_STAT,
-    HL_MOD_PM_BAT_ERR_STAT,
-    HL_MOD_PM_CHAR_ERR_STAT,
-    HL_MOD_PM_BOOST_ERR_STAT,
-    HL_MOD_PM_WATCHDOG_ERR_STAT
-}hl_mod_pm_charge_status_e;
+
+typedef enum _hl_mod_pm_msg_e {
+    HL_MOD_PM_MSG_START,
+    HL_MOD_PM_SOC_MSG,
+    HL_MOD_PM_CHARGE_MSG,
+    HL_MOD_PM_TX1_MSG,
+    HL_MOD_PM_TX2_MSG,
+    HL_MOD_PM_RX_MSG,
+    HL_MOD_PM_BOX_MSG
+} hl_mod_pm_msg_e;
 
 /* define --------------------------------------------------------------------*/
 

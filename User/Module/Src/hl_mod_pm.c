@@ -29,6 +29,7 @@
 #include "hl_drv_sgm41513.h"
 #include "hl_hal_gpio.h"
 #include "hl_util_config.h"
+#include "hl_mod_typedef.h"
 #include "pin.h"
 
 /* typedef -------------------------------------------------------------------*/
@@ -89,6 +90,18 @@ typedef enum _hl_mod_pm_bat_info_e {
     HL_MOD_PM_BAT_INFO_CYCLE,
 } hl_mod_pm_bat_info_e;
 
+typedef enum _hl_mod_pm_charge_status_e {
+    HL_MOD_PM_CHAR_STAT = 0,
+    HL_MOD_PM_VBUS_STAT,
+    HL_MOD_PM_INPUT_STAT,
+    HL_MOD_PM_VINDPM_STAT,
+    HL_MOD_PM_IINDPM_STAT,
+    HL_MOD_PM_SYS_VOL_STAT,
+    HL_MOD_PM_BAT_ERR_STAT,
+    HL_MOD_PM_CHAR_ERR_STAT,
+    HL_MOD_PM_BOOST_ERR_STAT,
+    HL_MOD_PM_WATCHDOG_ERR_STAT
+}hl_mod_pm_charge_status_e;
 
 /* define --------------------------WATCHDOG_ERR_STAT------------------------------------------*/
 
@@ -147,12 +160,29 @@ static hl_mod_pm_hall_info_st hall_info = {
     .rx_irq_flag  = false,
     .box_irq_flag = false
 };
+
 static hl_mod_pm_charge_info_st new_charge_info;
+
 static hl_mod_pm_error_info_st new_charge_error_info;
 
 static uint8_t pm_thread_stack[PM_THREAD_STACK_SIZE] = { 0 };
 
+static hl_mod_msg_handle_st _pm_msg_hd = {
+    .msg_id = 0,
+    .msg_send = RT_NULL
+};
+
 /* Private function(only *.c)  -----------------------------------------------*/
+
+static int _mod_msg_send(uint8_t cmd, void* param, uint16_t len)
+{
+    if (pm_mod_info.msg_hd != RT_NULL && _pm_msg_hd.msg_send != RT_NULL) {
+        _pm_msg_hd.msg_send(_pm_msg_hd.msg_id, cmd, param, len);
+        return HL_MOD_PM_FUNC_RET_OK;
+    }
+
+    return HL_MOD_PM_FUNC_RET_ERR;
+}
 
 /**
  * @brief 电量计中断服务函数
@@ -456,6 +486,9 @@ static void _pm_charge_irq_pair_deal(uint8_t val)
     switch (val) {
         case HL_MOD_PM_CHAR_STAT:
             if (PM_STAT_COMPARE(old_charge_info.charge_status, new_charge_info.charge_status) == 1) {
+
+                _mod_msg_send(HL_MOD_PM_CHARGE_MSG, RT_NULL, 0);
+
                 DBG_LOG("    0, charge status :%d, input:%d, bat_err:%d, charge_err:%d\n", 
                 new_charge_info.charge_status, 
                 new_charge_info.input_power_status,
@@ -561,27 +594,40 @@ static void _pm_hall_load_info_check(void)
         hall_info.tx1_status = hl_hal_gpio_read(GPIO_HALL_TX1);
         DBG_LOG("    tx1:%d\n", hall_info.tx1_status);
         hall_info.tx1_irq_flag = false;
+
+        _mod_msg_send(HL_MOD_PM_TX1_MSG, RT_NULL, 0);
     }
+
     if (hall_info.tx2_irq_flag == true) {
-        hall_info.tx1_status = hl_hal_gpio_read(GPIO_HALL_TX2);
+        hall_info.tx2_status = hl_hal_gpio_read(GPIO_HALL_TX2);
         DBG_LOG("    tx2:%d\n", hall_info.tx2_status);
         hall_info.tx2_irq_flag = false;
+
+        _mod_msg_send(HL_MOD_PM_TX2_MSG, RT_NULL, 0);
     }
+
     if (hall_info.rx_irq_flag == true) {
-        hall_info.tx1_status = hl_hal_gpio_read(GPIO_HALL_RX);
+        hall_info.rx_status = hl_hal_gpio_read(GPIO_HALL_RX);
         DBG_LOG("    rx:%d\n", hall_info.rx_status);
         hall_info.rx_irq_flag = false;
+
+        _mod_msg_send(HL_MOD_PM_RX_MSG, RT_NULL, 0);
     }
+
     if (hall_info.box_irq_flag == true) {
-        hall_info.tx1_status = hl_hal_gpio_read(GPIO_HALL_BOX);
+        hall_info.box_status = hl_hal_gpio_read(GPIO_HALL_BOX);
         DBG_LOG("    box:%d\n", hall_info.box_status);
         hall_info.box_irq_flag = false;
+        
+        _mod_msg_send(HL_MOD_PM_BOX_MSG, RT_NULL, 0);
     }
 }
 
 
 static void _pm_thread_entry(void* arg)
 {
+    _mod_msg_send(HL_MOD_PM_MSG_START, RT_NULL, 0);
+
     while (pm_mod_info.thread_exit_flag == 0) {
 
         _pm_update_bat_info_check();
@@ -633,7 +679,14 @@ int hl_mod_pm_init(void* msg_hd)
     /* 霍尔感应引脚初始化 */
     _hall_gpio_init();
 
-    pm_mod_info.msg_hd = msg_hd;
+    if (msg_hd != RT_NULL) {
+        _pm_msg_hd.msg_id   = ((hl_mod_msg_handle_st*)(msg_hd))->msg_id;
+        _pm_msg_hd.msg_send = ((hl_mod_msg_handle_st*)(msg_hd))->msg_send;
+        pm_mod_info.msg_hd      = &_pm_msg_hd;
+    } else {
+        pm_mod_info.msg_hd = RT_NULL;
+    }
+
     DBG_LOG("pm init success!\n");
     pm_mod_info.pm_init_flag = true;
     return HL_MOD_PM_FUNC_RET_OK;
@@ -742,6 +795,7 @@ int hl_mod_pm_stop(void)
 
 int hl_mod_pm_ctrl(int op, void* arg, int arg_size)
 {
+    uint8_t *arg_val = (uint8_t *)arg;
     if (pm_mod_info.pm_init_flag == false) {
         DBG_LOG("pm is not init!\n");
         return HL_MOD_PM_FUNC_RET_ERR;
@@ -749,6 +803,48 @@ int hl_mod_pm_ctrl(int op, void* arg, int arg_size)
     switch (op) {
         case HL_MOD_PM_ENTER_LOWPOWER:
             _hl_mod_pm_lowpower_enter();
+            break;
+        case HL_MOD_PM_GET_SOC:
+            if (arg_size != sizeof(uint8_t)) {
+                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                return HL_MOD_PM_FUNC_RET_ERR;
+            }
+            *arg_val = bat_info.soc_val.soc;
+            break;
+        case HL_MOD_PM_GET_CHARGE_STAT:
+            if (arg_size != sizeof(uint8_t)) {
+                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                return HL_MOD_PM_FUNC_RET_ERR;
+            }
+            *arg_val = new_charge_info.charge_status;
+            break;
+        case HL_MOD_PM_GET_TX1_STAT:
+            if (arg_size != sizeof(uint8_t)) {
+                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                return HL_MOD_PM_FUNC_RET_ERR;
+            }
+            *arg_val = hall_info.tx1_status;
+            break;
+        case HL_MOD_PM_GET_TX2_STAT:
+            if (arg_size != sizeof(uint8_t)) {
+                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                return HL_MOD_PM_FUNC_RET_ERR;
+            }
+            *arg_val = hall_info.tx2_status;
+            break;
+        case HL_MOD_PM_GET_RX_STAT:
+            if (arg_size != sizeof(uint8_t)) {
+                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                return HL_MOD_PM_FUNC_RET_ERR;
+            }
+            *arg_val = hall_info.rx_status;
+            break;
+        case HL_MOD_PM_GET_BOX_STAT:
+            if (arg_size != sizeof(uint8_t)) {
+                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                return HL_MOD_PM_FUNC_RET_ERR;
+            }
+            *arg_val = hall_info.box_status;
             break;
         default:
             break;
