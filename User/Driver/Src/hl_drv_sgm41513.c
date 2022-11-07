@@ -29,16 +29,29 @@
 /* typedef -------------------------------------------------------------------*/
 
 /* define --------------------------------------------------------------------*/
+
+#define	REG00_ADDR		0x00
+#define	REG01_ADDR		0x01
+#define	REG02_ADDR		0x02
+#define	REG03_ADDR		0x03
+#define	REG04_ADDR		0x04
+#define	REG05_ADDR		0x05
+#define	REG06_ADDR		0x06
+#define	REG07_ADDR		0x07
+#define	REG08_ADDR		0x08
+#define	REG09_ADDR		0x09
+#define	REG0A_ADDR		0x0A
+#define	REG0B_ADDR		0x0B
+#define	REG0E_ADDR		0x0E
+
 #define debug_printf    rt_kprintf
 #define REG_BIT_VAL(n)  (((n) == 0) ? (0):(1))
+
 /* variables -----------------------------------------------------------------*/
 
 static bool sgm41513_init_status = false;
 
 /* Private function(only *.c)  -----------------------------------------------*/
-/* Exported functions --------------------------------------------------------*/
-
-
 
 static void hl_drv_sgm41513_write_reg(uint8_t w_addr, uint8_t *reg_data)
 {
@@ -263,6 +276,13 @@ static uint8_t get_charge_status()
     return reg_val.CHRG_STAT;
 }
 
+static uint8_t get_vbus_status()
+{
+    hl_sgm41513_charge_status_t reg_val;
+    hl_drv_sgm41513_read_reg(REG08_ADDR, (uint8_t *)&reg_val);
+    return reg_val.VBUS_STAT;
+}
+
 static uint8_t get_battery_temp_status()
 {
     uint8_t temp_status;
@@ -340,11 +360,21 @@ static uint8_t get_boost_mode_error_status()
     }
 }
 
+static uint8_t get_watchdog_error_status()
+{
+    hl_sgm41513_fault_status_t reg_val;
+    hl_drv_sgm41513_read_reg(REG09_ADDR, (uint8_t *)&reg_val);
+    if (reg_val.WATCHDOG_FAULT) {
+        return WATCHDOG_ERROR;
+    } else {
+        return NORMAL;
+    }
+}
 
 static uint8_t get_input_over_voltage_status()
 {
     hl_sgm41513_voltage_status_t reg_val;
-    hl_drv_sgm41513_read_reg(REG09_ADDR, (uint8_t *)&reg_val);
+    hl_drv_sgm41513_read_reg(REG0A_ADDR, (uint8_t *)&reg_val);
     if (reg_val.ACOV_STAT) {
         return INPUT_OVER_VOL;
     } else {
@@ -353,6 +383,21 @@ static uint8_t get_input_over_voltage_status()
     
 }
 
+static uint8_t get_vindpm_status()
+{
+    hl_sgm41513_voltage_status_t reg_val;
+    hl_drv_sgm41513_read_reg(REG0A_ADDR, (uint8_t *)&reg_val);
+    return reg_val.VINDPM_STAT;
+    
+}
+
+static uint8_t get_iindpm_status()
+{
+    hl_sgm41513_voltage_status_t reg_val;
+    hl_drv_sgm41513_read_reg(REG0A_ADDR, (uint8_t *)&reg_val);
+    return reg_val.IINDPM_STAT;
+    
+}
 
 static uint8_t get_chip_part_id()
 {
@@ -362,6 +407,13 @@ static uint8_t get_chip_part_id()
     
 }
 
+static uint8_t get_vbus_input_detection_status()
+{
+    hl_sgm41513_reg0e_t reg_val;
+    hl_drv_sgm41513_read_reg(REG0E_ADDR, (uint8_t *)&reg_val);
+    return reg_val.INPUT_DET_DONE;
+    
+}
 
 static void hl_drv_sgm41513_printf_reg_val(void)
 {
@@ -433,6 +485,7 @@ static void hl_drv_sgm41513_printf_reg_val(void)
     debug_printf("\n*************************************************************\n");
 }
 
+/* Exported functions --------------------------------------------------------*/
 
 uint8_t hl_drv_sgm41513_ctrl(uint8_t op_cmd, void *arg, int32_t arg_size)
 {
@@ -517,6 +570,9 @@ uint8_t hl_drv_sgm41513_ctrl(uint8_t op_cmd, void *arg, int32_t arg_size)
         case GET_CHARGE_STATUS:
              *reg_val = get_charge_status(); 
             break;
+        case GET_VBUS_STATUS:
+             *reg_val = get_vbus_status(); 
+            break;
         case GET_BATTERY_TEMP_STATUS:
              *reg_val = get_battery_temp_status(); 
             break;
@@ -530,13 +586,22 @@ uint8_t hl_drv_sgm41513_ctrl(uint8_t op_cmd, void *arg, int32_t arg_size)
             *reg_val = get_boost_mode_error_status();
             break;
         case GET_WATCHDOG_ERROR_STATUS:
-
+            *reg_val = get_watchdog_error_status();
             break;
         case GET_INPUT_OVER_VOL_STATUS:
             *reg_val = get_input_over_voltage_status();
             break;
+        case GET_VINDPM_STATUS:
+            *reg_val = get_vindpm_status();
+            break;
+        case GET_IINDPM_STATUS:
+            *reg_val = get_iindpm_status();
+            break;
         case GET_CHIP_PART_ID:
             *reg_val = get_chip_part_id();
+            break;
+        case GET_VBUS_IN_DET_STATUS:
+            *reg_val = get_vbus_input_detection_status();
             break;
         case PRINTF_REG_VAL:
             hl_drv_sgm41513_printf_reg_val();
@@ -578,7 +643,7 @@ uint8_t hl_drv_sgm41513_deinit(void)
         return SGM41513_ERROR;
     }
     hl_hal_soft_i2c_api_deinit(HL_HAL_SOFT_I2C_NUMB_2);
-    sgm41513_init_status == false;
+    sgm41513_init_status = false;
     return SGM41513_OK;
 }
 

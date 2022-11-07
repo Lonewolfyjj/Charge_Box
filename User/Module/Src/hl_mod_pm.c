@@ -55,8 +55,8 @@ typedef struct _hl_mod_pm_charge_info_st {
     uint8_t                vbus_status;         //VBUS输入状态
     uint8_t                input_power_status;  //输入电源状态
     uint8_t                sys_vol_status;      //系统电压调节状态
-    uint8_t                vindpm_status;       //VINDPM 电压动态电源管理状态
-    uint8_t                iindpm_status;       //IINDPM 电流动态电源管理状态
+    uint8_t                vindpm_status;       //VINDPM 输入电压动态电源管理状态
+    uint8_t                iindpm_status;       //IINDPM 输入电流动态电源管理状态
 } hl_mod_pm_charge_info_st;
 
 
@@ -460,12 +460,20 @@ static inline void _pm_update_bat_info_check(void)
 
 static void _pm_get_charge_status_info()
 {
+    uint8_t reg_val;
     hl_drv_sgm41513_ctrl(GET_CHARGE_STATUS, &new_charge_info.charge_status, 1);
+    hl_drv_sgm41513_ctrl(GET_VBUS_STATUS, &new_charge_info.vbus_status, 1);
     hl_drv_sgm41513_ctrl(GET_INPUT_POWER_STATUS, &new_charge_info.input_power_status, 1);
+    hl_drv_sgm41513_ctrl(GET_VINDPM_STATUS, &new_charge_info.vindpm_status, 1);
+    hl_drv_sgm41513_ctrl(GET_IINDPM_STATUS, &new_charge_info.iindpm_status, 1);
+    hl_drv_sgm41513_ctrl(GET_SYS_VOL_REGULATION_STATUS, &new_charge_info.sys_vol_status, 1);
+
     hl_drv_sgm41513_ctrl(GET_BATTERY_ERROR_STATUS, &new_charge_error_info.bat_error_status, 1);
     hl_drv_sgm41513_ctrl(GET_CHARGE_ERROR_STATUS, &new_charge_error_info.charge_error_status, 1);
     hl_drv_sgm41513_ctrl(GET_BOOST_MODE_ERROR_STATUS, &new_charge_error_info.boost_mode_status, 1);
     hl_drv_sgm41513_ctrl(GET_WATCHDOG_ERROR_STATUS, &new_charge_error_info.watchdog_error_status, 1);
+
+    hl_drv_sgm41513_ctrl(GET_VBUS_IN_DET_STATUS, &reg_val, 1);      //只用作清除中断标志位
 }
 
 /**
@@ -498,12 +506,12 @@ static void _pm_charge_irq_pair_deal(uint8_t val)
             break;
         case HL_MOD_PM_VBUS_STAT:
             if (PM_STAT_COMPARE(old_charge_info.vbus_status, new_charge_info.vbus_status) == 1) {
-                DBG_LOG("    1, vbus status\n");
+                DBG_LOG("    1, vbus status : %d\n", new_charge_info.vbus_status);
             }
             break;
         case HL_MOD_PM_INPUT_STAT:
             if (PM_STAT_COMPARE(old_charge_info.input_power_status, new_charge_info.input_power_status) == 1) {
-                DBG_LOG("    2, input power status\n");
+                DBG_LOG("    2, input power status: %d\n", new_charge_info.input_power_status);
             }
             break;
         case HL_MOD_PM_VINDPM_STAT:
@@ -663,11 +671,11 @@ int hl_mod_pm_init(void* msg_hd)
         return HL_MOD_PM_FUNC_RET_ERR;
     }
     /* 电量计初始化 */
-    ret = hl_drv_cw2215_init();
-    if (ret == CW2215_FUNC_RET_ERR) {
-        return HL_MOD_PM_FUNC_RET_ERR;
-    }
-    _guage_soc_gpio_irq_init();
+    // ret = hl_drv_cw2215_init();
+    // if (ret == CW2215_FUNC_RET_ERR) {
+    //     return HL_MOD_PM_FUNC_RET_ERR;
+    // }
+    // _guage_soc_gpio_irq_init();
 
     /* 充电驱动初始化 */
     ret = hl_drv_sgm41513_init();
@@ -741,7 +749,7 @@ int hl_mod_pm_start(void)
     pm_mod_info.soc_it_update_flag = false;
     pm_mod_info.init_bat_update_flag = true;
 
-    _guage_soc_gpio_irq_enable(true);
+    //_guage_soc_gpio_irq_enable(true);
     _charge_gpio_irq_enable(true);
     _hall_gpio_irq_enable(true);
 
