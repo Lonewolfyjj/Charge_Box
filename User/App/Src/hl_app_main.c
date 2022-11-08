@@ -65,7 +65,7 @@ static int _mod_init(void)
         return HL_APP_MAIN_FUNC_REE;
     }
 
-    msg_hd.msg_id   = HL_APP_MSG_ID_PM_MOD;
+    msg_hd.msg_id = HL_APP_MSG_ID_PM_MOD;
 
     ret = hl_mod_pm_init(&msg_hd);
     if (ret == HL_MOD_PM_FUNC_RET_ERR) {

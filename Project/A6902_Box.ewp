@@ -1278,13 +1278,19 @@
                 <name>$PROJ_DIR$\..\User\App\Src\hl_app_mng.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\User\App\Src\hl_app_mng_task.c</name>
-            </file>
-            <file>
                 <name>$PROJ_DIR$\..\User\App\Src\hl_app_msg.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\App\Src\hl_app_pt.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\App\Src\hl_app_task.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\App\Src\hl_app_task_pm.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\App\Src\hl_app_task_ui.c</name>
             </file>
         </group>
         <group>

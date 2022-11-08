@@ -25,7 +25,7 @@
 
 #include "hl_app_mng.h"
 #include "hl_app_msg.h"
-#include "hl_app_mng_task.h"
+#include "hl_app_task.h"
 #include "hl_mod_extcom.h"
 
 /* typedef -------------------------------------------------------------------*/
@@ -55,8 +55,6 @@ static hl_app_mng_handle_st _mng_app = {
     .thread_exit_flag = 0,
 };
 
-static hl_app_mng_st _mng_st = { 0 };
-
 /* Private function(only *.c)  -----------------------------------------------*/
 
 static void _app_mng_thread_entry(void* arg)
@@ -67,10 +65,10 @@ static void _app_mng_thread_entry(void* arg)
     while (_mng_app.thread_exit_flag == 0) {
         ret = hl_app_msg_recv(&msg, 0);
         if (ret == HL_APP_MSG_FUNC_OK) {
-            hl_app_mng_task_msg_proc(&msg);
+            hl_app_task_msg_proc(&msg);
         }
 
-        hl_app_mng_task_proc();
+        hl_app_task_proc();
 
         rt_thread_mdelay(10);
     }
@@ -167,11 +165,6 @@ int hl_app_mng_stop(void)
     _mng_app.start_flag = false;
 
     return HL_APP_MNG_FUNC_OK;
-}
-
-hl_app_mng_st* hl_app_mng_get(void)
-{
-    return &_mng_st;
 }
 
 /*

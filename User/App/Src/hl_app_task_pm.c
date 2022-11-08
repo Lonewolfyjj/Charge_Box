@@ -1,9 +1,9 @@
 /**
- * @file hl_app_mng.h
+ * @file hl_app_task_pm.c
  * @author lilin (lin.li@hollyland-tech.com)
  * @brief 
  * @version 1.0
- * @date 2022-11-03
+ * @date 2022-11-07
  * 
  * ██╗  ██╗ ██████╗ ██╗     ██╗  ██╗   ██╗██╗      █████╗ ███╗   ██╗██████╗ 
  * ██║  ██║██╔═══██╗██║     ██║  ╚██╗ ██╔╝██║     ██╔══██╗████╗  ██║██╔══██╗
@@ -16,40 +16,49 @@
  * @par 修改日志:
  * <table>
  * <tr><th>Date           <th>Version  <th>Author         <th>Description
- * <tr><td>2022-11-03     <td>v1.0     <td>lilin     <td>内容
+ * <tr><td>2022-11-07     <td>v1.0     <td>lilin     <td>内容
  * </table>
  * 
  */
 /* Define to prevent recursive inclusion -------------------------------------*/
-
-#ifndef __HL_APP_MNG_H__
-#define __HL_APP_MNG_H__
-
 /* Includes ------------------------------------------------------------------*/
 
-#include "rtthread.h"
-#include "stdint.h"
-#include "stdbool.h"
+#include "hl_app_task_pm.h"
 
 /* typedef -------------------------------------------------------------------*/
+
+typedef enum _hl_app_task_pm_e
+{
+    HL_APP_TASK_PM_INIT,
+} hl_app_task_pm_e;
+
+typedef struct _hl_app_task_pm_st
+{
+    hl_app_task_pm_e statu;
+} hl_app_task_pm_st;
+
 /* define --------------------------------------------------------------------*/
-
-#define HL_APP_MNG_FUNC_ERR 1
-#define HL_APP_MNG_FUNC_OK 0
-
 /* variables -----------------------------------------------------------------*/
+
+static hl_app_task_pm_st _pm_task = {
+    .statu = HL_APP_TASK_PM_INIT,
+};
+
 /* Private function(only *.c)  -----------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 
-int hl_app_mng_init(void);
+void hl_app_task_pm_proc(void)
+{
+    switch (_pm_task.statu) {
+        case HL_APP_TASK_PM_INIT: {
+            
+        } break;
+        
+        default:
+            break;
+    }
+}
 
-int hl_app_mng_deinit(void);
-
-int hl_app_mng_start(void);
-
-int hl_app_mng_stop(void);
-
-#endif
 /*
  * EOF
  */
