@@ -120,7 +120,7 @@ static hl_mod_pm_info_st  pm_mod_info = {
     .soc_it_update_flag         = false,
     .msg_hd                     = RT_NULL,
     .pm_thread                  = { 0 },
-    .thread_exit_flag           = 0
+    .thread_exit_flag           = -1
 };
 
 static hl_mod_pm_bat_info_st bat_info = {
@@ -337,7 +337,6 @@ static void _hall_gpio_deinit()
     hl_hal_gpio_deinit(GPIO_TX2_POW_EN);
     hl_hal_gpio_deinit(GPIO_TX1_POW_EN);
     hl_hal_gpio_deinit(GPIO_RX_POW_EN);
-    hl_hal_gpio_deinit(GPIO_HALL_BOX);
 
     hl_hal_gpio_deinit(GPIO_HALL_RX);
     hl_hal_gpio_deinit(GPIO_HALL_TX1);
@@ -360,7 +359,14 @@ static inline void _hall_gpio_irq_enable(bool flag)
         
     }
 }
-
+static inline void _hall_load_charge_enable(HL_GPIO_PORT_E gpio_index, bool enable_val)
+{
+    if (enable_val == ENABLE) {
+        hl_hal_gpio_high(gpio_index);
+    } else {
+        hl_hal_gpio_low(gpio_index);
+    }
+}
 
 /**
  * @brief 电池信息更新获取
@@ -442,6 +448,8 @@ static inline void _pm_update_bat_info_check(void)
         _pm_update_bat_info(HL_MOD_PM_BAT_INFO_VOL);
         _pm_update_bat_info(HL_MOD_PM_BAT_INFO_CUR);
         _pm_update_bat_info(HL_MOD_PM_BAT_INFO_TEMP);
+
+        _mod_msg_send(HL_MOD_PM_SOC_MSG, RT_NULL, 0);
     }
 }
 
@@ -497,7 +505,7 @@ static void _pm_charge_irq_pair_deal(uint8_t val)
 
                 _mod_msg_send(HL_MOD_PM_CHARGE_MSG, RT_NULL, 0);
 
-                DBG_LOG("    0, charge status :%d, input:%d, bat_err:%d, charge_err:%d\n", 
+                DBG_LOG("    msg send 0, charge status :%d, input:%d, bat_err:%d, charge_err:%d\n", 
                 new_charge_info.charge_status, 
                 new_charge_info.input_power_status,
                 new_charge_error_info.bat_error_status,
@@ -511,7 +519,10 @@ static void _pm_charge_irq_pair_deal(uint8_t val)
             break;
         case HL_MOD_PM_INPUT_STAT:
             if (PM_STAT_COMPARE(old_charge_info.input_power_status, new_charge_info.input_power_status) == 1) {
-                DBG_LOG("    2, input power status: %d\n", new_charge_info.input_power_status);
+
+                _mod_msg_send(HL_MOD_PM_VBUS_MSG, RT_NULL, 0);
+
+                DBG_LOG("    msg send 2, input power status: %d\n", new_charge_info.input_power_status);
             }
             break;
         case HL_MOD_PM_VINDPM_STAT:
@@ -631,6 +642,36 @@ static void _pm_hall_load_info_check(void)
     }
 }
 
+/**
+ * @brief PM线程处理启动之前，初始化PM模块数据，同时发给APP去获取初始状态
+ * @return int 
+ * @date 2022-11-08
+ * @author yijiujun (jiujun.yi@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-11-08      <td>yijiujun     <td>新建
+ * </table>
+ */
+static void _pm_thread_start_init()
+{
+    hall_info.tx1_status = hl_hal_gpio_read(GPIO_HALL_TX1);
+    hall_info.tx2_status = hl_hal_gpio_read(GPIO_HALL_TX2);
+    hall_info.rx_status = hl_hal_gpio_read(GPIO_HALL_RX);
+    hall_info.box_status = hl_hal_gpio_read(GPIO_HALL_BOX);
+    _pm_get_charge_status_info();
+    _pm_update_bat_info(HL_MOD_PM_BAT_INFO_SOC);
+
+    _mod_msg_send(HL_MOD_PM_VBUS_MSG, RT_NULL, 0);
+    _mod_msg_send(HL_MOD_PM_SOC_MSG, RT_NULL, 0);
+    _mod_msg_send(HL_MOD_PM_TX1_MSG, RT_NULL, 0);
+    _mod_msg_send(HL_MOD_PM_TX2_MSG, RT_NULL, 0);
+    _mod_msg_send(HL_MOD_PM_RX_MSG, RT_NULL, 0);
+    _mod_msg_send(HL_MOD_PM_BOX_MSG, RT_NULL, 0);
+}
+
 
 static void _pm_thread_entry(void* arg)
 {
@@ -671,11 +712,11 @@ int hl_mod_pm_init(void* msg_hd)
         return HL_MOD_PM_FUNC_RET_ERR;
     }
     /* 电量计初始化 */
-    // ret = hl_drv_cw2215_init();
-    // if (ret == CW2215_FUNC_RET_ERR) {
-    //     return HL_MOD_PM_FUNC_RET_ERR;
-    // }
-    // _guage_soc_gpio_irq_init();
+    ret = hl_drv_cw2215_init();
+    if (ret == CW2215_FUNC_RET_ERR) {
+        return HL_MOD_PM_FUNC_RET_ERR;
+    }
+    _guage_soc_gpio_irq_init();
 
     /* 充电驱动初始化 */
     ret = hl_drv_sgm41513_init();
@@ -746,10 +787,17 @@ int hl_mod_pm_start(void)
         }
     }
 
+    _pm_thread_start_init();
+    
+    hall_info.tx1_irq_flag = false;
+    hall_info.tx2_irq_flag = false;
+    hall_info.rx_irq_flag  = false;
+    hall_info.box_irq_flag = false;
+    pm_mod_info.charge_it_update_flag = false;
     pm_mod_info.soc_it_update_flag = false;
     pm_mod_info.init_bat_update_flag = true;
 
-    //_guage_soc_gpio_irq_enable(true);
+    _guage_soc_gpio_irq_enable(true);
     _charge_gpio_irq_enable(true);
     _hall_gpio_irq_enable(true);
 
@@ -761,11 +809,8 @@ int hl_mod_pm_start(void)
         DBG_LOG("pm thread create failed\n");
         return HL_MOD_PM_FUNC_RET_ERR;
     }
-
     rt_thread_startup(&(pm_mod_info.pm_thread));
-
     DBG_LOG("pm start success\n");
-
     pm_mod_info.pth_start_flag = true;
 
     return HL_MOD_PM_FUNC_RET_OK;
@@ -801,6 +846,7 @@ int hl_mod_pm_stop(void)
     return HL_MOD_PM_FUNC_RET_OK;
 }
 
+    
 int hl_mod_pm_ctrl(int op, void* arg, int arg_size)
 {
     uint8_t *arg_val = (uint8_t *)arg;
@@ -819,47 +865,75 @@ int hl_mod_pm_ctrl(int op, void* arg, int arg_size)
             }
             *arg_val = bat_info.soc_val.soc;
             break;
-        case HL_MOD_PM_GET_CHARGE_STAT:
+        case HL_MOD_PM_GET_CHARGE_STATE:
             if (arg_size != sizeof(uint8_t)) {
                 DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
                 return HL_MOD_PM_FUNC_RET_ERR;
             }
             *arg_val = new_charge_info.charge_status;
             break;
-        case HL_MOD_PM_GET_TX1_STAT:
+        case HL_MOD_PM_GET_VBUS_STATE:
+            if (arg_size != sizeof(uint8_t)) {
+                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                return HL_MOD_PM_FUNC_RET_ERR;
+            }
+            *arg_val = new_charge_info.input_power_status;
+            break;
+        case HL_MOD_PM_GET_TX1_STATE:
             if (arg_size != sizeof(uint8_t)) {
                 DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
                 return HL_MOD_PM_FUNC_RET_ERR;
             }
             *arg_val = hall_info.tx1_status;
             break;
-        case HL_MOD_PM_GET_TX2_STAT:
+        case HL_MOD_PM_GET_TX2_STATE:
             if (arg_size != sizeof(uint8_t)) {
                 DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
                 return HL_MOD_PM_FUNC_RET_ERR;
             }
             *arg_val = hall_info.tx2_status;
             break;
-        case HL_MOD_PM_GET_RX_STAT:
+        case HL_MOD_PM_GET_RX_STATE:
             if (arg_size != sizeof(uint8_t)) {
                 DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
                 return HL_MOD_PM_FUNC_RET_ERR;
             }
             *arg_val = hall_info.rx_status;
             break;
-        case HL_MOD_PM_GET_BOX_STAT:
+        case HL_MOD_PM_GET_BOX_STATE:
             if (arg_size != sizeof(uint8_t)) {
                 DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
                 return HL_MOD_PM_FUNC_RET_ERR;
             }
             *arg_val = hall_info.box_status;
             break;
+        case HL_MOD_PM_SET_TX1_CHARGE:
+            if (arg_size != sizeof(uint8_t)) {
+                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                return HL_MOD_PM_FUNC_RET_ERR;
+            }
+            _hall_load_charge_enable(GPIO_TX1_POW_EN, *arg_val);
+            break;
+        case HL_MOD_PM_SET_TX2_CHARGE:
+            if (arg_size != sizeof(uint8_t)) {
+                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                return HL_MOD_PM_FUNC_RET_ERR;
+            }
+            _hall_load_charge_enable(GPIO_TX2_POW_EN, *arg_val);
+            break;
+        case HL_MOD_PM_SET_RX_CHARGE:
+            if (arg_size != sizeof(uint8_t)) {
+                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                return HL_MOD_PM_FUNC_RET_ERR;
+            }
+            _hall_load_charge_enable(GPIO_RX_POW_EN, *arg_val);
+            break;
         default:
             break;
     }
     return HL_MOD_PM_FUNC_RET_OK;
 }
-
+    
 /*
  * EOF
  */
