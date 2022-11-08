@@ -31,9 +31,8 @@
 #include "stdint.h"
 #include "stdbool.h"
 
-/* typedef -------------------------------------------------------------------*/
 /**
- * @brief UI显示的三个页面，分充电页面，升级页面，故障页面
+ * @brief hl_mod_ui_ctrl函数接口，op的参数类型
  * @date 2022-11-03
  * @author yijiujun (jiujun.yi@hollyland-tech.com)
  * @details 
@@ -44,67 +43,42 @@
  * <tr><td>2022-11-03      <td>yijiujun     <td>新建
  * </table>
  */
-typedef enum _hl_mod_ui_page_list {
-    HL_MOD_UI_LOAD_PAGE,
-    HL_MOD_UI_BATTERY_PAGE,
-    HL_MOD_UI_UPGRADE_PAGE,
-    HL_MOD_UI_ERROR_PAGE,
-    HL_MOD_UI_LOWPOWER_PAGE
-}hl_mod_ui_op_cmd_e;
+typedef enum _hl_mod_ui_ctrl_op_e {
+    HL_MOD_UI_CH_MOD1,		    //盒外左边第一颗指示灯快闪，其余灯灭
+    HL_MOD_UI_CH_MOD2,	        //盒外左边第一颗指示灯常亮，第二颗指示灯快闪，其余灯灭
+    HL_MOD_UI_CH_MOD3,	        //盒外左边第一二颗指示灯常亮，第三颗指示灯快闪，其余灯灭
+    HL_MOD_UI_CH_MOD4,	        //盒外左边第一二三颗指示灯常亮，第四颗指示灯快闪
+            
+    HL_MOD_UI_FULL_MOD,		    //盒外左边第一二三四颗指示灯常亮
+            
+    HL_MOD_UI_DIS_CH_MOD1,	    //盒外左边第一颗指示灯常亮，其余灯灭
+    HL_MOD_UI_DIS_CH_MOD2,	    //盒外左边第一二颗指示灯常亮，其余灯灭
+    HL_MOD_UI_DIS_CH_MOD3,	    //盒外左边第一二三颗指示灯常亮，其余灯灭
+            
+    HL_MOD_UI_ERROR_MOD,		//充电盒外四颗灯同时闪烁
+    HL_MOD_UI_CLOSE_MOD,	    //充电盒外四颗灯全灭
+            
+    HL_MOD_UI_SIGN_LIGHT,		//半透明体盖子白色指示灯常亮
+    HL_MOD_UI_SIGN_DIS_LIGHT,	//半透明体盖子白色指示灯不亮
+            
+    HL_MOD_UI_TX1_LIGHT,		//盒内TX1指示灯常亮
+    HL_MOD_UI_TX2_LIGHT,	    //盒内TX2指示灯常亮
+    HL_MOD_UI_RX_LIGHT,	        //盒内RX指示灯常亮
+    HL_MOD_UI_TX1_DIS_LIGHT,	//盒内TX1指示灯不亮
+    HL_MOD_UI_TX2_DIS_LIGHT,	//盒内TX2指示灯不亮
+    HL_MOD_UI_RX_DIS_LIGHT,	    //盒内RX指示灯不亮
+            
+    HL_MOD_UI_ALL_CLOSE_MOD,	//充电盒上所有灯都不亮灯
+            
+    HL_MOD_UI_LOWPOWER_MOD,		//进入低功耗
+    HL_MOD_UI_WAKE_UP_MOD		//低功耗唤醒
+}hl_mod_ui_ctrl_op_e;
 
-/**
- * @brief UI对应页面的参数类型
- * @date 2022-11-03
- * @author yijiujun (jiujun.yi@hollyland-tech.com)
- * @details 
- * @note 
- * @par 修改日志:
- * <table>
- * <tr><th>Date             <th>Author         <th>Description
- * <tr><td>2022-11-03      <td>yijiujun     <td>新建
- * </table>
- */
-typedef enum _hl_mod_ui_state_list {
-    HL_MOD_UI_CHARGING = 0,
-    HL_MOD_UI_OUT_CHARGE,
-    HL_MOD_UI_SOC_LEVEL_0,
-    HL_MOD_UI_SOC_LEVEL_1,
-    HL_MOD_UI_SOC_LEVEL_2,
-    HL_MOD_UI_SOC_LEVEL_3,
-    HL_MOD_UI_SOC_LEVEL_4,
-
-    HL_MOD_UI_UPGRADING_RUN,
-    HL_MOD_UI_UPGRADING_OK,
-
-    HL_MOD_UI_GUAGE_ERR,
-    HL_MOD_UI_CHARGER_ERR,
-    HL_MOD_UI_RTC_ERR,
-    HL_MOD_UI_FLASH_ERR,
-
-    HL_MOD_UI_LOAD_TX1_BREATH,
-    HL_MOD_UI_LOAD_TX1_LIGHTING,
-    HL_MOD_UI_LOAD_TX1_NOT_LIGHTING,
-    HL_MOD_UI_LOAD_TX2_BREATH,
-    HL_MOD_UI_LOAD_TX2_LIGHTING,
-    HL_MOD_UI_LOAD_TX2_NOT_LIGHTING,
-    HL_MOD_UI_LOAD_RX_BREATH,
-    HL_MOD_UI_LOAD_RX_LIGHTING,
-    HL_MOD_UI_LOAD_RX_NOT_LIGHTING,
-    
-    HL_MOD_UI_LOWPOWER,
-    HL_MOD_UI_WAKE_UP
-}hl_mod_ui_state_list_e;
-
-typedef struct {
-    uint8_t charge_state;
-    uint8_t soc_level;
-}hl_mod_ui_charge_soc_st;
 
 /* define --------------------------------------------------------------------*/
 
 #define HL_MOD_UI_FUNC_ERR  1
 #define HL_MOD_UI_FUNC_OK   0
-
 
 /* variables -----------------------------------------------------------------*/
 /* Private function(only *.c)  -----------------------------------------------*/
