@@ -81,6 +81,10 @@ typedef struct _hl_mod_pm_info_st {
     int                   thread_exit_flag;         //线程运行，退出标志
 }hl_mod_pm_info_st;
 
+typedef struct _hl_mod_pm_drv_init_st {
+    bool                  pm_init_guage_flag;       //电量计初始化标志
+    bool                  pm_init_charge_flag;      //充电驱动初始化标志
+}hl_mod_pm_drv_init_st;
 typedef enum _hl_mod_pm_bat_info_e {
     HL_MOD_PM_BAT_INFO_SOC = 0,
     HL_MOD_PM_BAT_INFO_VOL,
@@ -90,6 +94,18 @@ typedef enum _hl_mod_pm_bat_info_e {
     HL_MOD_PM_BAT_INFO_CYCLE,
 } hl_mod_pm_bat_info_e;
 
+/**
+ * @brief 充电状态枚举类型
+ * @date 2022-11-09
+ * @author yijiujun (jiujun.yi@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-11-09      <td>yijiujun     <td>新建
+ * </table>
+ */
 typedef enum _hl_mod_pm_charge_status_e {
     HL_MOD_PM_CHAR_STAT = 0,
     HL_MOD_PM_VBUS_STAT,
@@ -170,6 +186,11 @@ static uint8_t pm_thread_stack[PM_THREAD_STACK_SIZE] = { 0 };
 static hl_mod_msg_handle_st _pm_msg_hd = {
     .msg_id = 0,
     .msg_send = RT_NULL
+};
+
+static hl_mod_pm_drv_init_st _pm_drv_flag = {
+    .pm_init_charge_flag = false,
+    .pm_init_guage_flag  = false
 };
 
 /* Private function(only *.c)  -----------------------------------------------*/
@@ -657,15 +678,23 @@ static void _pm_hall_load_info_check(void)
  */
 static void _pm_thread_start_init()
 {
+    if (_pm_drv_flag.pm_init_guage_flag == false) {
+        _mod_msg_send(HL_MOD_PM_GUAGE_ERR_MSG, RT_NULL, 0);
+    } else {
+        _pm_get_charge_status_info();
+        _mod_msg_send(HL_MOD_PM_SOC_MSG, RT_NULL, 0);
+    }
+    if (_pm_drv_flag.pm_init_charge_flag == false) {
+        _mod_msg_send(HL_MOD_PM_CHARGE_ERR_MSG, RT_NULL, 0);
+    } else {
+        _pm_update_bat_info(HL_MOD_PM_BAT_INFO_SOC);
+        _mod_msg_send(HL_MOD_PM_VBUS_MSG, RT_NULL, 0);
+    }
+    
     hall_info.tx1_status = hl_hal_gpio_read(GPIO_HALL_TX1);
     hall_info.tx2_status = hl_hal_gpio_read(GPIO_HALL_TX2);
     hall_info.rx_status = hl_hal_gpio_read(GPIO_HALL_RX);
     hall_info.box_status = hl_hal_gpio_read(GPIO_HALL_BOX);
-    _pm_get_charge_status_info();
-    _pm_update_bat_info(HL_MOD_PM_BAT_INFO_SOC);
-
-    _mod_msg_send(HL_MOD_PM_VBUS_MSG, RT_NULL, 0);
-    _mod_msg_send(HL_MOD_PM_SOC_MSG, RT_NULL, 0);
     _mod_msg_send(HL_MOD_PM_TX1_MSG, RT_NULL, 0);
     _mod_msg_send(HL_MOD_PM_TX2_MSG, RT_NULL, 0);
     _mod_msg_send(HL_MOD_PM_RX_MSG, RT_NULL, 0);
@@ -675,6 +704,8 @@ static void _pm_thread_start_init()
 
 static void _pm_thread_entry(void* arg)
 {
+    _pm_thread_start_init();
+    
     _mod_msg_send(HL_MOD_PM_MSG_START, RT_NULL, 0);
 
     while (pm_mod_info.thread_exit_flag == 0) {
@@ -711,22 +742,6 @@ int hl_mod_pm_init(void* msg_hd)
         DBG_LOG("pm is already init!\n");
         return HL_MOD_PM_FUNC_RET_ERR;
     }
-    /* 电量计初始化 */
-    ret = hl_drv_cw2215_init();
-    if (ret == CW2215_FUNC_RET_ERR) {
-        return HL_MOD_PM_FUNC_RET_ERR;
-    }
-    _guage_soc_gpio_irq_init();
-
-    /* 充电驱动初始化 */
-    ret = hl_drv_sgm41513_init();
-    if (ret == SGM41513_ERROR) {
-        return HL_MOD_PM_FUNC_RET_ERR;
-    }
-    _charge_gpio_irq_init();
-
-    /* 霍尔感应引脚初始化 */
-    _hall_gpio_init();
 
     if (msg_hd != RT_NULL) {
         _pm_msg_hd.msg_id   = ((hl_mod_msg_handle_st*)(msg_hd))->msg_id;
@@ -735,6 +750,25 @@ int hl_mod_pm_init(void* msg_hd)
     } else {
         pm_mod_info.msg_hd = RT_NULL;
     }
+
+    /* 电量计初始化 */
+    ret = hl_drv_cw2215_init();
+    if (ret == CW2215_FUNC_RET_ERR) {
+        _pm_drv_flag.pm_init_guage_flag = false;
+    }
+    _guage_soc_gpio_irq_init();
+    _pm_drv_flag.pm_init_guage_flag = true;
+
+    /* 充电驱动初始化 */
+    ret = hl_drv_sgm41513_init();
+    if (ret == SGM41513_ERROR) {
+        _pm_drv_flag.pm_init_charge_flag = false;
+    }
+    _charge_gpio_irq_init();
+    _pm_drv_flag.pm_init_charge_flag = true;
+
+    /* 霍尔感应引脚初始化 */
+    _hall_gpio_init();
 
     DBG_LOG("pm init success!\n");
     pm_mod_info.pm_init_flag = true;
@@ -787,15 +821,14 @@ int hl_mod_pm_start(void)
         }
     }
 
-    _pm_thread_start_init();
-    
     hall_info.tx1_irq_flag = false;
     hall_info.tx2_irq_flag = false;
     hall_info.rx_irq_flag  = false;
     hall_info.box_irq_flag = false;
     pm_mod_info.charge_it_update_flag = false;
     pm_mod_info.soc_it_update_flag = false;
-    pm_mod_info.init_bat_update_flag = true;
+
+    pm_mod_info.init_bat_update_flag = false;
 
     _guage_soc_gpio_irq_enable(true);
     _charge_gpio_irq_enable(true);

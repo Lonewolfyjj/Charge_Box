@@ -78,6 +78,8 @@ typedef enum _hl_mod_pm_op_e {
  */
 typedef enum _hl_mod_pm_msg_e {
     HL_MOD_PM_MSG_START,
+    HL_MOD_PM_GUAGE_ERR_MSG,
+    HL_MOD_PM_CHARGE_ERR_MSG,
 
     HL_MOD_PM_VBUS_MSG,
     HL_MOD_PM_CHARGE_MSG,
