@@ -1287,6 +1287,9 @@
                 <name>$PROJ_DIR$\..\User\App\Src\hl_app_task.c</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\..\User\App\Src\hl_app_task_extcom.c</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\User\App\Src\hl_app_task_pm.c</name>
             </file>
             <file>

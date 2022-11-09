@@ -62,6 +62,8 @@ static void _app_mng_thread_entry(void* arg)
     hl_app_msg_st msg;
     int           ret;
 
+    hl_app_task_init();
+
     while (_mng_app.thread_exit_flag == 0) {
         ret = hl_app_msg_recv(&msg, 0);
         if (ret == HL_APP_MSG_FUNC_OK) {

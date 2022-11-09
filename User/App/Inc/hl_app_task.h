@@ -37,21 +37,42 @@
 
 typedef enum _hl_app_bat_state_e
 {
+    HL_APP_BAT_STATE_UNKNOWN = 0,
     HL_APP_BAT_STATE_LOWPOWER,
     HL_APP_BAT_STATE_5_25_PERCENT,
     HL_APP_BAT_STATE_25_50_PERCENT,
     HL_APP_BAT_STATE_50_75_PERCENT,
     HL_APP_BAT_STATE_75_100_PERCENT,
     HL_APP_BAT_STATE_FULL,
+    HL_APP_BAT_STATE_ERR,
 } hl_app_bat_state_e;
+
+typedef enum _hl_app_bat_charge_state_e
+{
+    HL_APP_BAT_CHARGE_STATE_UNKNOWN = 0,
+    HL_APP_BAT_CHARGE_STATE_NO_CHARGE,
+    HL_APP_BAT_CHARGE_STATE_CHARGING,
+    HL_APP_BAT_CHARGE_STATE_CHARGE_FULL,
+} hl_app_bat_charge_state_e;
+
+typedef enum _hl_app_hall_state_e
+{
+    HL_APP_HALL_STATE_UNKNOWN = 0,
+    HL_APP_HALL_STATE_IN,
+    HL_APP_HALL_STATE_OUT,
+} hl_app_hall_state_e;
 
 typedef struct _hl_app_task_common_st
 {
-    bool               extcom_start_flag;
-    bool               pm_start_flag;
-    uint8_t            bat_soc;
-    hl_app_bat_state_e bat_state;
-    uint8_t            charge_state;
+    bool                      extcom_start_flag;
+    bool                      pm_start_flag;
+    uint8_t                   bat_soc;
+    hl_app_bat_state_e        bat_state;
+    hl_app_bat_charge_state_e charge_state;
+    hl_app_hall_state_e       tx1_hall_state;
+    hl_app_hall_state_e       tx2_hall_state;
+    hl_app_hall_state_e       rx_hall_state;
+    hl_app_hall_state_e       box_hall_state;
 } hl_app_task_common_st;
 
 /* define --------------------------------------------------------------------*/
@@ -64,6 +85,8 @@ typedef struct _hl_app_task_common_st
 /* Exported functions --------------------------------------------------------*/
 
 hl_app_task_common_st* hl_app_task_get(void);
+
+void hl_app_task_init(void);
 
 void hl_app_task_msg_proc(hl_app_msg_st* msg);
 
