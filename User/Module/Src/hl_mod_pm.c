@@ -755,17 +755,21 @@ int hl_mod_pm_init(void* msg_hd)
     ret = hl_drv_cw2215_init();
     if (ret == CW2215_FUNC_RET_ERR) {
         _pm_drv_flag.pm_init_guage_flag = false;
+    } else {
+        _pm_drv_flag.pm_init_guage_flag = true;
     }
     _guage_soc_gpio_irq_init();
-    _pm_drv_flag.pm_init_guage_flag = true;
+    
 
     /* 充电驱动初始化 */
     ret = hl_drv_sgm41513_init();
     if (ret == SGM41513_ERROR) {
         _pm_drv_flag.pm_init_charge_flag = false;
+    } else {
+        _pm_drv_flag.pm_init_charge_flag = true;
     }
+
     _charge_gpio_irq_init();
-    _pm_drv_flag.pm_init_charge_flag = true;
 
     /* 霍尔感应引脚初始化 */
     _hall_gpio_init();
