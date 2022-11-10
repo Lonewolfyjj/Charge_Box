@@ -227,7 +227,7 @@ static inline void _guage_soc_gpio_irq_init()
 {
     hl_hal_gpio_init(GPIO_GAUGE_INT);
     hl_hal_gpio_attach_irq(GPIO_GAUGE_INT, PIN_IRQ_MODE_FALLING, _soc_gpio_irq_handle, RT_NULL);
-    hl_hal_gpio_irq_enable(GPIO_GAUGE_INT, PIN_IRQ_ENABLE);
+    hl_hal_gpio_irq_enable(GPIO_GAUGE_INT, PIN_IRQ_DISABLE);
 }
 
 static inline void _guage_soc_gpio_irq_deinit()
@@ -267,7 +267,7 @@ static inline void _charge_gpio_irq_init()
 {
     hl_hal_gpio_init(GPIO_CH_INT_N);
     hl_hal_gpio_attach_irq(GPIO_CH_INT_N, PIN_IRQ_MODE_FALLING, _charge_gpio_irq_handle, RT_NULL);
-    hl_hal_gpio_irq_enable(GPIO_CH_INT_N, PIN_IRQ_ENABLE);
+    hl_hal_gpio_irq_enable(GPIO_CH_INT_N, PIN_IRQ_DISABLE);
 }
 
 static inline void _charge_gpio_irq_deinit()
@@ -332,25 +332,35 @@ static void _hall_box_irq_handle(void* args)
  */
 static void _hall_gpio_init()
 {
+    hl_hal_gpio_clock_init();
+
     hl_hal_gpio_init(GPIO_HALL_TX2);
     hl_hal_gpio_attach_irq(GPIO_HALL_TX2, PIN_IRQ_MODE_RISING_FALLING, _hall_load_tx2_irq_handle, RT_NULL);
-    hl_hal_gpio_irq_enable(GPIO_HALL_TX2, PIN_IRQ_ENABLE);
+    hl_hal_gpio_irq_enable(GPIO_HALL_TX2, PIN_IRQ_DISABLE);
 
     hl_hal_gpio_init(GPIO_HALL_BOX);
     hl_hal_gpio_attach_irq(GPIO_HALL_BOX, PIN_IRQ_MODE_RISING_FALLING, _hall_box_irq_handle, RT_NULL);
-    hl_hal_gpio_irq_enable(GPIO_HALL_BOX, PIN_IRQ_ENABLE);
+    hl_hal_gpio_irq_enable(GPIO_HALL_BOX, PIN_IRQ_DISABLE);
 
     hl_hal_gpio_init(GPIO_HALL_TX1);
     hl_hal_gpio_attach_irq(GPIO_HALL_TX1, PIN_IRQ_MODE_RISING_FALLING, _hall_load_tx1_irq_handle, RT_NULL);
-    hl_hal_gpio_irq_enable(GPIO_HALL_TX1, PIN_IRQ_ENABLE);
+    hl_hal_gpio_irq_enable(GPIO_HALL_TX1, PIN_IRQ_DISABLE);
 
     hl_hal_gpio_init(GPIO_HALL_RX);
     hl_hal_gpio_attach_irq(GPIO_HALL_RX, PIN_IRQ_MODE_RISING_FALLING, _hall_load_rx_irq_handle, RT_NULL);
-    hl_hal_gpio_irq_enable(GPIO_HALL_RX, PIN_IRQ_ENABLE);
+    hl_hal_gpio_irq_enable(GPIO_HALL_RX, PIN_IRQ_DISABLE);
 
+    hl_hal_gpio_init(GPIO_1V8_EN);
+    hl_hal_gpio_init(GPIO_BOOST_EN);
     hl_hal_gpio_init(GPIO_RX_POW_EN);
     hl_hal_gpio_init(GPIO_TX1_POW_EN);
     hl_hal_gpio_init(GPIO_TX2_POW_EN);
+
+    hl_hal_gpio_high(GPIO_1V8_EN);
+    hl_hal_gpio_high(GPIO_BOOST_EN);
+    hl_hal_gpio_low(GPIO_RX_POW_EN);
+    hl_hal_gpio_low(GPIO_TX1_POW_EN);
+    hl_hal_gpio_low(GPIO_TX2_POW_EN);
 }
 
 static void _hall_gpio_deinit()
@@ -358,7 +368,9 @@ static void _hall_gpio_deinit()
     hl_hal_gpio_deinit(GPIO_TX2_POW_EN);
     hl_hal_gpio_deinit(GPIO_TX1_POW_EN);
     hl_hal_gpio_deinit(GPIO_RX_POW_EN);
-
+    hl_hal_gpio_deinit(GPIO_BOOST_EN);
+    hl_hal_gpio_deinit(GPIO_1V8_EN);
+    
     hl_hal_gpio_deinit(GPIO_HALL_RX);
     hl_hal_gpio_deinit(GPIO_HALL_TX1);
     hl_hal_gpio_deinit(GPIO_HALL_BOX);
