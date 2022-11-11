@@ -43,8 +43,8 @@ typedef struct _hl_app_task_pm_st
 /* variables -----------------------------------------------------------------*/
 
 static hl_app_task_pm_st _pm_task = {
-    .task_comm = RT_NULL,
-    .timer       = { 0 },
+    .task_comm    = RT_NULL,
+    .timer        = { 0 },
 };
 
 /* Private function(only *.c)  -----------------------------------------------*/
@@ -78,9 +78,12 @@ static void _pm_mod_charge_state_set(void)
 
     if (charge_value == 0) {
         _pm_task.task_comm->charge_state = HL_APP_BAT_CHARGE_STATE_NO_CHARGE;
+        DBG_LOG("pm no charge!\n");
     } else if (charge_value == 3) {
+        DBG_LOG("pm charge full!\n");
         _pm_task.task_comm->charge_state = HL_APP_BAT_CHARGE_STATE_CHARGE_FULL;
     } else {
+        DBG_LOG("pm is charging!\n");
         _pm_task.task_comm->charge_state = HL_APP_BAT_CHARGE_STATE_CHARGING;
     }
 }
@@ -121,7 +124,7 @@ static void _pm_mod_rx_hall_state_set(void)
         _pm_task.task_comm->rx_hall_state = HL_APP_HALL_STATE_IN;
     } else {
         _pm_task.task_comm->rx_hall_state = HL_APP_HALL_STATE_OUT;
-    }    
+    }
 }
 
 static void _pm_mod_box_hall_state_set(void)
@@ -137,11 +140,37 @@ static void _pm_mod_box_hall_state_set(void)
     }
 }
 
+static void _pm_mod_vbus_state_set(void)
+{
+    uint8_t state;
+
+    hl_mod_pm_ctrl(HL_MOD_PM_GET_VBUS_STATE, &(state), sizeof(state));
+
+    if (state == 0) {
+        _pm_task.task_comm->charge_state = HL_APP_BAT_CHARGE_STATE_NO_CHARGE;
+    } else {
+        _pm_task.task_comm->charge_state = HL_APP_BAT_CHARGE_STATE_CHARGING;
+    }
+}
+
+static void _timer_timeout_handle(void* arg)
+{
+    DBG_LOG("pm task timeout\n");
+    _pm_task.task_comm->pm_timeout_flag = true;
+}
+
 /* Exported functions --------------------------------------------------------*/
 
 void hl_app_task_pm_init(void)
 {
     _pm_task.task_comm = hl_app_task_get();
+
+    rt_timer_init(&(_pm_task.timer), "task_pm_timer", _timer_timeout_handle, RT_NULL, 1000 * 60 * 2,
+                  RT_TIMER_FLAG_ONE_SHOT | RT_TIMER_FLAG_SOFT_TIMER);
+
+    _pm_task.task_comm->pm_timeout_flag = false;
+
+    rt_timer_start(&(_pm_task.timer));
 }
 
 void hl_app_task_pm_msg_proc(hl_app_msg_st* msg)
@@ -168,6 +197,15 @@ void hl_app_task_pm_msg_proc(hl_app_msg_st* msg)
         } break;
         case HL_MOD_PM_BOX_MSG: {
             _pm_mod_box_hall_state_set();
+        } break;
+        case HL_MOD_PM_GUAGE_ERR_MSG: {
+            _pm_task.task_comm->drv_state |= HL_APP_DRV_STATE_GUAGE_ERR;
+        } break;
+        case HL_MOD_PM_CHARGE_ERR_MSG: {
+            _pm_task.task_comm->drv_state |= HL_APP_DRV_STATE_CHARGER_ERR;
+        } break;
+        case HL_MOD_PM_VBUS_MSG: {
+            _pm_mod_vbus_state_set();
         } break;
         default:
             break;

@@ -37,6 +37,9 @@ typedef enum _hl_mod_extcom_op_e
 {
     /// 进入升级模式，使用 usb_cdc 进行通信，无法使用 finsh 终端，参数类型为<bool*>。
     HL_MOD_EXTCOM_ENTER_UPGRADE,
+    HL_MOD_EXTCOM_START_TX1_PROBE,
+    HL_MOD_EXTCOM_START_TX2_PROBE,
+    HL_MOD_EXTCOM_START_RX_PROBE,
 } hl_mod_extcom_op_e;
 
 typedef enum _hl_mod_extcom_object_e
@@ -51,6 +54,9 @@ typedef enum _hl_mod_extcom_object_e
 typedef enum _hl_mod_extcom_msg_e
 {
     HL_MOD_EXTCOM_MSG_START,
+    HL_MOD_EXTCOM_MSG_TX1_ONLINE_STATE,
+    HL_MOD_EXTCOM_MSG_TX2_ONLINE_STATE,
+    HL_MOD_EXTCOM_MSG_RX_ONLINE_STATE,
 } hl_mod_extcom_msg_e;
 
 /* define --------------------------------------------------------------------*/

@@ -62,9 +62,18 @@ typedef enum _hl_app_hall_state_e
     HL_APP_HALL_STATE_OUT,
 } hl_app_hall_state_e;
 
+typedef enum _hl_app_drv_state_e
+{
+    HL_APP_DRV_STATE_NO_ERR      = 0x00000000,
+    HL_APP_DRV_STATE_GUAGE_ERR   = 0x00000001,
+    HL_APP_DRV_STATE_CHARGER_ERR = 0x00000002,
+    HL_APP_DRV_STATE_FLASH_ERR   = 0x00000004,
+    HL_APP_DRV_STATE_RTC_ERR     = 0x00000008,
+} hl_app_drv_state_e;
+
 typedef struct _hl_app_task_common_st
 {
-    bool                      extcom_start_flag;
+    /// PM
     bool                      pm_start_flag;
     uint8_t                   bat_soc;
     hl_app_bat_state_e        bat_state;
@@ -73,6 +82,14 @@ typedef struct _hl_app_task_common_st
     hl_app_hall_state_e       tx2_hall_state;
     hl_app_hall_state_e       rx_hall_state;
     hl_app_hall_state_e       box_hall_state;
+    hl_app_drv_state_e        drv_state;
+    bool                      pm_timeout_flag;
+
+    /// extcom
+    bool                      extcom_start_flag;
+    bool                      rx_online_flag;
+    bool                      tx1_online_flag;
+    bool                      tx2_online_flag;
 } hl_app_task_common_st;
 
 /* define --------------------------------------------------------------------*/
