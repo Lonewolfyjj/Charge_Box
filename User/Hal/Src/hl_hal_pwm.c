@@ -157,7 +157,7 @@ uint8_t hl_hal_pwm_set_ccr_val(hl_hal_pwm_timx_info_st *tim_info, uint16_t ccr_v
         TIM_SetCmp3(tim_info->timx, ccr_val);
     }
 
-    if (tim_info->tim_channel & HL_HAL_PWM_TIM_CHANNEL_3) {
+    if (tim_info->tim_channel & HL_HAL_PWM_TIM_CHANNEL_4) {
         TIM_SetCmp4(tim_info->timx, ccr_val);
     }
 
