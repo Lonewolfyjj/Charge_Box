@@ -30,6 +30,7 @@
 /* define --------------------------------------------------------------------*/
 
 // the Capture Compare Register of  initial val 
+
 #define TIM_CCR_INIT_VAL    0
 
 /* variables -----------------------------------------------------------------*/
@@ -68,7 +69,7 @@ static uint8_t _hl_hal_pwm_tim_config(TIM_Module* timx, uint16_t period_ccr_val)
 
     /* Time base configuration */
     TIM_TimeBaseStructure.Period = period_ccr_val - 1;            //定时器重装载值，也就是CCR的最大值
-    TIM_TimeBaseStructure.Prescaler = prescaler_val - 1;
+    TIM_TimeBaseStructure.Prescaler = prescaler_val - 1;          //1微秒产生一个脉冲
     TIM_TimeBaseStructure.ClkDiv = 0;
     TIM_TimeBaseStructure.CntMode = TIM_CNT_MODE_UP;
 
@@ -118,29 +119,32 @@ uint8_t hl_hal_pwm_init(hl_hal_pwm_timx_info_st *tim_info)
     }
     _hl_hal_pwm_channelx_config(tim_info->timx, tim_info->tim_channel);
     
-    /* TIM enable counter */
     TIM_ConfigArPreload(tim_info->timx, ENABLE);
 
-    // TIM_Enable(TIM1, ENABLE);
     TIM_Enable(tim_info->timx, ENABLE);
 
     return PWM_FUNC_RET_OK;
 }
 
-void hl_hal_pwm_deinit(hl_hal_pwm_timx_info_st *tim_info)
+uint8_t hl_hal_pwm_deinit(hl_hal_pwm_timx_info_st *tim_info)
 {
-    TIM_ConfigArPreload(tim_info->timx, DISABLE);
+    if (tim_info == RT_NULL) {
+        dbg_printf("[%s][line:%d] cmd(%d) unkown!!! \r\n", __FILE__, __LINE__, 1);
+        return PWM_FUNC_RET_ERR;
+    }
 
-    /* TIM3 enable counter */
+    TIM_ConfigArPreload(tim_info->timx, DISABLE);
     TIM_Enable(tim_info->timx, DISABLE);
+    return PWM_FUNC_RET_OK;
 }
 
 uint8_t hl_hal_pwm_set_ccr_val(hl_hal_pwm_timx_info_st *tim_info, uint16_t ccr_val)
 {
-    if (tim_info == NULL) {
+    if (tim_info == RT_NULL) {
         dbg_printf("[%s][line:%d] cmd(%d) unkown!!! \r\n", __FILE__, __LINE__, 1);
         return PWM_FUNC_RET_ERR;
     }
+
     if (tim_info->tim_channel & HL_HAL_PWM_TIM_CHANNEL_1) {
         TIM_SetCmp1(tim_info->timx, ccr_val);
     }
@@ -153,12 +157,30 @@ uint8_t hl_hal_pwm_set_ccr_val(hl_hal_pwm_timx_info_st *tim_info, uint16_t ccr_v
         TIM_SetCmp3(tim_info->timx, ccr_val);
     }
 
-    if (tim_info->tim_channel & HL_HAL_PWM_TIM_CHANNEL_4) {
+    if (tim_info->tim_channel & HL_HAL_PWM_TIM_CHANNEL_3) {
         TIM_SetCmp4(tim_info->timx, ccr_val);
     }
+
     return PWM_FUNC_RET_OK;
 }
 
+uint8_t hl_hal_pwm_enbale(hl_hal_pwm_timx_info_st *tim_info, uint8_t enable_state)
+{
+    if (tim_info == RT_NULL) {
+        dbg_printf("[%s][line:%d] cmd(%d) unkown!!! \r\n", __FILE__, __LINE__, 1);
+        return PWM_FUNC_RET_ERR;
+    }
+
+    if (enable_state == PWM_ENABLE) {
+        TIM_ConfigArPreload(tim_info->timx, ENABLE);
+        TIM_Enable(tim_info->timx, ENABLE);
+        
+    } else {
+        TIM_ConfigArPreload(tim_info->timx, DISABLE);
+        TIM_Enable(tim_info->timx, DISABLE);
+    }
+    return PWM_FUNC_RET_OK;
+}
 /*
  * EOF
  */
