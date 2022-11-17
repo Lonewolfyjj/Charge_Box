@@ -51,40 +51,91 @@ static void _extcom_dev_online_probe_set(void)
 {
     bool flag;
 
-    if (_extcom_task.task_comm->tx1_hall_state == HL_APP_HALL_STATE_IN && _extcom_task.task_comm->tx1_online_flag == false) {
+    if (_extcom_task.task_comm->tx1_hall_state == HL_APP_HALL_STATE_IN) {
         flag = true;
-        hl_mod_extcom_ctrl(HL_MOD_EXTCOM_START_TX1_PROBE, &flag, sizeof(flag));
-    } else if (_extcom_task.task_comm->tx1_hall_state == HL_APP_HALL_STATE_IN && _extcom_task.task_comm->tx1_online_flag == true) {
-        flag = false;
         hl_mod_extcom_ctrl(HL_MOD_EXTCOM_START_TX1_PROBE, &flag, sizeof(flag));
     } else {
         flag = false;
         hl_mod_extcom_ctrl(HL_MOD_EXTCOM_START_TX1_PROBE, &flag, sizeof(flag));
         _extcom_task.task_comm->tx1_online_flag = false;
+        _extcom_task.task_comm->tx1_bat_state   = HL_APP_BAT_STATE_UNKNOWN;
     }
 
-    if (_extcom_task.task_comm->tx2_hall_state == HL_APP_HALL_STATE_IN && _extcom_task.task_comm->tx2_online_flag == false) {
+    if (_extcom_task.task_comm->tx2_hall_state == HL_APP_HALL_STATE_IN) {
         flag = true;
-        hl_mod_extcom_ctrl(HL_MOD_EXTCOM_START_TX2_PROBE, &flag, sizeof(flag));
-    } else if (_extcom_task.task_comm->tx2_hall_state == HL_APP_HALL_STATE_IN && _extcom_task.task_comm->tx2_online_flag == true) {
-        flag = false;
         hl_mod_extcom_ctrl(HL_MOD_EXTCOM_START_TX2_PROBE, &flag, sizeof(flag));
     } else {
         flag = false;
         hl_mod_extcom_ctrl(HL_MOD_EXTCOM_START_TX2_PROBE, &flag, sizeof(flag));
         _extcom_task.task_comm->tx2_online_flag = false;
+        _extcom_task.task_comm->tx2_bat_state   = HL_APP_BAT_STATE_UNKNOWN;
     }
 
-    if (_extcom_task.task_comm->rx_hall_state == HL_APP_HALL_STATE_IN && _extcom_task.task_comm->rx_online_flag == false) {
+    if (_extcom_task.task_comm->rx_hall_state == HL_APP_HALL_STATE_IN) {
         flag = true;
-        hl_mod_extcom_ctrl(HL_MOD_EXTCOM_START_RX_PROBE, &flag, sizeof(flag));
-    } else if (_extcom_task.task_comm->rx_hall_state == HL_APP_HALL_STATE_IN && _extcom_task.task_comm->rx_online_flag == true) {
-        flag = false;
         hl_mod_extcom_ctrl(HL_MOD_EXTCOM_START_RX_PROBE, &flag, sizeof(flag));
     } else {
         flag = false;
         hl_mod_extcom_ctrl(HL_MOD_EXTCOM_START_RX_PROBE, &flag, sizeof(flag));
         _extcom_task.task_comm->rx_online_flag = false;
+        _extcom_task.task_comm->rx_bat_state   = HL_APP_BAT_STATE_UNKNOWN;
+    }
+}
+
+static void _update_tx1_bat_state(uint8_t soc)
+{
+    if (soc == 100) {
+        _extcom_task.task_comm->tx1_bat_state = HL_APP_BAT_STATE_FULL;
+    } else if (soc < 100 && soc >= 75) {
+        _extcom_task.task_comm->tx1_bat_state = HL_APP_BAT_STATE_75_100_PERCENT;
+    } else if (soc < 75 && soc >= 50) {
+        _extcom_task.task_comm->tx1_bat_state = HL_APP_BAT_STATE_50_75_PERCENT;
+    } else if (soc < 50 && soc >= 25) {
+        _extcom_task.task_comm->tx1_bat_state = HL_APP_BAT_STATE_25_50_PERCENT;
+    } else if (soc < 25 && soc > 5) {
+        _extcom_task.task_comm->tx1_bat_state = HL_APP_BAT_STATE_5_25_PERCENT;
+    } else if (soc <= 5 && soc >= 0) {
+        _extcom_task.task_comm->tx1_bat_state = HL_APP_BAT_STATE_LOWPOWER;
+    } else {
+        _extcom_task.task_comm->tx1_bat_state = HL_APP_BAT_STATE_ERR;
+    }
+}
+
+static void _update_tx2_bat_state(uint8_t soc)
+{
+    if (soc == 100) {
+        _extcom_task.task_comm->tx2_bat_state = HL_APP_BAT_STATE_FULL;
+    } else if (soc < 100 && soc >= 75) {
+        _extcom_task.task_comm->tx2_bat_state = HL_APP_BAT_STATE_75_100_PERCENT;
+    } else if (soc < 75 && soc >= 50) {
+        _extcom_task.task_comm->tx2_bat_state = HL_APP_BAT_STATE_50_75_PERCENT;
+    } else if (soc < 50 && soc >= 25) {
+        _extcom_task.task_comm->tx2_bat_state = HL_APP_BAT_STATE_25_50_PERCENT;
+    } else if (soc < 25 && soc > 5) {
+        _extcom_task.task_comm->tx2_bat_state = HL_APP_BAT_STATE_5_25_PERCENT;
+    } else if (soc <= 5 && soc >= 0) {
+        _extcom_task.task_comm->tx2_bat_state = HL_APP_BAT_STATE_LOWPOWER;
+    } else {
+        _extcom_task.task_comm->tx2_bat_state = HL_APP_BAT_STATE_ERR;
+    }
+}
+
+static void _update_rx_bat_state(uint8_t soc)
+{
+    if (soc == 100) {
+        _extcom_task.task_comm->rx_bat_state = HL_APP_BAT_STATE_FULL;
+    } else if (soc < 100 && soc >= 75) {
+        _extcom_task.task_comm->rx_bat_state = HL_APP_BAT_STATE_75_100_PERCENT;
+    } else if (soc < 75 && soc >= 50) {
+        _extcom_task.task_comm->rx_bat_state = HL_APP_BAT_STATE_50_75_PERCENT;
+    } else if (soc < 50 && soc >= 25) {
+        _extcom_task.task_comm->rx_bat_state = HL_APP_BAT_STATE_25_50_PERCENT;
+    } else if (soc < 25 && soc > 5) {
+        _extcom_task.task_comm->rx_bat_state = HL_APP_BAT_STATE_5_25_PERCENT;
+    } else if (soc <= 5 && soc >= 0) {
+        _extcom_task.task_comm->rx_bat_state = HL_APP_BAT_STATE_LOWPOWER;
+    } else {
+        _extcom_task.task_comm->rx_bat_state = HL_APP_BAT_STATE_ERR;
     }
 }
 
@@ -96,7 +147,10 @@ void hl_app_task_extcom_init(void)
 
     _extcom_task.task_comm->tx1_online_flag = false;
     _extcom_task.task_comm->tx2_online_flag = false;
-    _extcom_task.task_comm->rx_online_flag = false;
+    _extcom_task.task_comm->rx_online_flag  = false;
+    _extcom_task.task_comm->tx1_bat_state   = HL_APP_BAT_STATE_UNKNOWN;
+    _extcom_task.task_comm->tx2_bat_state   = HL_APP_BAT_STATE_UNKNOWN;
+    _extcom_task.task_comm->rx_bat_state    = HL_APP_BAT_STATE_UNKNOWN;
 }
 
 void hl_app_task_extcom_msg_proc(hl_app_msg_st* msg)
@@ -114,6 +168,15 @@ void hl_app_task_extcom_msg_proc(hl_app_msg_st* msg)
         } break;
         case HL_MOD_EXTCOM_MSG_TX2_ONLINE_STATE: {
             _extcom_task.task_comm->tx2_online_flag = *(bool*)msg->param;
+        } break;
+        case HL_MOD_EXTCOM_MSG_TX1_BAT_STATE: {
+            _update_tx1_bat_state(*(uint8_t*)msg->param);
+        } break;
+        case HL_MOD_EXTCOM_MSG_TX2_BAT_STATE: {
+            _update_tx2_bat_state(*(uint8_t*)msg->param);
+        } break;
+        case HL_MOD_EXTCOM_MSG_RX_BAT_STATE: {
+            _update_rx_bat_state(*(uint8_t*)msg->param);
         } break;
         default:
             break;

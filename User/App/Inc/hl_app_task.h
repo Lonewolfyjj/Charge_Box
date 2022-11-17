@@ -90,6 +90,9 @@ typedef struct _hl_app_task_common_st
     bool                      rx_online_flag;
     bool                      tx1_online_flag;
     bool                      tx2_online_flag;
+    hl_app_bat_state_e        tx1_bat_state;
+    hl_app_bat_state_e        tx2_bat_state;
+    hl_app_bat_state_e        rx_bat_state;
 } hl_app_task_common_st;
 
 /* define --------------------------------------------------------------------*/

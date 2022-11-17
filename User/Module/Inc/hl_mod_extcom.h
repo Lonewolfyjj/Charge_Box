@@ -57,6 +57,9 @@ typedef enum _hl_mod_extcom_msg_e
     HL_MOD_EXTCOM_MSG_TX1_ONLINE_STATE,
     HL_MOD_EXTCOM_MSG_TX2_ONLINE_STATE,
     HL_MOD_EXTCOM_MSG_RX_ONLINE_STATE,
+    HL_MOD_EXTCOM_MSG_TX1_BAT_STATE,
+    HL_MOD_EXTCOM_MSG_TX2_BAT_STATE,
+    HL_MOD_EXTCOM_MSG_RX_BAT_STATE,
 } hl_mod_extcom_msg_e;
 
 /* define --------------------------------------------------------------------*/
