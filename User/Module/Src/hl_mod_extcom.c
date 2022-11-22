@@ -38,6 +38,7 @@ typedef enum _hl_mod_extcom_hup_cmd_e
 {
     HL_HUP_CMD_PROBE           = 0x01,
     HL_HUP_CMD_GET_BAT_INFO    = 0x02,
+    HL_HUP_CMD_SET_BAT_INFO    = 0x03,
     HL_HUP_CMD_TX_IN_BOX_STATE = 0x04,
     HL_HUP_CMD_GET_PAIR_INFO   = 0x05,
     HL_HUP_CMD_SET_PAIR_INFO   = 0x06,
@@ -51,6 +52,7 @@ typedef struct _hl_mod_extcom_temp_flag_st
     uint8_t tx1_bat_info_get_flag : 1;
     uint8_t tx2_bat_info_get_flag : 1;
     uint8_t rx_bat_info_get_flag : 1;
+    uint8_t box_bat_info_get_flag : 1;
     uint8_t tx1_mac_addr_get_flag : 1;
     uint8_t tx2_mac_addr_get_flag : 1;
     uint8_t rx_mac_addr_get_flag : 1;
@@ -98,6 +100,7 @@ typedef struct _hl_mod_extcom_st
     bool                       tx2_probe_flag;
     bool                       rx_probe_flag;
     hl_mod_extcom_temp_flag_st temp_flag;
+    uint8_t                    box_bat_info;
     uint8_t                    tx1_bat_info;
     uint8_t                    tx2_bat_info;
     uint8_t                    rx_bat_info;
@@ -271,8 +274,11 @@ static void rx_hup_success_handle_func(hup_protocol_type_t hup_frame)
                 } else {
                     _extcom_mod.temp_flag.rx_set_tx2_lose_state_flag = true;
                 }
-            }            
+            }
         }
+        case HL_HUP_CMD_SET_BAT_INFO: {
+            
+        } break;
         default:
             break;
     }
@@ -453,8 +459,8 @@ static int _uart_init(void)
 {
     int ret;
 
-    objects[HL_MOD_EXTCOM_OBJECT_RX].uart_num  = HL_HAL_UART_NUMB_2;
-    objects[HL_MOD_EXTCOM_OBJECT_TX1].uart_num = HL_HAL_UART_NUMB_3;
+    objects[HL_MOD_EXTCOM_OBJECT_RX].uart_num  = HL_HAL_UART_NUMB_3;
+    objects[HL_MOD_EXTCOM_OBJECT_TX1].uart_num = HL_HAL_UART_NUMB_2;
     objects[HL_MOD_EXTCOM_OBJECT_TX2].uart_num = HL_HAL_UART_NUMB_1;
 
     hl_hal_uart_init(objects[HL_MOD_EXTCOM_OBJECT_RX].uart_num, 115200);
@@ -972,7 +978,7 @@ static void _dev_pair_stop_poll(void)
 
 static void _dev_set_tx_online_state_poll(void)
 {
-    uint8_t buf_send[2];
+    uint8_t                     buf_send[2];
     static uint8_t              rx_count_1 = 0;
     static uint8_t              rx_count_2 = 0;
     static uint8_t              rx_count_3 = 0;
@@ -1012,7 +1018,7 @@ static void _dev_set_tx_online_state_poll(void)
         }
     } else {
         flag->rx_set_tx1_lose_state_flag = false;
-        rx_count_3                         = 0;
+        rx_count_3                       = 0;
     }
 
     if (objects[HL_MOD_EXTCOM_OBJECT_RX].connect_flag == true
@@ -1046,26 +1052,107 @@ static void _dev_set_tx_online_state_poll(void)
         }
     } else {
         flag->rx_set_tx2_lose_state_flag = false;
-        rx_count_4                         = 0;
+        rx_count_4                       = 0;
     }
 }
 
 static void _dev_get_bat_info_poll(void)
 {
+    static uint16_t tx1_count = 0;
+    static uint16_t tx2_count = 0;
+    static uint16_t rx_count  = 0;
+
     hl_mod_extcom_temp_flag_st* flag;
 
     flag = &_extcom_mod.temp_flag;
 
     if (objects[HL_MOD_EXTCOM_OBJECT_TX1].connect_flag == false) {
         flag->tx1_bat_info_get_flag = false;
+        tx1_count                   = 0;
+    } else {
+        if (tx1_count == 0) {
+            _object_send_data(HL_MOD_EXTCOM_OBJECT_TX1, HL_HUP_CMD_GET_BAT_INFO, RT_NULL, 0, 0);
+            tx1_count = 500;
+        } else {
+            tx1_count--;
+        }
     }
 
     if (objects[HL_MOD_EXTCOM_OBJECT_TX2].connect_flag == false) {
         flag->tx2_bat_info_get_flag = false;
+        tx2_count                   = 0;
+    } else {
+        if (tx2_count == 0) {
+            _object_send_data(HL_MOD_EXTCOM_OBJECT_TX2, HL_HUP_CMD_GET_BAT_INFO, RT_NULL, 0, 0);
+            tx2_count = 500;
+        } else {
+            tx2_count--;
+        }
     }
 
     if (objects[HL_MOD_EXTCOM_OBJECT_RX].connect_flag == false) {
         flag->rx_bat_info_get_flag = false;
+        rx_count                   = 0;
+    } else {
+        if (rx_count == 0) {
+            _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_GET_BAT_INFO, RT_NULL, 0, 0);
+            rx_count = 500;
+        } else {
+            rx_count--;
+        }
+    }
+}
+
+static void _dev_set_bat_info_poll(void)
+{
+    char buf_send[2];
+    static uint16_t tx1_count = 0;
+    static uint16_t tx2_count = 0;
+    static uint16_t box_count  = 0;
+
+    hl_mod_extcom_temp_flag_st* flag;
+
+    flag = &_extcom_mod.temp_flag;
+
+    if (objects[HL_MOD_EXTCOM_OBJECT_RX].connect_flag == true) {
+        if (flag->tx1_bat_info_get_flag == true) {
+            if (tx1_count == 0) {
+                buf_send[0] = 1;
+                buf_send[1] = _extcom_mod.tx1_bat_info;
+                _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_SET_BAT_INFO, buf_send, sizeof(buf_send), 0);
+                tx1_count = 500;
+            } else {
+                tx1_count--;
+            }
+        } else {
+            tx1_count = 0;
+        }
+
+        if (flag->tx2_bat_info_get_flag == true) {
+            if (tx2_count == 0) {
+                buf_send[0] = 2;
+                buf_send[1] = _extcom_mod.tx2_bat_info;
+                _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_SET_BAT_INFO, buf_send, sizeof(buf_send), 0);
+                tx2_count = 500;
+            } else {
+                tx2_count--;
+            }
+        } else {
+            tx2_count = 0;
+        }
+
+        if (flag->box_bat_info_get_flag == true) {
+            if (box_count == 0) {
+                buf_send[0] = 3;
+                buf_send[1] = _extcom_mod.box_bat_info;
+                _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_SET_BAT_INFO, buf_send, sizeof(buf_send), 0);
+                box_count = 500;
+            } else {
+                box_count--;
+            }
+        } else {
+            box_count = 0;
+        }
     }
 }
 
@@ -1089,6 +1176,7 @@ static void _extcom_thread_entry(void* arg)
         _dev_pair_stop_poll();
         _dev_set_tx_online_state_poll();
         _dev_get_bat_info_poll();
+        _dev_set_bat_info_poll();
 
         rt_thread_mdelay(10);
     }
@@ -1170,6 +1258,8 @@ int hl_mod_extcom_start(void)
     _extcom_mod.tx1_probe_flag = false;
     _extcom_mod.tx2_probe_flag = false;
     _extcom_mod.rx_probe_flag  = false;
+
+    _extcom_mod.temp_flag.box_bat_info_get_flag = false;
 
     _extcom_mod.thread_exit_flag = 0;
 
@@ -1260,6 +1350,15 @@ int hl_mod_extcom_ctrl(hl_mod_extcom_op_e op, void* arg, int arg_size)
             }
 
             _extcom_mod.rx_probe_flag = *(bool*)arg;
+        } break;
+        case HL_MOD_EXTCOM_SET_BOX_BAT_INFO: {
+            if (arg_size != sizeof(uint8_t)) {
+                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                return HL_MOD_EXTCOM_FUNC_ERR;
+            }
+
+            _extcom_mod.box_bat_info = *(uint8_t*)arg;
+            _extcom_mod.temp_flag.box_bat_info_get_flag = true;
         } break;
         default:
             break;

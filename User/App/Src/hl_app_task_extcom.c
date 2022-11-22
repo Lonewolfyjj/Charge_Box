@@ -82,6 +82,13 @@ static void _extcom_dev_online_probe_set(void)
     }
 }
 
+static void _extcom_bat_soc_set_poll(void)
+{
+    if (_extcom_task.task_comm->bat_state != HL_APP_BAT_STATE_ERR && _extcom_task.task_comm->bat_state != HL_APP_BAT_STATE_UNKNOWN) {
+        hl_mod_extcom_ctrl(HL_MOD_EXTCOM_SET_BOX_BAT_INFO, &(_extcom_task.task_comm->bat_soc), sizeof(uint8_t));
+    }
+}
+
 static void _update_tx1_bat_state(uint8_t soc)
 {
     if (soc == 100) {
@@ -190,6 +197,7 @@ void hl_app_task_extcom_proc(void)
     }
 
     _extcom_dev_online_probe_set();
+    _extcom_bat_soc_set_poll();
 }
 
 /*
