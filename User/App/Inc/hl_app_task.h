@@ -73,6 +73,8 @@ typedef enum _hl_app_drv_state_e
 
 typedef struct _hl_app_task_common_st
 {
+    hl_app_drv_state_e        drv_state;
+    
     /// PM
     bool                      pm_start_flag;
     uint8_t                   bat_soc;
@@ -82,7 +84,6 @@ typedef struct _hl_app_task_common_st
     hl_app_hall_state_e       tx2_hall_state;
     hl_app_hall_state_e       rx_hall_state;
     hl_app_hall_state_e       box_hall_state;
-    hl_app_drv_state_e        drv_state;
     bool                      pm_timeout_flag;
 
     /// extcom

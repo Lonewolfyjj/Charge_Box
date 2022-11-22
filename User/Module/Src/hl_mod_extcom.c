@@ -36,11 +36,14 @@
 
 typedef enum _hl_mod_extcom_hup_cmd_e
 {
-    HL_HUP_CMD_PROBE         = 0x01,
-    HL_HUP_CMD_GET_BAT_INFO  = 0x02,
-    HL_HUP_CMD_GET_PAIR_INFO = 0x05,
-    HL_HUP_CMD_SET_PAIR_INFO = 0x06,
-    HL_HUP_CMD_GET_MAC_ADDR  = 0x07,
+    HL_HUP_CMD_PROBE           = 0x01,
+    HL_HUP_CMD_GET_BAT_INFO    = 0x02,
+    HL_HUP_CMD_TX_IN_BOX_STATE = 0x04,
+    HL_HUP_CMD_GET_PAIR_INFO   = 0x05,
+    HL_HUP_CMD_SET_PAIR_INFO   = 0x06,
+    HL_HUP_CMD_GET_MAC_ADDR    = 0x07,
+    HL_HUP_CMD_PAIR_START      = 0x08,
+    HL_HUP_CMD_PAIR_STOP       = 0x09,
 } hl_mod_extcom_hup_cmd_e;
 
 typedef struct _hl_mod_extcom_temp_flag_st
@@ -55,10 +58,24 @@ typedef struct _hl_mod_extcom_temp_flag_st
     uint8_t tx2_pair_mac_addr_get_flag : 1;
     uint8_t tx1_pair_mac_addr_set_flag : 1;
     uint8_t tx2_pair_mac_addr_set_flag : 1;
+    uint8_t tx1_pair_mac_addr_set_timeout_flag : 1;
+    uint8_t tx2_pair_mac_addr_set_timeout_flag : 1;
     uint8_t rx_pair_mac_addr_tx1_set_flag : 1;
     uint8_t rx_pair_mac_addr_tx2_set_flag : 1;
+    uint8_t tx1_pair_check_flag : 1;
+    uint8_t tx2_pair_check_flag : 1;
+    uint8_t tx1_need_pair_flag : 1;
+    uint8_t tx2_need_pair_flag : 1;
+    uint8_t tx1_pair_start_flag : 1;
+    uint8_t tx2_pair_start_flag : 1;
     uint8_t tx1_pair_ok_flag : 1;
     uint8_t tx2_pair_ok_flag : 1;
+    uint8_t tx1_pair_stop_flag : 1;
+    uint8_t tx2_pair_stop_flag : 1;
+    uint8_t rx_set_tx1_online_state_flag : 1;
+    uint8_t rx_set_tx2_online_state_flag : 1;
+    uint8_t rx_set_tx1_lose_state_flag : 1;
+    uint8_t rx_set_tx2_lose_state_flag : 1;
 } hl_mod_extcom_temp_flag_st;
 
 typedef struct _hl_mod_extcom_object_st
@@ -103,7 +120,7 @@ typedef struct _hl_mod_extcom_st
 #define HL_MOD_EXTCOM_FIFO_TX1_BUFSZ 256
 #define HL_MOD_EXTCOM_FIFO_TX2_BUFSZ 256
 
-#define EXTCOM_THREAD_STACK_SIZE 512
+#define EXTCOM_THREAD_STACK_SIZE 612
 
 #define HUP_MAX_READ_BUFSZ 256
 #define HUP_MAX_SEND_BUFSZ 256
@@ -227,6 +244,35 @@ static void rx_hup_success_handle_func(hup_protocol_type_t hup_frame)
             _extcom_mod.temp_flag.rx_bat_info_get_flag = true;
             _mod_msg_send(HL_MOD_EXTCOM_MSG_RX_BAT_STATE, &(_extcom_mod.rx_bat_info), sizeof(_extcom_mod.rx_bat_info));
         } break;
+        case HL_HUP_CMD_PAIR_START: {
+            if (hup_frame.data_addr[0] == 1) {
+                _extcom_mod.temp_flag.tx1_pair_start_flag = true;
+            } else if (hup_frame.data_addr[0] == 2) {
+                _extcom_mod.temp_flag.tx2_pair_start_flag = true;
+            }
+        } break;
+        case HL_HUP_CMD_PAIR_STOP: {
+            if (hup_frame.data_addr[0] == 1) {
+                _extcom_mod.temp_flag.tx1_pair_stop_flag = true;
+            } else if (hup_frame.data_addr[0] == 2) {
+                _extcom_mod.temp_flag.tx2_pair_stop_flag = true;
+            }
+        } break;
+        case HL_HUP_CMD_TX_IN_BOX_STATE: {
+            if (hup_frame.data_addr[0] == 1) {
+                if (hup_frame.data_addr[1] == 1) {
+                    _extcom_mod.temp_flag.rx_set_tx1_online_state_flag = true;
+                } else {
+                    _extcom_mod.temp_flag.rx_set_tx1_lose_state_flag = true;
+                }
+            } else if (hup_frame.data_addr[0] == 2) {
+                if (hup_frame.data_addr[1] == 1) {
+                    _extcom_mod.temp_flag.rx_set_tx2_online_state_flag = true;
+                } else {
+                    _extcom_mod.temp_flag.rx_set_tx2_lose_state_flag = true;
+                }
+            }            
+        }
         default:
             break;
     }
@@ -708,6 +754,81 @@ static void _dev_get_pair_mac_poll(void)
     }
 }
 
+static void _dev_pair_check_poll(void)
+{
+    hl_mod_extcom_temp_flag_st* flag;
+
+    flag = &_extcom_mod.temp_flag;
+
+    if (flag->rx_mac_addr_get_flag == true && flag->tx1_mac_addr_get_flag == true
+        && flag->tx1_pair_mac_addr_get_flag == true) {
+        if (flag->tx1_pair_check_flag == false) {
+            flag->tx1_pair_check_flag = true;
+            if (rt_memcmp(_rx_mac_addr, _tx1_pair_mac_addr, sizeof(_rx_mac_addr)) == 0) {
+                flag->tx1_need_pair_flag = false;
+            } else {
+                flag->tx1_need_pair_flag = true;
+            }
+        }
+    } else {
+        flag->tx1_pair_check_flag = false;
+    }
+
+    if (flag->rx_mac_addr_get_flag == true && flag->tx2_mac_addr_get_flag == true
+        && flag->tx2_pair_mac_addr_get_flag == true) {
+        if (flag->tx2_pair_check_flag == false) {
+            flag->tx2_pair_check_flag = true;
+            if (rt_memcmp(_rx_mac_addr, _tx2_pair_mac_addr, sizeof(_rx_mac_addr)) == 0) {
+                flag->tx2_need_pair_flag = false;
+            } else {
+                flag->tx2_need_pair_flag = true;
+            }
+        }
+    } else {
+        flag->tx2_pair_check_flag = false;
+    }
+}
+
+static void _dev_pair_start_poll()
+{
+    uint8_t                     tx_num;
+    static uint8_t              rx_count_1 = 0;
+    static uint8_t              rx_count_2 = 0;
+    hl_mod_extcom_temp_flag_st* flag;
+
+    flag = &_extcom_mod.temp_flag;
+
+    if (flag->tx1_pair_check_flag == true && flag->tx1_need_pair_flag == true) {
+        if (flag->tx1_pair_start_flag == false) {
+            if (rx_count_1 == 0) {
+                tx_num = 1;
+                _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_PAIR_START, &tx_num, sizeof(tx_num), 0);
+                rx_count_1 = 100;
+            } else {
+                rx_count_1--;
+            }
+        }
+    } else {
+        flag->tx1_pair_start_flag = false;
+        rx_count_1                = 0;
+    }
+
+    if (flag->tx2_pair_check_flag == true && flag->tx2_need_pair_flag == true) {
+        if (flag->tx2_pair_start_flag == false) {
+            if (rx_count_2 == 0) {
+                tx_num = 2;
+                _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_PAIR_START, &tx_num, sizeof(tx_num), 0);
+                rx_count_2 = 100;
+            } else {
+                rx_count_2--;
+            }
+        }
+    } else {
+        flag->tx2_pair_start_flag = false;
+        rx_count_2                = 0;
+    }
+}
+
 static void _dev_set_pair_mac_poll(void)
 {
     static uint8_t              tx1_count  = 0;
@@ -720,18 +841,15 @@ static void _dev_set_pair_mac_poll(void)
 
     flag = &_extcom_mod.temp_flag;
 
-    if (flag->rx_mac_addr_get_flag == true && flag->tx1_mac_addr_get_flag == true
-        && flag->tx1_pair_mac_addr_get_flag == true) {
-        if (flag->tx1_pair_ok_flag == false && rt_memcmp(_rx_mac_addr, _tx1_pair_mac_addr, sizeof(_rx_mac_addr)) == 0) {
-            flag->tx1_pair_ok_flag = true;
-        }
-
+    if (flag->tx1_pair_start_flag == true) {
         if (flag->tx1_pair_ok_flag == false) {
             if (flag->tx1_pair_mac_addr_set_flag == false) {
                 if (tx1_count == 0) {
                     _object_send_data(HL_MOD_EXTCOM_OBJECT_TX1, HL_HUP_CMD_SET_PAIR_INFO, _rx_mac_addr,
                                       sizeof(_rx_mac_addr), 0);
                     tx1_count = 100;
+                } else if (tx1_count == 1) {
+                    flag->tx1_pair_mac_addr_set_timeout_flag = true;
                 } else {
                     tx1_count--;
                 }
@@ -754,23 +872,23 @@ static void _dev_set_pair_mac_poll(void)
             }
         }
     } else {
-        flag->tx1_pair_mac_addr_set_flag    = false;
-        flag->rx_pair_mac_addr_tx1_set_flag = false;
-        flag->tx1_pair_ok_flag              = false;
+        flag->tx1_pair_ok_flag                   = false;
+        flag->tx1_pair_mac_addr_set_flag         = false;
+        flag->rx_pair_mac_addr_tx1_set_flag      = false;
+        flag->tx1_pair_mac_addr_set_timeout_flag = false;
+        tx1_count                                = 0;
+        rx_count_1                               = 0;
     }
 
-    if (flag->rx_mac_addr_get_flag == true && flag->tx2_mac_addr_get_flag == true
-        && flag->tx2_pair_mac_addr_get_flag == true) {
-        if (flag->tx2_pair_ok_flag == false && rt_memcmp(_rx_mac_addr, _tx2_pair_mac_addr, sizeof(_rx_mac_addr)) == 0) {
-            flag->tx2_pair_ok_flag = true;
-        }
-
+    if (flag->tx2_pair_start_flag == true) {
         if (flag->tx2_pair_ok_flag == false) {
             if (flag->tx2_pair_mac_addr_set_flag == false) {
                 if (tx2_count == 0) {
                     _object_send_data(HL_MOD_EXTCOM_OBJECT_TX2, HL_HUP_CMD_SET_PAIR_INFO, _rx_mac_addr,
                                       sizeof(_rx_mac_addr), 0);
                     tx2_count = 100;
+                } else if (tx2_count == 1) {
+                    flag->tx2_pair_mac_addr_set_timeout_flag = true;
                 } else {
                     tx2_count--;
                 }
@@ -793,9 +911,142 @@ static void _dev_set_pair_mac_poll(void)
             }
         }
     } else {
-        flag->tx2_pair_mac_addr_set_flag    = false;
-        flag->rx_pair_mac_addr_tx2_set_flag = false;
-        flag->tx2_pair_ok_flag              = false;
+        flag->tx2_pair_mac_addr_set_flag         = false;
+        flag->rx_pair_mac_addr_tx2_set_flag      = false;
+        flag->tx2_pair_ok_flag                   = false;
+        flag->tx2_pair_mac_addr_set_timeout_flag = false;
+        tx2_count                                = 0;
+        rx_count_2                               = 0;
+    }
+}
+
+static void _dev_pair_stop_poll(void)
+{
+    uint8_t                     buf_send[2];
+    static uint8_t              rx_count_1 = 0;
+    static uint8_t              rx_count_2 = 0;
+    hl_mod_extcom_temp_flag_st* flag;
+
+    flag = &_extcom_mod.temp_flag;
+
+    if (flag->tx1_pair_ok_flag == true || flag->tx1_pair_mac_addr_set_timeout_flag == true) {
+        if (flag->tx1_pair_stop_flag == false) {
+            if (rx_count_1 == 0) {
+                buf_send[0] = 1;
+                if (flag->tx1_pair_mac_addr_set_timeout_flag == true) {
+                    buf_send[1] = 0;
+                } else {
+                    buf_send[1] = 1;
+                }
+                _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_PAIR_STOP, buf_send, sizeof(buf_send), 0);
+                rx_count_1 = 100;
+            } else {
+                rx_count_1--;
+            }
+        }
+    } else {
+        flag->tx1_pair_stop_flag = false;
+        rx_count_1               = 0;
+    }
+
+    if (flag->tx2_pair_ok_flag == true || flag->tx2_pair_mac_addr_set_timeout_flag == true) {
+        if (flag->tx2_pair_stop_flag == false) {
+            if (rx_count_2 == 0) {
+                buf_send[0] = 2;
+                if (flag->tx2_pair_mac_addr_set_timeout_flag == true) {
+                    buf_send[1] = 0;
+                } else {
+                    buf_send[1] = 1;
+                }
+                _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_PAIR_STOP, buf_send, sizeof(buf_send), 0);
+                rx_count_2 = 100;
+            } else {
+                rx_count_2--;
+            }
+        }
+    } else {
+        flag->tx2_pair_stop_flag = false;
+        rx_count_2               = 0;
+    }
+}
+
+static void _dev_set_tx_online_state_poll(void)
+{
+    uint8_t buf_send[2];
+    static uint8_t              rx_count_1 = 0;
+    static uint8_t              rx_count_2 = 0;
+    static uint8_t              rx_count_3 = 0;
+    static uint8_t              rx_count_4 = 0;
+    hl_mod_extcom_temp_flag_st* flag;
+
+    flag = &_extcom_mod.temp_flag;
+
+    if (objects[HL_MOD_EXTCOM_OBJECT_RX].connect_flag == true
+        && objects[HL_MOD_EXTCOM_OBJECT_TX1].connect_flag == true) {
+        if (flag->rx_set_tx1_online_state_flag == false) {
+            if (rx_count_1 == 0) {
+                buf_send[0] = 1;
+                buf_send[1] = 1;
+                _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_TX_IN_BOX_STATE, buf_send, sizeof(buf_send), 0);
+                rx_count_1 = 100;
+            } else {
+                rx_count_1--;
+            }
+        }
+    } else {
+        flag->rx_set_tx1_online_state_flag = false;
+        rx_count_1                         = 0;
+    }
+
+    if (objects[HL_MOD_EXTCOM_OBJECT_RX].connect_flag == true
+        && objects[HL_MOD_EXTCOM_OBJECT_TX1].connect_flag == false) {
+        if (flag->rx_set_tx1_lose_state_flag == false) {
+            if (rx_count_3 == 0) {
+                buf_send[0] = 1;
+                buf_send[1] = 0;
+                _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_TX_IN_BOX_STATE, buf_send, sizeof(buf_send), 0);
+                rx_count_3 = 100;
+            } else {
+                rx_count_3--;
+            }
+        }
+    } else {
+        flag->rx_set_tx1_lose_state_flag = false;
+        rx_count_3                         = 0;
+    }
+
+    if (objects[HL_MOD_EXTCOM_OBJECT_RX].connect_flag == true
+        && objects[HL_MOD_EXTCOM_OBJECT_TX2].connect_flag == true) {
+        if (flag->rx_set_tx2_online_state_flag == false) {
+            if (rx_count_2 == 0) {
+                buf_send[0] = 2;
+                buf_send[1] = 1;
+                _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_TX_IN_BOX_STATE, buf_send, sizeof(buf_send), 0);
+                rx_count_2 = 100;
+            } else {
+                rx_count_2--;
+            }
+        }
+    } else {
+        flag->rx_set_tx2_online_state_flag = false;
+        rx_count_2                         = 0;
+    }
+
+    if (objects[HL_MOD_EXTCOM_OBJECT_RX].connect_flag == true
+        && objects[HL_MOD_EXTCOM_OBJECT_TX2].connect_flag == false) {
+        if (flag->rx_set_tx2_lose_state_flag == false) {
+            if (rx_count_4 == 0) {
+                buf_send[0] = 2;
+                buf_send[1] = 0;
+                _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_TX_IN_BOX_STATE, buf_send, sizeof(buf_send), 0);
+                rx_count_4 = 100;
+            } else {
+                rx_count_4--;
+            }
+        }
+    } else {
+        flag->rx_set_tx2_lose_state_flag = false;
+        rx_count_4                         = 0;
     }
 }
 
@@ -832,7 +1083,11 @@ static void _extcom_thread_entry(void* arg)
         _dev_probe_poll();
         _dev_get_mac_poll();
         _dev_get_pair_mac_poll();
+        _dev_pair_check_poll();
+        _dev_pair_start_poll();
         _dev_set_pair_mac_poll();
+        _dev_pair_stop_poll();
+        _dev_set_tx_online_state_poll();
         _dev_get_bat_info_poll();
 
         rt_thread_mdelay(10);
