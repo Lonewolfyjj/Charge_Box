@@ -215,4 +215,39 @@ rt_hw_context_switch_to:
 rt_hw_interrupt_thread_switch:
     BX      lr
 
+    IMPORT rt_hw_hard_fault_exception
+    EXPORT HardFault_Handler
+HardFault_Handler:
+
+    ; get current context
+    MRS     r0, msp                 ; get fault context from handler.
+    TST     lr, #0x04               ; if(!EXC_RETURN[2])
+    BEQ     _get_sp_done
+    MRS     r0, psp                 ; get fault context from thread.
+_get_sp_done
+
+    STMFD   r0!, {r4 - r11}         ; push r4 - r11 register
+    ;STMFD   r0!, {lr}               ; push exec_return register
+#if defined ( __ARMVFP__ )
+    SUB     r0, r0, #0x04           ; push dummy for flag
+    STR     lr, [r0]
+#endif
+    SUB     r0, r0, #0x04
+    STR     lr, [r0]
+
+    TST     lr, #0x04               ; if(!EXC_RETURN[2])
+    BEQ     _update_msp
+    MSR     psp, r0                 ; update stack pointer to PSP.
+    B       _update_done
+_update_msp
+    MSR     msp, r0                 ; update stack pointer to MSP.
+_update_done
+
+    PUSH    {lr}
+    BL      rt_hw_hard_fault_exception
+    POP     {lr}
+
+    ORR     lr, lr, #0x04
+    BX      lr
+
     END

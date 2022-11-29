@@ -4,7 +4,6 @@
 #include <rtthread.h>
 
 #include "hl_app_main.h"
-#include "cm_backtrace.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -14,8 +13,6 @@
 /* Exported functions --------------------------------------------------------*/
 int main(void)
 {
-    cm_backtrace_init("A6902_Box", "V1.0.0", "V1.0.0");
-
     /* Output a message on Hyperterminal using printf function */
     rt_kprintf("hollyland A6902_box start\n");
 
