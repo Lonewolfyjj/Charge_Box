@@ -80,8 +80,8 @@ static void _pm_mod_charge_state_set(void)
         _pm_task.task_comm->charge_state = HL_APP_BAT_CHARGE_STATE_NO_CHARGE;
         DBG_LOG("pm no charge!\n");
     } else if (charge_value == 3) {
-        DBG_LOG("pm charge full!\n");
-        _pm_task.task_comm->charge_state = HL_APP_BAT_CHARGE_STATE_CHARGE_FULL;
+        DBG_LOG("pm charge completed!\n");
+        _pm_task.task_comm->charge_state = HL_APP_BAT_CHARGE_STATE_CHARGE_COMPLETE;
     } else {
         DBG_LOG("pm is charging!\n");
         _pm_task.task_comm->charge_state = HL_APP_BAT_CHARGE_STATE_CHARGING;

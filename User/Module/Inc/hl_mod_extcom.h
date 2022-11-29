@@ -41,6 +41,7 @@ typedef enum _hl_mod_extcom_op_e
     HL_MOD_EXTCOM_START_TX2_PROBE,
     HL_MOD_EXTCOM_START_RX_PROBE,
     HL_MOD_EXTCOM_SET_BOX_BAT_INFO,
+    HL_MOD_EXTCOM_SET_BOX_CHARGE_STATE,
 } hl_mod_extcom_op_e;
 
 typedef enum _hl_mod_extcom_object_e
@@ -61,6 +62,9 @@ typedef enum _hl_mod_extcom_msg_e
     HL_MOD_EXTCOM_MSG_TX1_BAT_STATE,
     HL_MOD_EXTCOM_MSG_TX2_BAT_STATE,
     HL_MOD_EXTCOM_MSG_RX_BAT_STATE,
+    HL_MOD_EXTCOM_MSG_TX1_CHARGE_STATE,
+    HL_MOD_EXTCOM_MSG_TX2_CHARGE_STATE,
+    HL_MOD_EXTCOM_MSG_RX_CHARGE_STATE,    
 } hl_mod_extcom_msg_e;
 
 /* define --------------------------------------------------------------------*/

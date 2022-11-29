@@ -52,7 +52,7 @@ typedef enum _hl_app_bat_charge_state_e
     HL_APP_BAT_CHARGE_STATE_UNKNOWN = 0,
     HL_APP_BAT_CHARGE_STATE_NO_CHARGE,
     HL_APP_BAT_CHARGE_STATE_CHARGING,
-    HL_APP_BAT_CHARGE_STATE_CHARGE_FULL,
+    HL_APP_BAT_CHARGE_STATE_CHARGE_COMPLETE,
 } hl_app_bat_charge_state_e;
 
 typedef enum _hl_app_hall_state_e
@@ -94,6 +94,9 @@ typedef struct _hl_app_task_common_st
     hl_app_bat_state_e        tx1_bat_state;
     hl_app_bat_state_e        tx2_bat_state;
     hl_app_bat_state_e        rx_bat_state;
+    hl_app_bat_charge_state_e tx1_charge_state;
+    hl_app_bat_charge_state_e tx2_charge_state;
+    hl_app_bat_charge_state_e rx_charge_state;
 } hl_app_task_common_st;
 
 /* define --------------------------------------------------------------------*/
