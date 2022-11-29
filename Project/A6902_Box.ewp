@@ -367,6 +367,9 @@
                     <state>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver</state>
                     <state>$PROJ_DIR$\..\Libraries\n32l40x_usbfs_driver\inc</state>
                     <state>$PROJ_DIR$\..\User\Utility\config</state>
+                    <state>$PROJ_DIR$\..\3rdparty\CmBacktrace-master\cm_backtrace</state>
+                    <state>$PROJ_DIR$\..\3rdparty\CmBacktrace-master\cm_backtrace\Languages\zh-CN</state>
+                    <state>$PROJ_DIR$\..\3rdparty\CmBacktrace-master\cm_backtrace\Languages\en-US</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1057,6 +1060,18 @@
             <data />
         </settings>
     </configuration>
+    <group>
+        <name>3rdparty</name>
+        <group>
+            <name>Cm_Backtrace</name>
+            <file>
+                <name>$PROJ_DIR$\..\3rdparty\CmBacktrace-master\cm_backtrace\cm_backtrace.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\3rdparty\CmBacktrace-master\cm_backtrace\fault_handler\iar\cmb_fault.S</name>
+            </file>
+        </group>
+    </group>
     <group>
         <name>cmsis</name>
         <file>
