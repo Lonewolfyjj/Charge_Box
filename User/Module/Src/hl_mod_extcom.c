@@ -1095,6 +1095,10 @@ static void _dev_set_bat_soc_poll(void)
         } else {
             box_count = 0;
         }
+    } else {
+        tx1_count = 0;
+        tx2_count = 0;
+        box_count = 0;
     }
 }
 
@@ -1148,6 +1152,10 @@ static void _dev_set_charge_state_poll(void)
         } else {
             box_count = 0;
         }
+    } else {
+        tx1_count = 0;
+        tx2_count = 0;
+        box_count = 0;
     }
 }
 
