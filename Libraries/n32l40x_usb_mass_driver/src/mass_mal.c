@@ -37,13 +37,15 @@
 
 #include "mass_mal.h"
 #include "n32l40x_flash.h"
+#include "hl_drv_flash.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 
-#define FLASH_START_ADDR    0x08010000// Flash start address
-#define FLASH_SIZE          0x10000
-#define FLASH_PAGE_SIZE     0x800 // 2K per page
+#define FLASH_START_ADDR    0x001000    // Flash 读写起始地址
+#define FLASH_SIZE          0x300000    // FLASH总大小 3M byte
+#define FLASH_PAGE_SIZE     0x1000      // W25Q32最小读写单位是4096 byte /per page
+
 #define FLASH_WAIT_TIMEOUT  100000
 
 /* Private macro -------------------------------------------------------------*/
@@ -80,23 +82,8 @@ uint16_t MAL_Write(uint8_t lun, uint32_t Memory_Offset, uint32_t *Writebuff, uin
     switch (lun)
     {
     case 0:
-        for( i = 0; i < Transfer_Length; i += FLASH_PAGE_SIZE )
-        { 
-            if( FLASH_WaitForLastOpt(FLASH_WAIT_TIMEOUT) != FLASH_TIMEOUT )
-            {
-                FLASH_ClearFlag(FLASH_FLAG_EOP|FLASH_FLAG_PGERR|FLASH_FLAG_WRPERR);
-            }
-            FLASH_EraseOnePage(FLASH_START_ADDR + Memory_Offset + i); 
-        }
-         
-        for( i = 0; i < Transfer_Length; i+=4 )
-        { 
-            if( FLASH_WaitForLastOpt(FLASH_WAIT_TIMEOUT) != FLASH_TIMEOUT )
-            {
-                FLASH_ClearFlag(FLASH_FLAG_EOP|FLASH_FLAG_PGERR|FLASH_FLAG_WRPERR); 
-            } 
-            FLASH_ProgramWord(FLASH_START_ADDR + Memory_Offset + i , Writebuff[i>>2]); 
-        }
+        hl_drv_flash_erase_sector(FLASH_START_ADDR + Memory_Offset);
+        hl_drv_flash_write(FLASH_START_ADDR + Memory_Offset, (uint8_t*)Writebuff, Transfer_Length);
         break;
     case 1:
         break;
@@ -120,10 +107,7 @@ uint16_t MAL_Read(uint8_t lun, uint32_t Memory_Offset, uint32_t *Readbuff, uint1
     switch (lun)
     {
     case 0:
-        for( i=0; i < Transfer_Length; i+=4 )
-        {
-            Readbuff[i>>2] = ((vu32*)(FLASH_START_ADDR + Memory_Offset))[i>>2]; 
-        }
+        hl_drv_flash_read(FLASH_START_ADDR + Memory_Offset, (uint8_t*)Readbuff, Transfer_Length);
         break;
     case 1:
         break;
