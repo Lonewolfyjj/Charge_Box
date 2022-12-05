@@ -80,14 +80,14 @@ const uint8_t MASS_ConfigDescriptor[MASS_SIZ_CONFIG_DESC] =
     0x32,   /* MaxPower 0 mA */
 	
 
-		// +++lakun: IAD(Interface Association Descriptor)£¬ÓÃÓÚÖ¸Ê¾CDC
-		0X08,  // bLength: Interface Descriptor size£¬¹Ì¶¨Öµ
-		0X0B,  // bDescriptorType: IAD£¬¹Ì¶¨Öµ
-		0X00,  // bFirstInterface£¬µÚÒ»¸ö½Ó¿ÚµÄÆğÊ¼ĞòºÅ£¬´Ó0¿ªÊ¼
-		0X02,  // bInterfaceCount£¬±¾IADÏÂµÄ½Ó¿ÚÊıÁ¿
-		0X02,  // bFunctionClass: CDC£¬±íÃ÷¸ÃIADÊÇÒ»¸öCDCÀàĞÍµÄÉè±¸
-		0X02,  // bFunctionSubClass£º×ÓÀàĞÍ£¬Ä¬ÈÏ¼´¿É
-		0X01,  // bFunctionProtocol£º¿ØÖÆĞ­Òé£¬Ä¬ÈÏ¼´¿É
+		// +++lakun: IAD(Interface Association Descriptor)ï¼Œç”¨äºæŒ‡ç¤ºCDC
+		0X08,  // bLength: Interface Descriptor sizeï¼Œå›ºå®šå€¼
+		0X0B,  // bDescriptorType: IADï¼Œå›ºå®šå€¼
+		0X00,  // bFirstInterfaceï¼Œç¬¬ä¸€ä¸ªæ¥å£çš„èµ·å§‹åºå·ï¼Œä»0å¼€å§‹
+		0X02,  // bInterfaceCountï¼Œæœ¬IADä¸‹çš„æ¥å£æ•°é‡
+		0X02,  // bFunctionClass: CDCï¼Œè¡¨æ˜è¯¥IADæ˜¯ä¸€ä¸ªCDCç±»å‹çš„è®¾å¤‡
+		0X02,  // bFunctionSubClassï¼šå­ç±»å‹ï¼Œé»˜è®¤å³å¯
+		0X01,  // bFunctionProtocolï¼šæ§åˆ¶åè®®ï¼Œé»˜è®¤å³å¯
 		0X00,  // iFunction
 	
     /*Interface Descriptor*/
@@ -160,13 +160,13 @@ const uint8_t MASS_ConfigDescriptor[MASS_SIZ_CONFIG_DESC] =
     0x00,    /* bInterval */
 		
 		 /*****************MSC Interface Descirptor*******************/
-		0X08,  // bLength: Interface Descriptor size£¬¹Ì¶¨Öµ
-		0X0B,  // bDescriptorType: IAD£¬¹Ì¶¨Öµ
-		0X02,  // bFirstInterface£¬½Ó¿ÚµÄÆğÊ¼ĞòºÅ£¨µÚ0¡¢1±àºÅµÄ½Ó¿ÚÓÃÓÚCDC1£¬ËùÒÔ´Ó2¿ªÊ¼£©
-		0X01,  // bInterfaceCount£¬±¾IADÏÂµÄ½Ó¿ÚÊıÁ¿
-		0X08,  // bFunctionClass: MSC£¬±íÃ÷¸ÃIADÊÇÒ»¸öMSCÀàĞÍµÄÉè±¸
-		0X06,  // bFunctionSubClass£º×ÓÀàĞÍ£¬Ä¬ÈÏ¼´¿É
-		0X50,  // bFunctionProtocol£º¿ØÖÆĞ­Òé£¬Ä¬ÈÏ¼´¿É
+		0X08,  // bLength: Interface Descriptor sizeï¼Œå›ºå®šå€¼
+		0X0B,  // bDescriptorType: IADï¼Œå›ºå®šå€¼
+		0X02,  // bFirstInterfaceï¼Œæ¥å£çš„èµ·å§‹åºå·ï¼ˆç¬¬0ã€1ç¼–å·çš„æ¥å£ç”¨äºCDC1ï¼Œæ‰€ä»¥ä»2å¼€å§‹ï¼‰
+		0X01,  // bInterfaceCountï¼Œæœ¬IADä¸‹çš„æ¥å£æ•°é‡
+		0X08,  // bFunctionClass: MSCï¼Œè¡¨æ˜è¯¥IADæ˜¯ä¸€ä¸ªMSCç±»å‹çš„è®¾å¤‡
+		0X06,  // bFunctionSubClassï¼šå­ç±»å‹ï¼Œé»˜è®¤å³å¯
+		0X50,  // bFunctionProtocolï¼šæ§åˆ¶åè®®ï¼Œé»˜è®¤å³å¯
 		4,  // iFunction
 
     0x09, //bLength

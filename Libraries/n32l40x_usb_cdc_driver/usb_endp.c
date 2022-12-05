@@ -40,6 +40,7 @@
 #include "usb_mem.h"
 #include "hw_config.h"
 #include "usb_pwr.h"
+#include "hl_util_fifo.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -51,11 +52,11 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-uint8_t USB_Rx_Buffer[VIRTUAL_COM_PORT_DATA_SIZE];
-extern  uint8_t USART_Rx_Buffer[];
-extern uint32_t USART_Rx_ptr_out;
-extern uint32_t USART_Rx_length;
+
 extern uint8_t  USB_Tx_State;
+
+extern hl_util_fifo_t hl_cdc_out_fifo;
+extern hl_util_fifo_t hl_cdc_in_fifo;
 /**
  * @brief EP1 IN Callback Routine.
  */
@@ -78,34 +79,32 @@ void EP2_OUT_Callback(void)
  */
 void EP5_IN_Callback (void)
 {
-    uint16_t USB_Tx_ptr;
+    //uint16_t USB_Tx_ptr;
     uint16_t USB_Tx_length;
+    uint8_t buffer[64];
 
     if (USB_Tx_State == 1)
     {
-        if (USART_Rx_length == 0) 
+        if (hl_util_fifo_data_size(&hl_cdc_out_fifo) == 0) 
         {
             USB_Tx_State = 0;
         }
         else 
         {
-            if (USART_Rx_length > VIRTUAL_COM_PORT_DATA_SIZE)
+            if (hl_util_fifo_data_size(&hl_cdc_out_fifo) > VIRTUAL_COM_PORT_DATA_SIZE)
             {
-                USB_Tx_ptr = USART_Rx_ptr_out;
+                //read 64bytes
                 USB_Tx_length = VIRTUAL_COM_PORT_DATA_SIZE;
-
-                USART_Rx_ptr_out += VIRTUAL_COM_PORT_DATA_SIZE;
-                USART_Rx_length -= VIRTUAL_COM_PORT_DATA_SIZE;    
+                hl_util_fifo_read(&hl_cdc_out_fifo, buffer, USB_Tx_length);
+ 
             }
             else 
             {
-                USB_Tx_ptr = USART_Rx_ptr_out;
-                USB_Tx_length = USART_Rx_length;
-
-                USART_Rx_ptr_out += USART_Rx_length;
-                USART_Rx_length = 0;
+                // read all bytes left
+            USB_Tx_length = hl_util_fifo_data_size(&hl_cdc_out_fifo);
+            hl_util_fifo_read(&hl_cdc_out_fifo, buffer, USB_Tx_length);
             }
-            USB_CopyUserToPMABuf(&USART_Rx_Buffer[USB_Tx_ptr], ENDP5_TXADDR, USB_Tx_length);
+            USB_CopyUserToPMABuf(buffer, ENDP5_TXADDR, USB_Tx_length);
             USB_SetEpTxCnt(ENDP5, USB_Tx_length);
             USB_SetEpTxValid(ENDP5); 
         }
@@ -118,14 +117,15 @@ void EP5_IN_Callback (void)
 void EP3_OUT_Callback(void)
 {
     uint16_t USB_Rx_Cnt;
+    uint8_t data_read[128];
 
     /* Get the received data buffer and update the counter */
-    USB_Rx_Cnt = USB_SilRead(EP3_OUT, USB_Rx_Buffer);
+    USB_Rx_Cnt = USB_SilRead(EP3_OUT, data_read);
 
     /* USB data will be immediately processed, this allow next USB traffic being 
     NAKed till the end of the USART Xfer */
 
-    USB_To_USART_Send_Data(USB_Rx_Buffer, USB_Rx_Cnt);
+    USB_CDC_Recv_Data_Save(data_read, USB_Rx_Cnt);
 
     /* Enable the receive of data on EP3 */
     USB_SetEpRxValid(ENDP3);

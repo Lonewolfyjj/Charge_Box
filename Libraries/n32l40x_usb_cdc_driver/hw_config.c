@@ -41,6 +41,8 @@
 #include "usb_lib.h"
 #include "usb_prop.h"
 #include "usb_desc.h"
+#include "hl_util_fifo.h"
+#include "rtthread.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -49,16 +51,15 @@
 ErrorStatus HSEStartUpStatus;
 EXTI_InitType EXTI_InitStructure;
 
-USART_InitType USART_InitStructure;
+extern hl_util_fifo_t hl_cdc_out_fifo;
+extern hl_util_fifo_t hl_cdc_in_fifo;
 
-uint8_t  USART_Rx_Buffer [USART_RX_DATA_SIZE]; 
-uint32_t USART_Rx_ptr_in = 0;
-uint32_t USART_Rx_ptr_out = 0;
-uint32_t USART_Rx_length  = 0;
 uint8_t  USB_Tx_State = 0;
 
 /* Extern variables ----------------------------------------------------------*/
+
 extern LINE_CODING linecoding;
+
 /* Private functions ---------------------------------------------------------*/
 
 /**
@@ -180,6 +181,7 @@ void Leave_LowPowerMode(void)
     }
 
 }
+#if 0
 /**
   * @brief  Configures USART COM port.
   * @param  USART_InitStruct: pointer to a USART_InitType structure that
@@ -226,38 +228,6 @@ void USART_COM_Init(USART_InitType* USART_InitStruct)
 
     /* Enable USART1 */
     USART_Enable(USART1, ENABLE);
-}
-/**
- * @brief Configures the USB interrupts.
- */
-void USB_Interrupts_Config(void)
-{
-    NVIC_InitType NVIC_InitStructure;
-    EXTI_InitType EXTI_InitStructure;
-
-    /* 2 bit for pre-emption priority, 2 bits for subpriority */
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
-
-    /* Enable the USB interrupt */
-    NVIC_InitStructure.NVIC_IRQChannel                   = USB_LP_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 0;
-    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
-
-    /* Enable the USB Wake-up interrupt */
-    NVIC_InitStructure.NVIC_IRQChannel                   = USBWakeUp_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
-
-    /* Configure the EXTI line 17 connected internally to the USB IP */
-    EXTI_ClrITPendBit(EXTI_LINE17);
-    EXTI_InitStructure.EXTI_Line = EXTI_LINE17; 
-    EXTI_InitStructure.EXTI_Mode    = EXTI_Mode_Interrupt;
-    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
-    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
-    EXTI_InitPeripheral(&EXTI_InitStructure);
 }
 /**
  * @brief configure the UASRT with default values.
@@ -361,98 +331,136 @@ bool USART_Config(void)
 
     return (true);
 }
-/**
- * @brief  send the received data from USB to the UART.
- * @param  data_buffer: data buffer pointer.
- * @param  Nb_bytes: data length.
- */
-void USB_To_USART_Send_Data(uint8_t* data_buffer, uint8_t Nb_bytes)
-{
-    uint32_t i;
+#endif
 
-    for (i = 0; i < Nb_bytes; i++)
-    {
-        USART_SendData(USART1, *(data_buffer + i));
-        while(USART_GetFlagStatus(USART1, USART_FLAG_TXDE) == RESET); 
-    }  
+/**
+ * @brief Configures the USB interrupts.
+ */
+void USB_Interrupts_Config(void)
+{
+    NVIC_InitType NVIC_InitStructure;
+    EXTI_InitType EXTI_InitStructure;
+
+    /* 2 bit for pre-emption priority, 2 bits for subpriority */
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
+
+    /* Enable the USB interrupt */
+    NVIC_InitStructure.NVIC_IRQChannel                   = USB_LP_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 0;
+    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+
+    /* Enable the USB Wake-up interrupt */
+    NVIC_InitStructure.NVIC_IRQChannel                   = USBWakeUp_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+
+    /* Configure the EXTI line 17 connected internally to the USB IP */
+    EXTI_ClrITPendBit(EXTI_LINE17);
+    EXTI_InitStructure.EXTI_Line = EXTI_LINE17; 
+    EXTI_InitStructure.EXTI_Mode    = EXTI_Mode_Interrupt;
+    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Rising;
+    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+    EXTI_InitPeripheral(&EXTI_InitStructure);
 }
+
+/*******************************************************************************
+* Function Name  : USB_CDC_Recv_Data_Save.
+* Description    : send the received data from USB to the UART 0.
+* Input          : data_buffer: data address.
+                   Nb_bytes: number of bytes to send.
+* Return         : none.
+*******************************************************************************/
+void USB_CDC_Recv_Data_Save(uint8_t* data_buffer, uint8_t Nb_bytes)
+{
+    hl_util_fifo_write(&hl_cdc_in_fifo, data_buffer, Nb_bytes);
+    // rt_kprintf("data len = %d\n", Nb_bytes);
+    // int i = 0;
+    // for (i = 0; i < Nb_bytes; i++) {
+    //     rt_kprintf("%02x ", data_buffer[i]);
+    // }
+    // rt_kprintf("\n");
+}
+
+// /**
+//  * @brief  send the received data from USB to the UART.
+//  * @param  data_buffer: data buffer pointer.
+//  * @param  Nb_bytes: data length.
+//  */
+// void USB_To_USART_Send_Data(uint8_t* data_buffer, uint8_t Nb_bytes)
+// {
+//     uint32_t i;
+
+//     for (i = 0; i < Nb_bytes; i++)
+//     {
+//         USART_SendData(USART1, *(data_buffer + i));
+//         while(USART_GetFlagStatus(USART1, USART_FLAG_TXDE) == RESET); 
+//     }  
+// }
 
 /**
  * @brief  send data to USB.
  */
 void Handle_USBAsynchXfer (void)
 {
-    uint16_t USB_Tx_ptr;
+    //uint16_t USB_Tx_ptr;
     uint16_t USB_Tx_length;
+    uint8_t buffer[64];
 
     if(USB_Tx_State != 1)
     {
-        if (USART_Rx_ptr_out == USART_RX_DATA_SIZE)
-        {
-            USART_Rx_ptr_out = 0;
-        }
-
-        if(USART_Rx_ptr_out == USART_Rx_ptr_in) 
+        //wlvl = 0
+        if(hl_util_fifo_data_size(&hl_cdc_out_fifo) == 0) 
         {
             USB_Tx_State = 0; 
             return;
         }
 
-        if(USART_Rx_ptr_out > USART_Rx_ptr_in) /* rollback */
-        { 
-            USART_Rx_length = USART_RX_DATA_SIZE - USART_Rx_ptr_out;
-        }
-        else 
+        //wlvl
+        if (hl_util_fifo_data_size(&hl_cdc_out_fifo) > VIRTUAL_COM_PORT_DATA_SIZE)
         {
-            USART_Rx_length = USART_Rx_ptr_in - USART_Rx_ptr_out;
-        }
-
-        if (USART_Rx_length > VIRTUAL_COM_PORT_DATA_SIZE)
-        {
-            USB_Tx_ptr = USART_Rx_ptr_out;
+            //read 64bytes
             USB_Tx_length = VIRTUAL_COM_PORT_DATA_SIZE;
-
-            USART_Rx_ptr_out += VIRTUAL_COM_PORT_DATA_SIZE;
-            USART_Rx_length -= VIRTUAL_COM_PORT_DATA_SIZE;
+            hl_util_fifo_read(&hl_cdc_out_fifo, buffer, USB_Tx_length);
         }
         else
         {
-            USB_Tx_ptr = USART_Rx_ptr_out;
-            USB_Tx_length = USART_Rx_length;
-
-            USART_Rx_ptr_out += USART_Rx_length;
-            USART_Rx_length = 0;
+            // read all bytes left
+            USB_Tx_length = hl_util_fifo_data_size(&hl_cdc_out_fifo);
+            hl_util_fifo_read(&hl_cdc_out_fifo, buffer, USB_Tx_length);
         }
         USB_Tx_State = 1; 
-        USB_CopyUserToPMABuf(&USART_Rx_Buffer[USB_Tx_ptr], ENDP5_TXADDR, USB_Tx_length);
+        USB_CopyUserToPMABuf(buffer, ENDP5_TXADDR, USB_Tx_length);
         USB_SetEpTxCnt(ENDP5, USB_Tx_length);
         USB_SetEpTxValid(ENDP5);
     }
   
 }
 
-/**
- * @brief  send the received data from UART 0 to USB.
- */
-void USART_To_USB_Send_Data(void)
-{
-    if (linecoding.datatype == 7)
-    {
-        USART_Rx_Buffer[USART_Rx_ptr_in] = USART_ReceiveData(USART1) & 0x7F;
-    }
-    else if (linecoding.datatype == 8)
-    {
-        USART_Rx_Buffer[USART_Rx_ptr_in] = USART_ReceiveData(USART1);
-    }
+// /**
+//  * @brief  send the received data from UART 0 to USB.
+//  */
+// void USART_To_USB_Send_Data(void)
+// {
+//     if (linecoding.datatype == 7)
+//     {
+//         USART_Rx_Buffer[USART_Rx_ptr_in] = USART_ReceiveData(USART1) & 0x7F;
+//     }
+//     else if (linecoding.datatype == 8)
+//     {
+//         USART_Rx_Buffer[USART_Rx_ptr_in] = USART_ReceiveData(USART1);
+//     }
 
-    USART_Rx_ptr_in++;
+//     USART_Rx_ptr_in++;
 
-    /* To avoid buffer overflow */
-    if(USART_Rx_ptr_in == USART_RX_DATA_SIZE)
-    {
-        USART_Rx_ptr_in = 0;
-    }
-}
+//     /* To avoid buffer overflow */
+//     if(USART_Rx_ptr_in == USART_RX_DATA_SIZE)
+//     {
+//         USART_Rx_ptr_in = 0;
+//     }
+// }
 
 /**
  * @brief  Configures USB Clock input (48MHz).

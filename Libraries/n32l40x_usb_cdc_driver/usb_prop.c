@@ -140,7 +140,7 @@ void MASS_init()
     USB_SilInit();
 
     /* configure the USART to the default settings */
-    USART_Config_Default();
+    //USART_Config_Default();
 
     bDeviceState = UNCONNECTED;
 }
@@ -250,7 +250,7 @@ void MASS_Status_In(void)
 {
      if (Request == SET_LINE_CODING)
     {
-        USART_Config();
+        //USART_Config();
         Request = 0;
     }
 }

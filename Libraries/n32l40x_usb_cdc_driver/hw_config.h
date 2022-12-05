@@ -66,9 +66,6 @@ ErrorStatus Set_USBClock(uint32_t sysclk);
 void Enter_LowPowerMode(void);
 void Leave_LowPowerMode(void);
 void USB_Interrupts_Config(void);
-void Led_Config(void);
-void Led_RW_ON(void);
-void Led_RW_OFF(void);
 void USB_Configured_LED(void);
 void USB_NotConfigured_LED(void);
 void USB_Cable_Config (FunctionalState NewState);
@@ -76,11 +73,12 @@ void Get_SerialNum(void);
 void MAL_Config(void);
 void Cfg_KeyIO(void);
 ErrorStatus USB_Config(uint32_t sysclk);
+void USB_CDC_Recv_Data_Save(uint8_t* data_buffer, uint8_t Nb_bytes);
 /* External variables --------------------------------------------------------*/
-void USART_Config_Default(void);
-bool USART_Config(void);
-void USB_To_USART_Send_Data(uint8_t* data_buffer, uint8_t Nb_bytes);
-void USART_To_USB_Send_Data(void);
+// void USART_Config_Default(void);
+// bool USART_Config(void);
+// void USB_To_USART_Send_Data(uint8_t* data_buffer, uint8_t Nb_bytes);
+// void USART_To_USB_Send_Data(void);
 void Handle_USBAsynchXfer (void);
 #endif  /*__HW_CONFIG_H*/
 
