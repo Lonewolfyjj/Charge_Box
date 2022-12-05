@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2019, Nations Technologies Inc.
+ * Copyright (c) 2022, Nations Technologies Inc.
  *
  * All rights reserved.
  * ****************************************************************************
@@ -25,33 +25,41 @@
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * ****************************************************************************/
 
-
-
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __USB_CONF_H
 #define __USB_CONF_H
-
-/* Includes ------------------------------------------------------------------*/
-/* Exported types ------------------------------------------------------------*/
-/* Exported constants --------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported functions ------------------------------------------------------- */
-/* External variables --------------------------------------------------------*/
 
 /*-------------------------------------------------------------*/
 /* EP_NUM */
 /* defines how many endpoints are used by the device */
 /*-------------------------------------------------------------*/
+//#define EP_NUM                          (3)
 
-#define EP_NUM                          (4)
+///*-------------------------------------------------------------*/
+///* --------------   Buffer Description Table  -----------------*/
+///*-------------------------------------------------------------*/
+///* buffer table base address */
+
+#define BTABLE_ADDRESS      (0x00)
+
+///* EP0  */
+///* rx/tx buffer base address */
+//#define ENDP0_RXADDR        (0x18)
+//#define ENDP0_TXADDR        (0x58)
+
+///* EP1  */
+///* tx buffer base address */
+//#define ENDP1_TXADDR        (0x98)
+
+///* EP2  */
+///* Rx buffer base address */
+//#define ENDP2_RXADDR        (0xD8)
+#define EP_NUM                          (6)
 
 /*-------------------------------------------------------------*/
 /* --------------   Buffer Description Table  -----------------*/
 /*-------------------------------------------------------------*/
 /* buffer table base address */
-/* buffer table base address */
-#define BTABLE_ADDRESS      (0x00)
-
 /* EP0  */
 /* rx/tx buffer base address */
 #define ENDP0_RXADDR        (0x40)
@@ -59,45 +67,48 @@
 
 /* EP1  */
 /* tx buffer base address */
+#define ENDP5_TXADDR        (0x190)
+#define ENDP4_TXADDR        (0x180)
+#define ENDP3_RXADDR        (0x140)
+
+/* EP1  */
+/* tx buffer base address */
 #define ENDP1_TXADDR        (0xC0)
-#define ENDP2_TXADDR        (0x100)
-#define ENDP3_RXADDR        (0x110)
 
+/* EP2  */
+/* Rx buffer base address */
+#define ENDP2_RXADDR        (0x100)
 
-/*-------------------------------------------------------------*/
-/* -------------------   ISTR events  -------------------------*/
-/*-------------------------------------------------------------*/
+/* ISTR events */
 /* IMR_MSK */
 /* mask defining which events has to be handled */
 /* by the device application software */
-#define IMR_MSK (CTRL_CTRSM  | CTRL_WKUPM | CTRL_SUSPDM | CTRL_ERRORM  | CTRL_SOFM \
+//#define IMR_MSK (CTRL_CTRSM  | CTRL_WKUPM | CTRL_SUSPDM | CTRL_ERRORM  | CTRL_SOFM \
+//                 | CTRL_ESOFM | CTRL_RSTM )
+#define IMR_MSK (CTRL_CTRSM  | CTRL_WKUPM | CTRL_SUSPDM | CTRL_ERRORM   \
                  | CTRL_ESOFM | CTRL_RSTM )
-                 
-/*#define CTR_CALLBACK*/
-/*#define DOVR_CALLBACK*/
-#define ERR_CALLBACK
-/*#define WKUP_CALLBACK*/
-/*#define SUSP_CALLBACK*/
-/*#define RESET_CALLBACK*/
-#define SOF_CALLBACK
-/*#define ESOF_CALLBACK*/
+								 
 /* CTR service routines */
 /* associated to defined endpoints */
-/*#define  EP1_IN_Callback   USB_ProcessNop*/
+//#define  EP1_IN_Callback   USB_ProcessNop
 #define  EP2_IN_Callback   USB_ProcessNop
 #define  EP3_IN_Callback   USB_ProcessNop
 #define  EP4_IN_Callback   USB_ProcessNop
-#define  EP5_IN_Callback   USB_ProcessNop
+//#define  EP5_IN_Callback   USB_ProcessNop
 #define  EP6_IN_Callback   USB_ProcessNop
 #define  EP7_IN_Callback   USB_ProcessNop
 
+
 #define  EP1_OUT_Callback   USB_ProcessNop
-#define  EP2_OUT_Callback   USB_ProcessNop
-/*#define  EP3_OUT_Callback   USB_ProcessNop*/
+//#define  EP2_OUT_Callback   USB_ProcessNop
+//#define  EP3_OUT_Callback  USB_ProcessNop
 #define  EP4_OUT_Callback   USB_ProcessNop
 #define  EP5_OUT_Callback   USB_ProcessNop
 #define  EP6_OUT_Callback   USB_ProcessNop
 #define  EP7_OUT_Callback   USB_ProcessNop
+
+
+#define SOF_CALLBACK
 
 #endif /* __USB_CONF_H */
 
