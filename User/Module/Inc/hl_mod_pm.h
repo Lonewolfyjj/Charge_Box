@@ -1,9 +1,9 @@
 /**
- * @file hl_drv_flash_test.c
+ * @file hl_mod_pm.h
  * @author yijiujun (jiujun.yi@hollyland-tech.com)
- * @brief 
+ * @brief 电源管理模块头文件
  * @version V1.0
- * @date 2022-10-25
+ * @date 2022-10-24
  * 
  * ██╗  ██╗ ██████╗ ██╗     ██╗  ██╗   ██╗██╗      █████╗ ███╗   ██╗██████╗ 
  * ██║  ██║██╔═══██╗██║     ██║  ╚██╗ ██╔╝██║     ██╔══██╗████╗  ██║██╔══██╗
@@ -16,69 +16,101 @@
  * @par 修改日志:
  * <table>
  * <tr><th>Date           <th>Version  <th>Author         <th>Description
- * <tr><td>2022-10-25     <td>v1.0     <td>yijiujun     <td>内容
+ * <tr><td>2022-10-24     <td>v1.0     <td>yijiujun     <td>内容
  * </table>
  * 
  */ 
 /* Define to prevent recursive inclusion -------------------------------------*/
+
+#ifndef __HL_MOD_PM_H__
+#define __HL_MOD_PM_H__
+
+
 /* Includes ------------------------------------------------------------------*/
 
 #include "rtthread.h"
-#include "hl_drv_flash.h"
-#include "stdlib.h"
+#include "stdint.h"
+#include "stdbool.h"
 
 /* typedef -------------------------------------------------------------------*/
+
+/**
+ * @brief hl_mod_pm_ctrl接口的操作指令类型
+ * @date 2022-11-08
+ * @author yijiujun (jiujun.yi@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-11-08      <td>yijiujun     <td>新建
+ * </table>
+ */
+typedef enum _hl_mod_pm_op_e {
+    HL_MOD_PM_ENTER_LOWPOWER,
+
+    HL_MOD_PM_GET_SOC,
+
+    HL_MOD_PM_GET_CHARGE_STATE,
+    HL_MOD_PM_GET_VBUS_STATE,
+
+    HL_MOD_PM_GET_TX1_STATE,
+    HL_MOD_PM_GET_TX2_STATE,
+    HL_MOD_PM_GET_RX_STATE,
+    HL_MOD_PM_GET_BOX_STATE,
+
+    HL_MOD_PM_SET_TX1_CHARGE,
+    HL_MOD_PM_SET_TX2_CHARGE,
+    HL_MOD_PM_SET_RX_CHARGE
+}hl_mod_pm_op_e;
+
+/**
+ * @brief 向APP发送的消息类型
+ * @date 2022-11-08
+ * @author yijiujun (jiujun.yi@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-11-08      <td>yijiujun     <td>新建
+ * </table>
+ */
+typedef enum _hl_mod_pm_msg_e {
+    HL_MOD_PM_MSG_START,
+    HL_MOD_PM_GUAGE_ERR_MSG,
+    HL_MOD_PM_CHARGE_ERR_MSG,
+
+    HL_MOD_PM_VBUS_MSG,
+    HL_MOD_PM_CHARGE_MSG,
+    HL_MOD_PM_SOC_MSG,
+
+    HL_MOD_PM_TX1_MSG,
+    HL_MOD_PM_TX2_MSG,
+    HL_MOD_PM_RX_MSG,
+    HL_MOD_PM_BOX_MSG
+} hl_mod_pm_msg_e;
+
 /* define --------------------------------------------------------------------*/
+
+#define HL_MOD_PM_FUNC_RET_OK 0
+#define HL_MOD_PM_FUNC_RET_ERR 1
+
 /* variables -----------------------------------------------------------------*/
 /* Private function(only *.c)  -----------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 
+int hl_mod_pm_init(void* msg_hd);
 
-int hl_drv_flash_test(int argc, char *argv[])
-{
-    int count, len, ret;
-    uint8_t data[50] = {0};     //这里数组过大，会导致线程空间不足，程序出现停止运行的可能
+int hl_mod_pm_deinit(void);
 
-    if (argc <= 1) {
-        rt_kprintf("format : [cmd datalen] max_len:50\n");
-        return -1;
-    }
-    len = atoi(argv[1]);
-    if (len > 50) {
-        rt_kprintf("[error] max_len:50\n");
-        return -1;
-    }
+int hl_mod_pm_start(void);
 
-    /* flash初始化 */
-    hl_drv_flash_init();
-    
-    for (count = 0; count < len; count++) {
-        data[count] = count;
-    }
+int hl_mod_pm_stop(void);
 
-    /* 往flash中写入len个数据，可以跨页写 */
-    ret = hl_drv_flash_write(0x000000, data, len);
-    if (ret == FLASH_RET_OK) {
-        rt_kprintf("write [%d] data ok\n", len);
-    }
+int hl_mod_pm_ctrl(int op, void* arg, int arg_size);
 
-    rt_memset(data, 0, sizeof(data));
-
-    /* 从flash中读取len个数据，并打印 */
-    hl_drv_flash_read(0x000000, data, len);
-
-    for (count = 0; count < len; count++) {
-        rt_kprintf("data[%d]:%d\t", count, data[count]);
-        if (count % 5 == 0) {
-            rt_kprintf("\n");
-        }
-    }
-    rt_kprintf("\nread [%d] data end\n", len);
-
-    return 0;
-}
-
-MSH_CMD_EXPORT(hl_drv_flash_test, flash driver test);
+#endif
 /*
  * EOF
  */

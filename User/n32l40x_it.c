@@ -34,6 +34,8 @@
  */
 #include "n32l40x_it.h"
 
+#include "usb_istr.h"
+
 /** @addtogroup N32L40X_StdPeriph_Template
  * @{
  */
@@ -119,6 +121,20 @@ void SysTick_Handler(void)
 {
 }
 #endif
+/**
+ * @brief  This function handles USB_LP_IRQHandler Handler.
+ */
+void USB_LP_IRQHandler(void)
+{
+    USB_Istr();
+}
+/**
+ * @brief  This function handles USB WakeUp interrupt request.
+ */
+void USBWakeUp_IRQHandler(void)
+{
+    EXTI_ClrITPendBit(EXTI_LINE17);
+}
 /******************************************************************************/
 /*                 N32L40X Peripherals Interrupt Handlers                     */
 /*  Add here the Interrupt Handler for the used peripheral(s) (PPP), for the  */

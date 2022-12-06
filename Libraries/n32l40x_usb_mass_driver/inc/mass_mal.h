@@ -26,58 +26,31 @@
  * ****************************************************************************/
 
 /**
- * @file usb_pwr.h
+ * @file mass_mal.h
  * @author Nations
  * @version v1.2.0
  *
  * @copyright Copyright (c) 2022, Nations Technologies Inc. All rights reserved.
  */
-#ifndef __USB_PWR_H__
-#define __USB_PWR_H__
-#include "usb_core.h"
-#include "usb_type.h"
+/* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef __MASS_MAL_H
+#define __MASS_MAL_H
 
-typedef enum _RESUME_STATE
-{
-    RESUME_EXTERNAL,
-    RESUME_INTERNAL,
-    RESUME_LATER,
-    RESUME_WAIT,
-    RESUME_START,
-    RESUME_ON,
-    RESUME_OFF,
-    RESUME_ESOF
-} RESUME_STATE;
+#include "stdint.h"
 
-typedef enum _DEVICE_STATE
-{
-    UNCONNECTED,
-    ATTACHED,
-    POWERED,
-    SUSPENDED,
-    ADDRESSED,
-    CONFIGURED
-} DEVICE_STATE;
+/* Includes ------------------------------------------------------------------*/
+/* Exported types ------------------------------------------------------------*/
+/* Exported constants --------------------------------------------------------*/
+#define MAL_OK   0
+#define MAL_FAIL 1
+#define MAX_LUN  1
 
-void Suspend(void);
-void Resume_Init(void);
-void Resume(RESUME_STATE eResumeSetVal);
-USB_Result PowerOn(void);
-USB_Result PowerOff(void);
+/* Exported macro ------------------------------------------------------------*/
+/* Exported functions ------------------------------------------------------- */
 
-extern __IO uint32_t bDeviceState; /* USB device status */
-extern __IO bool fSuspendEnabled;  /* true when suspend is possible */
+uint16_t MAL_Init (uint8_t lun);
+uint16_t MAL_GetStatus (uint8_t lun);
+uint16_t MAL_Read(uint8_t lun, uint32_t Memory_Offset, uint32_t *Readbuff, uint16_t Transfer_Length);
+uint16_t MAL_Write(uint8_t lun, uint32_t Memory_Offset, uint32_t *Writebuff, uint16_t Transfer_Length);
+#endif /* __MASS_MAL_H */
 
-#endif /*__USB_PWR_H__*/
-
-/**
- * @}
- */
-
-/**
- * @}
- */
-
-/**
- * @}
- */

@@ -337,6 +337,16 @@ typedef struct _hl_sgm41513_reg0B_t
 							// (It also resets itself to 0 after register reset is completed.)	
 } hl_sgm41513_reg0b_t;
 
+// reg0E TYPE PORV: xxxx xxxx
+typedef struct _hl_sgm41513_reg0E_t
+{
+	rt_uint8_t Reserved  		:7;
+
+	rt_uint8_t INPUT_DET_DONE  	:1; // VBUS Input Detection Done Flag	VBUS输入检测完成标志
+									// 0 = Normal
+									// 1 = Detection done
+} hl_sgm41513_reg0e_t;
+
 typedef struct {
 	hl_sgm41513_reg00_t	reg00;
 	hl_sgm41513_reg01_t reg01;
@@ -390,8 +400,9 @@ typedef enum _hl_drv_sgm41513_ctrl_op_cmd {
 
 	GET_SYS_VOL_REGULATION_STATUS,	//获取系统电压调节状态
 	GET_THERMAL_REGULATION_STATUS,	//获取热调节状态
-	GET_INPUT_POWER_STATUS,			//获取输入电源（VBUS)状态
+	GET_INPUT_POWER_STATUS,			//获取输入电源状态
 	GET_CHARGE_STATUS,				//获取充电状态
+	GET_VBUS_STATUS,				//获取VBUS状态
 
 	GET_BATTERY_TEMP_STATUS,		//获取电池温度状态
 	GET_BATTERY_ERROR_STATUS,		//获取电池故障状态
@@ -400,24 +411,17 @@ typedef enum _hl_drv_sgm41513_ctrl_op_cmd {
 	GET_WATCHDOG_ERROR_STATUS,		//获取Watchdog故障状态
 
 	GET_INPUT_OVER_VOL_STATUS,		//获取输入过压状态（交流适配器为输入源）
+	GET_VINDPM_STATUS,				//获取VINDPM（输入电压动态电源管理）的状态
+	GET_IINDPM_STATUS,				//获取IINDPM（输入电流动态电源管理）的状态
+
 	GET_CHIP_PART_ID,				//获取该芯片部分ID
+
+	GET_VBUS_IN_DET_STATUS,			//获取VBUS输入检测标志状态
 
 	PRINTF_REG_VAL 					//打印所有寄存器的值
 }hl_drv_sgm41513_ctrl_op_cmd;
 
 /* define --------------------------------------------------------------------*/
-#define	REG00_ADDR		0x00
-#define	REG01_ADDR		0x01
-#define	REG02_ADDR		0x02
-#define	REG03_ADDR		0x03
-#define	REG04_ADDR		0x04
-#define	REG05_ADDR		0x05
-#define	REG06_ADDR		0x06
-#define	REG07_ADDR		0x07
-#define	REG08_ADDR		0x08
-#define	REG09_ADDR		0x09
-#define	REG0A_ADDR		0x0A
-#define	REG0B_ADDR		0x0B
 
 /* I2C Slave 7bit Address */
 #define SGM41513_WRITE_ADDR	0x1A
@@ -449,6 +453,7 @@ typedef enum _hl_drv_sgm41513_ctrl_op_cmd {
 #define CHARGE_THERMAL_SHUTDOWN		2	//热关机
 #define CHARGE_SAFT_TIMER_EXPIRED	3	//充电安全计时器过期
 #define BOOST_MODE_ERROR			1	//Boost模式故障（过载，电压过低）
+#define WATCHDOG_ERROR				1	//看门狗计时器已过期
 #define INPUT_OVER_VOL				1	//输入过压状态（交流适配器为输入源）	
 
 #define SGM41513_ERROR	1

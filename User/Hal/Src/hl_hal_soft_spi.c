@@ -28,7 +28,19 @@
 /* typedef -------------------------------------------------------------------*/
 /* define --------------------------------------------------------------------*/
 /* variables -----------------------------------------------------------------*/
+
+static struct rt_mutex spi_mutex = { 0 };
+
+static bool _mutex_enbale_flag = false;
+
 /* Private function(only *.c)  -----------------------------------------------*/
+
+static int _mutex_enable()
+{
+    _mutex_enbale_flag = true;
+    return 0;
+}
+
 /* Exported functions --------------------------------------------------------*/
 
 
@@ -50,6 +62,9 @@
 uint8_t hl_hal_soft_spi_send_recv(hl_hal_soft_spi_info *spi_info, uint8_t wdata)
 {
     uint8_t count, reg_val = 0;
+    if (_mutex_enbale_flag == true) {
+        rt_mutex_take(&spi_mutex, RT_WAITING_FOREVER); 
+    }
     for (count = 0; count < 8; count++) {
         SPI_SCK(spi_info->spi_sck_pin_num, spi_info->gpiox_base) = 0;
         if (wdata & 0x80) {     //在下降沿处，主机发送一位数据给从机
@@ -63,6 +78,9 @@ uint8_t hl_hal_soft_spi_send_recv(hl_hal_soft_spi_info *spi_info, uint8_t wdata)
 		if(SPI_MISO(spi_info->spi_miso_pin_num, spi_info->gpiox_base) == 1) {          //在上升沿处，主机接收一位数据
             reg_val |= 0x01;
         }              
+    }
+    if (_mutex_enbale_flag == true) {
+        rt_mutex_release(&spi_mutex);
     }
     return reg_val;
 }
@@ -126,6 +144,8 @@ void hl_hal_soft_spi_init(hl_hal_soft_spi_info *spi_info)
     gpio_init_struct.GPIO_Mode = GPIO_Mode_Input;
     gpio_init_struct.GPIO_Pull = GPIO_Pull_Up;
     GPIO_InitPeripheral(spi_info->gpiox, &gpio_init_struct);
+
+    rt_mutex_init(&spi_mutex, "spi_mutex", RT_IPC_FLAG_PRIO);
 }
 
 void hl_hal_soft_spi_deinit(hl_hal_soft_spi_info *spi_info)
@@ -139,7 +159,11 @@ void hl_hal_soft_spi_deinit(hl_hal_soft_spi_info *spi_info)
     gpio_init_struct.GPIO_Pull = GPIO_No_Pull;
     gpio_init_struct.GPIO_Slew_Rate = GPIO_Slew_Rate_Low;
     GPIO_InitPeripheral(spi_info->gpiox, &gpio_init_struct);
+
+    rt_mutex_detach(&spi_mutex);
 }
+
+INIT_APP_EXPORT(_mutex_enable);
 /*
  * EOF
  */

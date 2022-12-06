@@ -221,9 +221,7 @@
                 <option>
                     <name>CCDefines</name>
                     <state>N32L40X</state>
-                    <state>_DLIB_FILE_DESCRIPTOR</state>
                     <state>USE_STDPERIPH_DRIVER</state>
-                    <state>USE_FULL_ASSERT</state>
                 </option>
                 <option>
                     <name>CCPreprocFile</name>
@@ -367,6 +365,7 @@
                     <state>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver</state>
                     <state>$PROJ_DIR$\..\Libraries\n32l40x_usbfs_driver\inc</state>
                     <state>$PROJ_DIR$\..\User\Utility\config</state>
+                    <state>$PROJ_DIR$\..\Libraries\n32l40x_usb_mass_driver\inc</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1104,6 +1103,18 @@
                 <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver\hw_config.c</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_mass_driver\src\mass_mal.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_mass_driver\src\memory.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_mass_driver\src\scsi_data.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_mass_driver\src\usb_bot.c</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver\usb_desc.c</name>
             </file>
             <file>
@@ -1117,6 +1128,9 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver\usb_pwr.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\Libraries\n32l40x_usb_mass_driver\src\usb_scsi.c</name>
             </file>
         </group>
         <group>
@@ -1305,12 +1319,6 @@
         <group>
             <name>driver</name>
             <file>
-                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_aw2016a.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_aw2016a_test.c</name>
-            </file>
-            <file>
                 <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_cw2215.c</name>
             </file>
             <file>
@@ -1327,6 +1335,12 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_pcf85063atl_test.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_pwm_led.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_pwm_led_test.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_sgm41513.c</name>
@@ -1350,7 +1364,13 @@
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_gpio_test.c</name>
             </file>
             <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_hard_spi.c</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_lowpower.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_pwm.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_i2c.c</name>
@@ -1363,12 +1383,6 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_i2c_test.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_spi.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_spi_test.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_uart.c</name>
@@ -1387,6 +1401,12 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Module\Src\hl_mod_extcom_test.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Module\Src\hl_mod_pm.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Module\Src\hl_mod_pm_test.c</name>
             </file>
         </group>
         <group>

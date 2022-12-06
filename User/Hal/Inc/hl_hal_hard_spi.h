@@ -1,9 +1,9 @@
 /**
- * @file hl_drv_flash_test.c
+ * @file spi_flash.h
  * @author yijiujun (jiujun.yi@hollyland-tech.com)
  * @brief 
  * @version V1.0
- * @date 2022-10-25
+ * @date 2022-11-29
  * 
  * ██╗  ██╗ ██████╗ ██╗     ██╗  ██╗   ██╗██╗      █████╗ ███╗   ██╗██████╗ 
  * ██║  ██║██╔═══██╗██║     ██║  ╚██╗ ██╔╝██║     ██╔══██╗████╗  ██║██╔══██╗
@@ -16,69 +16,64 @@
  * @par 修改日志:
  * <table>
  * <tr><th>Date           <th>Version  <th>Author         <th>Description
- * <tr><td>2022-10-25     <td>v1.0     <td>yijiujun     <td>内容
+ * <tr><td>2022-11-29     <td>v1.0     <td>yijiujun     <td>内容
  * </table>
  * 
  */ 
 /* Define to prevent recursive inclusion -------------------------------------*/
+
+#ifndef _HL_HAL_HARD_SPI_H_
+#define _HL_HAL_HARD_SPI_H_
+
 /* Includes ------------------------------------------------------------------*/
 
-#include "rtthread.h"
-#include "hl_drv_flash.h"
-#include "stdlib.h"
+#include "n32l40x.h"
 
 /* typedef -------------------------------------------------------------------*/
 /* define --------------------------------------------------------------------*/
+
+#define FLASH_SPI                SPI2
+#define FLASH_SPI_CLK            RCC_APB2_PERIPH_SPI2
+
+//SCK引脚
+#define FLASH_SPI_SCK_PIN        GPIO_PIN_13 
+#define FLASH_SPI_SCK_GPIO_PORT  GPIOB      
+#define FLASH_SPI_SCK_GPIO_CLK   RCC_APB2_PERIPH_GPIOB
+
+//MISO引脚
+#define FLASH_SPI_MISO_PIN       GPIO_PIN_14 
+#define FLASH_SPI_MISO_GPIO_PORT GPIOB      
+#define FLASH_SPI_MISO_GPIO_CLK  RCC_APB2_PERIPH_GPIOB
+
+//MOSI引脚
+#define FLASH_SPI_MOSI_PIN       GPIO_PIN_15 
+#define FLASH_SPI_MOSI_GPIO_PORT GPIOB      
+#define FLASH_SPI_MOSI_GPIO_CLK  RCC_APB2_PERIPH_GPIOB
+
+//CS(NSS)引脚 片选选普通GPIO即可
+#define FLASH_CS_PIN             GPIO_PIN_12 
+#define FLASH_CS_GPIO_PORT       GPIOB      
+#define FLASH_CS_GPIO_CLK        RCC_APB2_PERIPH_GPIOB
+
+#define HARD_SPI_CS_LOW()     GPIO_ResetBits(FLASH_CS_GPIO_PORT, FLASH_CS_PIN)
+#define HARD_SPI_CS_HIGH()    GPIO_SetBits(FLASH_CS_GPIO_PORT, FLASH_CS_PIN)
+
 /* variables -----------------------------------------------------------------*/
 /* Private function(only *.c)  -----------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 
+void hl_hal_hard_spi_init(void);
+uint8_t hl_hal_hard_spi_send_recv(uint8_t byte);
+void hl_hal_hard_spi_deinit(void);
 
-int hl_drv_flash_test(int argc, char *argv[])
-{
-    int count, len, ret;
-    uint8_t data[50] = {0};     //这里数组过大，会导致线程空间不足，程序出现停止运行的可能
-
-    if (argc <= 1) {
-        rt_kprintf("format : [cmd datalen] max_len:50\n");
-        return -1;
-    }
-    len = atoi(argv[1]);
-    if (len > 50) {
-        rt_kprintf("[error] max_len:50\n");
-        return -1;
-    }
-
-    /* flash初始化 */
-    hl_drv_flash_init();
-    
-    for (count = 0; count < len; count++) {
-        data[count] = count;
-    }
-
-    /* 往flash中写入len个数据，可以跨页写 */
-    ret = hl_drv_flash_write(0x000000, data, len);
-    if (ret == FLASH_RET_OK) {
-        rt_kprintf("write [%d] data ok\n", len);
-    }
-
-    rt_memset(data, 0, sizeof(data));
-
-    /* 从flash中读取len个数据，并打印 */
-    hl_drv_flash_read(0x000000, data, len);
-
-    for (count = 0; count < len; count++) {
-        rt_kprintf("data[%d]:%d\t", count, data[count]);
-        if (count % 5 == 0) {
-            rt_kprintf("\n");
-        }
-    }
-    rt_kprintf("\nread [%d] data end\n", len);
-
-    return 0;
-}
-
-MSH_CMD_EXPORT(hl_drv_flash_test, flash driver test);
+#endif
 /*
  * EOF
  */
+
+
+
+
+
+
+
