@@ -71,7 +71,7 @@ void USB_NotConfigured_LED(void);
 void USB_Cable_Config (FunctionalState NewState);
 void Get_SerialNum(void);
 void MAL_Config(void);
-void Cfg_KeyIO(void);
+// void Cfg_KeyIO(void);
 ErrorStatus USB_Config(uint32_t sysclk);
 void USB_CDC_Recv_Data_Save(uint8_t* data_buffer, uint8_t Nb_bytes);
 /* External variables --------------------------------------------------------*/

@@ -133,9 +133,9 @@ static int hl_drv_flash_wait_write_enable_ok(void)
         if (reg_val == 0x02) {
             break;
         }
-        if (num > 5000) {
-            return FLASH_RET_ERR;
-        }
+         if (num > 1000 * 1000 * 1) {
+             return FLASH_RET_ERR;
+         }
     }
     return FLASH_RET_OK;
 }
@@ -150,9 +150,9 @@ static int hl_drv_flash_wait_write_end(void)
         if (reg_val != 0x01) {
             break;
         }
-        if (num > 5000) {
-            return FLASH_RET_ERR;
-        }
+         if (num > 1000 * 1000 * 1) {
+             return FLASH_RET_ERR;
+         }
     }
     return FLASH_RET_OK;
 }
@@ -323,7 +323,7 @@ static void hl_drv_flash_soft_reset_device()
  * <tr><td>2022-10-25      <td>yijiujun     <td>新建
  * </table>
  */
-uint8_t hl_drv_flash_erase_sector(uint32_t addr)
+static uint8_t hl_drv_flash_erase_sector(uint32_t addr)
 {
     uint8_t ret = 0;
     //addr *= 4096;
@@ -465,6 +465,12 @@ int hl_drv_flash_write(uint32_t addr, uint8_t* w_data, uint32_t len)
     if (len <= pager) {
         pager = len;  //不大于256字节
     }
+
+    ret = hl_drv_flash_erase_sector(addr);
+    if (ret == FLASH_RET_ERR) {
+        return FLASH_RET_ERR;
+    }
+
     while (1) {
 
         ret = hl_drv_flash_write_page(addr, w_data, pager);

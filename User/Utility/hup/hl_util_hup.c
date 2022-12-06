@@ -51,7 +51,7 @@ int hl_util_hup_deinit(hl_util_hup_t* hup_ptr)
 int hl_util_hup_encode(hup_role_em role, uint8_t cmd, uint8_t* frame_buf, uint16_t buf_len, uint8_t* data_addr,
                        uint16_t data_len)
 {
-    if ((NULL == frame_buf) | (NULL == data_addr)) {
+    if ((NULL == frame_buf) || ((NULL == data_addr) && (data_len != 0))) {
         HL_UTIL_HUP_DBG("[ERROR] hup protocol encode arg\n");
         return -1;
     } else if (buf_len < (data_len + 6)) {
@@ -139,7 +139,12 @@ int hl_util_hup_decode(hl_util_hup_t* hup_ptr, uint8_t data_byte)
         case EM_HUP_STATE_DATA_LEN_L:
             hup_ptr->hup_frame.data_len_l = data_byte;
             hup_ptr->frame_data_len       = hup_ptr->frame_data_len | data_byte;
-            hup_ptr->state                = EM_HUP_STATE_DATA;
+            if (hup_ptr->frame_data_len == 0) {
+                hup_ptr->state                = EM_HUP_STATE_CRC;
+            } else {
+                hup_ptr->state                = EM_HUP_STATE_DATA;
+            }
+
             hup_ptr->xor8                 = hup_ptr->xor8 ^ data_byte;
             break;
 

@@ -56,7 +56,6 @@
 extern uint8_t  USB_Tx_State;
 
 extern hl_util_fifo_t hl_cdc_out_fifo;
-extern hl_util_fifo_t hl_cdc_in_fifo;
 /**
  * @brief EP1 IN Callback Routine.
  */

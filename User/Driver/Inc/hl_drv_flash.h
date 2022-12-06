@@ -54,7 +54,6 @@ int hl_drv_flash_init(void);
 int hl_drv_flash_deinit(void);
 int hl_drv_flash_read(uint32_t addr, uint8_t *r_data, uint32_t len);
 int hl_drv_flash_write(uint32_t addr, uint8_t* w_data, uint32_t len);
-uint8_t hl_drv_flash_erase_sector(uint32_t addr);
 void hl_drv_flash_erase_chip(void);
 
 #endif

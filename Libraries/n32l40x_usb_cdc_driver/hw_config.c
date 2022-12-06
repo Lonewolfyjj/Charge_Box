@@ -62,29 +62,29 @@ extern LINE_CODING linecoding;
 
 /* Private functions ---------------------------------------------------------*/
 
-/**
-* @brief  IO configuration.
-*/
-void Cfg_KeyIO(void)
-{
-    GPIO_InitType GPIO_InitStructure;
+// /**
+// * @brief  IO configuration.
+// */
+// void Cfg_KeyIO(void)
+// {
+//     GPIO_InitType GPIO_InitStructure;
 
-    RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOC, ENABLE);
+//     RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOC, ENABLE);
     
-    GPIO_InitStruct(&GPIO_InitStructure);
+//     GPIO_InitStruct(&GPIO_InitStructure);
 
-    GPIO_InitStructure.Pin = GPIO_PIN_7;
+//     GPIO_InitStructure.Pin = GPIO_PIN_7;
 
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Input;
+//     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Input;
         
-    GPIO_InitStructure.GPIO_Pull = GPIO_Pull_Up;
+//     GPIO_InitStructure.GPIO_Pull = GPIO_Pull_Up;
 
-    GPIO_InitStructure.GPIO_Slew_Rate = GPIO_Slew_Rate_High;
+//     GPIO_InitStructure.GPIO_Slew_Rate = GPIO_Slew_Rate_High;
 
-    GPIO_InitStructure.GPIO_Alternate = GPIO_NO_AF;
+//     GPIO_InitStructure.GPIO_Alternate = GPIO_NO_AF;
 
-    GPIO_InitPeripheral(GPIOC, &GPIO_InitStructure);
-}
+//     GPIO_InitPeripheral(GPIOC, &GPIO_InitStructure);
+// }
 
  /**
  * @brief  Configures Main system clocks & power.

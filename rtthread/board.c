@@ -60,11 +60,71 @@ RT_WEAK void *rt_heap_end_get(void)
 }
 #endif
 
+#include "hl_hal_boot_jump.h"
+#include "hl_hal_lowpower.h"
+#include "hl_drv_flash.h"
+#include "hl_util_config.h"
+
+#define HL_CONFIG_START_ADDR 0
+
+static int _hl_util_config_write(char* data, int len)
+{
+    int ret;
+
+    ret = hl_drv_flash_write(HL_CONFIG_START_ADDR, data, len);
+    if (ret == FLASH_RET_ERR) {
+        return HL_UTIL_CONFIG_FUNC_ERR;
+    }
+
+    return HL_UTIL_CONFIG_FUNC_OK;
+}
+
+static int _hl_util_config_read(char* data, int len)
+{
+    int ret;
+
+    ret = hl_drv_flash_read(HL_CONFIG_START_ADDR, data, len);
+    if (ret == FLASH_RET_ERR) {
+        return HL_UTIL_CONFIG_FUNC_ERR;
+    }
+
+    return HL_UTIL_CONFIG_FUNC_OK;
+}
+
+static void _hl_start_state_check(void)
+{
+    hl_util_config_st_p config;
+
+    hl_drv_flash_init();
+
+    hl_util_config_init(_hl_util_config_write, _hl_util_config_read);
+
+    hl_util_config_get(&config);
+    
+    if (config->boot_jump_flag == 1) {
+        config->boot_jump_flag = 0;
+        hl_util_config_save();
+        hl_drv_flash_deinit();
+
+        hl_hal_jump_to_boot();
+    }
+
+    if (config->lowpower_flag == 1) {
+        config->lowpower_flag = 0;
+        hl_util_config_save();
+        hl_drv_flash_deinit();
+
+        hl_hal_lowpower_enter();
+    }
+}
+
 /**
  * This function will initial your board.
  */
 void rt_hw_board_init()
 {
+    _hl_start_state_check();
+
     /* System Clock Update */
     SystemCoreClockUpdate();
     
