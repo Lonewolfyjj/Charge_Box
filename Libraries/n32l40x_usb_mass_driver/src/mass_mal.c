@@ -43,7 +43,7 @@
 /* Private define ------------------------------------------------------------*/
 
 #define FLASH_START_ADDR    0x001000    // Flash 读写起始地址
-#define FLASH_SIZE          0x300000    // FLASH总大小 3M byte
+#define FLASH_SIZE          0x3FEFFF    // FLASH总大小 3M byte
 #define FLASH_PAGE_SIZE     0x1000      // W25Q32最小读写单位是4096 byte /per page
 
 #define FLASH_WAIT_TIMEOUT  100000
@@ -82,7 +82,6 @@ uint16_t MAL_Write(uint8_t lun, uint32_t Memory_Offset, uint32_t *Writebuff, uin
     switch (lun)
     {
     case 0:
-        hl_drv_flash_erase_sector(FLASH_START_ADDR + Memory_Offset);
         hl_drv_flash_write(FLASH_START_ADDR + Memory_Offset, (uint8_t*)Writebuff, Transfer_Length);
         break;
     case 1:
