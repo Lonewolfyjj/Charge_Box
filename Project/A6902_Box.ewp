@@ -366,6 +366,7 @@
                     <state>$PROJ_DIR$\..\User\Utility\xor_calc</state>
                     <state>$PROJ_DIR$\..\Libraries\n32l40x_usb_cdc_driver</state>
                     <state>$PROJ_DIR$\..\Libraries\n32l40x_usbfs_driver\inc</state>
+                    <state>$PROJ_DIR$\..\User\Utility\config</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -967,7 +968,7 @@
                 </option>
                 <option>
                     <name>IlinkStackAnalysisEnable</name>
-                    <state>0</state>
+                    <state>1</state>
                 </option>
                 <option>
                     <name>IlinkStackControlFile</name>
@@ -1056,6 +1057,12 @@
             <data />
         </settings>
     </configuration>
+    <group>
+        <name>3rdparty</name>
+        <group>
+            <name>Cm_Backtrace</name>
+        </group>
+    </group>
     <group>
         <name>cmsis</name>
         <file>
@@ -1270,6 +1277,30 @@
         <name>User</name>
         <group>
             <name>App</name>
+            <file>
+                <name>$PROJ_DIR$\..\User\App\Src\hl_app_main.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\App\Src\hl_app_mng.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\App\Src\hl_app_msg.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\App\Src\hl_app_pt.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\App\Src\hl_app_task.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\App\Src\hl_app_task_extcom.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\App\Src\hl_app_task_pm.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\App\Src\hl_app_task_ui.c</name>
+            </file>
         </group>
         <group>
             <name>driver</name>
@@ -1351,9 +1382,18 @@
         </group>
         <group>
             <name>module</name>
+            <file>
+                <name>$PROJ_DIR$\..\User\Module\Src\hl_mod_extcom.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Module\Src\hl_mod_extcom_test.c</name>
+            </file>
         </group>
         <group>
             <name>utility</name>
+            <file>
+                <name>$PROJ_DIR$\..\User\Utility\config\hl_util_config.c</name>
+            </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Utility\fifo\hl_util_fifo.c</name>
             </file>

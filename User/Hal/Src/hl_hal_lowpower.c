@@ -109,20 +109,24 @@ static void _gpio_wakeup_config(void)
     RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOB, ENABLE);
 
     hl_hal_gpio_init(GPIO_HALL_BOX);
-    hl_hal_gpio_attach_irq(GPIO_HALL_BOX, PIN_IRQ_MODE_FALLING, _soc_gpio_irq_handle, RT_NULL);
+    hl_hal_gpio_attach_irq(GPIO_HALL_BOX, PIN_IRQ_MODE_RISING_FALLING, _soc_gpio_irq_handle, RT_NULL);
     hl_hal_gpio_irq_enable(GPIO_HALL_BOX, PIN_IRQ_ENABLE);
 
     hl_hal_gpio_init(GPIO_HALL_TX1);
-    hl_hal_gpio_attach_irq(GPIO_HALL_TX1, PIN_IRQ_MODE_FALLING, _soc_gpio_irq_handle, RT_NULL);
+    hl_hal_gpio_attach_irq(GPIO_HALL_TX1, PIN_IRQ_MODE_RISING_FALLING, _soc_gpio_irq_handle, RT_NULL);
     hl_hal_gpio_irq_enable(GPIO_HALL_TX1, PIN_IRQ_ENABLE);
 
     hl_hal_gpio_init(GPIO_HALL_TX2);
-    hl_hal_gpio_attach_irq(GPIO_HALL_TX2, PIN_IRQ_MODE_FALLING, _soc_gpio_irq_handle, RT_NULL);
+    hl_hal_gpio_attach_irq(GPIO_HALL_TX2, PIN_IRQ_MODE_RISING_FALLING, _soc_gpio_irq_handle, RT_NULL);
     hl_hal_gpio_irq_enable(GPIO_HALL_TX2, PIN_IRQ_ENABLE);
 
     hl_hal_gpio_init(GPIO_HALL_RX);
-    hl_hal_gpio_attach_irq(GPIO_HALL_RX, PIN_IRQ_MODE_FALLING, _soc_gpio_irq_handle, RT_NULL);
+    hl_hal_gpio_attach_irq(GPIO_HALL_RX, PIN_IRQ_MODE_RISING_FALLING, _soc_gpio_irq_handle, RT_NULL);
     hl_hal_gpio_irq_enable(GPIO_HALL_RX, PIN_IRQ_ENABLE);
+
+    hl_hal_gpio_init(GPIO_CH_INT_N);
+    hl_hal_gpio_attach_irq(GPIO_CH_INT_N, PIN_IRQ_MODE_RISING_FALLING, _soc_gpio_irq_handle, RT_NULL);
+    hl_hal_gpio_irq_enable(GPIO_CH_INT_N, PIN_IRQ_ENABLE);
 }
 
 static void _gpio_lowpower_config(void)
@@ -332,7 +336,6 @@ void hl_hal_lowpower_enter(void)
     __NVIC_SystemReset();                                      //重启
 }
 
-MSH_CMD_EXPORT(hl_hal_lowpower_enter, lp test);
 /*
  * EOF
  */
