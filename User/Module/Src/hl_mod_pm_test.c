@@ -1,9 +1,9 @@
 /**
- * @file hl_drv_flash_test.c
+ * @file hl_mod_pm_test.c
  * @author yijiujun (jiujun.yi@hollyland-tech.com)
  * @brief 
  * @version V1.0
- * @date 2022-10-25
+ * @date 2022-10-24
  * 
  * ██╗  ██╗ ██████╗ ██╗     ██╗  ██╗   ██╗██╗      █████╗ ███╗   ██╗██████╗ 
  * ██║  ██║██╔═══██╗██║     ██║  ╚██╗ ██╔╝██║     ██╔══██╗████╗  ██║██╔══██╗
@@ -16,15 +16,14 @@
  * @par 修改日志:
  * <table>
  * <tr><th>Date           <th>Version  <th>Author         <th>Description
- * <tr><td>2022-10-25     <td>v1.0     <td>yijiujun     <td>内容
+ * <tr><td>2022-10-24     <td>v1.0     <td>yijiujun     <td>内容
  * </table>
  * 
  */ 
 /* Define to prevent recursive inclusion -------------------------------------*/
 /* Includes ------------------------------------------------------------------*/
 
-#include "rtthread.h"
-#include "hl_drv_flash.h"
+#include "hl_mod_pm.h"
 #include "stdlib.h"
 
 /* typedef -------------------------------------------------------------------*/
@@ -34,51 +33,26 @@
 /* Exported functions --------------------------------------------------------*/
 
 
-int hl_drv_flash_test(int argc, char *argv[])
+void hl_mod_pm_test(int argc, char *argv[])
 {
-    int count, len, ret;
-    uint8_t data[50] = {0};     //这里数组过大，会导致线程空间不足，程序出现停止运行的可能
-
     if (argc <= 1) {
-        rt_kprintf("format : [cmd datalen] max_len:50\n");
-        return -1;
-    }
-    len = atoi(argv[1]);
-    if (len > 50) {
-        rt_kprintf("[error] max_len:50\n");
-        return -1;
+        rt_kprintf("format : [cmd 1/2] 1:deinit 2:init_start 3:pm_lowpower\n");
+        return;
     }
 
-    /* flash初始化 */
-    hl_drv_flash_init();
-    
-    for (count = 0; count < len; count++) {
-        data[count] = count;
+    if (atoi(argv[1]) == 1) {
+        hl_mod_pm_deinit();
+    } else if (atoi(argv[1]) == 2) {
+        hl_mod_pm_init(RT_NULL);
+        hl_mod_pm_start();
+    } else if (atoi(argv[1]) == 3) {
+        /* 低功耗模式 */
+        hl_mod_pm_ctrl(HL_MOD_PM_ENTER_LOWPOWER, RT_NULL, 1);
     }
-
-    /* 往flash中写入len个数据，可以跨页写 */
-    ret = hl_drv_flash_write(0x000000, data, len);
-    if (ret == FLASH_RET_OK) {
-        rt_kprintf("write [%d] data ok\n", len);
-    }
-
-    rt_memset(data, 0, sizeof(data));
-
-    /* 从flash中读取len个数据，并打印 */
-    hl_drv_flash_read(0x000000, data, len);
-
-    for (count = 0; count < len; count++) {
-        rt_kprintf("data[%d]:%d\t", count, data[count]);
-        if (count % 5 == 0) {
-            rt_kprintf("\n");
-        }
-    }
-    rt_kprintf("\nread [%d] data end\n", len);
-
-    return 0;
+     
 }
 
-MSH_CMD_EXPORT(hl_drv_flash_test, flash driver test);
+MSH_CMD_EXPORT(hl_mod_pm_test, pm mod start test);
 /*
  * EOF
  */

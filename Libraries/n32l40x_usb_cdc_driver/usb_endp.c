@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2019, Nations Technologies Inc.
+ * Copyright (c) 2022, Nations Technologies Inc.
  *
  * All rights reserved.
  * ****************************************************************************
@@ -28,137 +28,126 @@
 /**
  * @file usb_endp.c
  * @author Nations
- * @version v1.0.0
+ * @version v1.2.0
  *
- * @copyright Copyright (c) 2019, Nations Technologies Inc. All rights reserved.
+ * @copyright Copyright (c) 2022, Nations Technologies Inc. All rights reserved.
  */
-
 /* Includes ------------------------------------------------------------------*/
 #include "usb_lib.h"
+#include "usb_bot.h"
+#include "usb_istr.h"
 #include "usb_desc.h"
 #include "usb_mem.h"
 #include "hw_config.h"
-#include "usb_istr.h"
 #include "usb_pwr.h"
 #include "hl_util_fifo.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
-
-/* Interval between sending IN packets in frame number (1 frame = 1ms) */
+/* Private macro -------------------------------------------------------------*/
+/* Private variables ---------------------------------------------------------*/
+/* Private function prototypes -----------------------------------------------*/
+/* Private functions ---------------------------------------------------------*/
 #define VCOMPORT_IN_FRAME_INTERVAL             5
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+
 extern uint8_t  USB_Tx_State;
 
 extern hl_util_fifo_t hl_cdc_out_fifo;
 extern hl_util_fifo_t hl_cdc_in_fifo;
-
-/* Private function prototypes -----------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
-
-/*******************************************************************************
-* Function Name  : EP1_IN_Callback
-* Description    :
-* Input          : None.
-* Output         : None.
-* Return         : None.
-*******************************************************************************/
-void EP1_IN_Callback (void)
+/**
+ * @brief EP1 IN Callback Routine.
+ */
+void EP1_IN_Callback(void)
 {
-  uint16_t USB_Tx_ptr;
-  uint16_t USB_Tx_length;
-  uint8_t buffer[64];
-  
-  if (USB_Tx_State == 1)
-  {
-    if (hl_util_fifo_data_size(&hl_cdc_out_fifo) == 0) 
-    {
-      USB_Tx_State = 0;
-    }
-    else 
-    {
-      if (hl_util_fifo_data_size(&hl_cdc_out_fifo) > VIRTUAL_COM_PORT_DATA_SIZE)
-        {
-            //read 64bytes
-            USB_Tx_length = VIRTUAL_COM_PORT_DATA_SIZE;
-            hl_util_fifo_read(&hl_cdc_out_fifo, buffer, USB_Tx_length);
-        }
-        else
-        {
-            // read all bytes left
-            USB_Tx_length = hl_util_fifo_data_size(&hl_cdc_out_fifo);
-            hl_util_fifo_read(&hl_cdc_out_fifo, buffer, USB_Tx_length);
-        }
-        USB_CopyUserToPMABuf(buffer, ENDP1_TXADDR, USB_Tx_length);
-        USB_SetEpTxCnt(ENDP1, USB_Tx_length);
-        USB_SetEpTxValid(ENDP1); 
-    }
-  }
-}
-
-/*******************************************************************************
-* Function Name  : EP3_OUT_Callback
-* Description    :
-* Input          : None.
-* Output         : None.
-* Return         : None.
-*******************************************************************************/
-void EP3_OUT_Callback(void)
-{
-  uint16_t USB_Rx_Cnt;
-  uint8_t data_read[128];
-  
-  /* Get the received data buffer and update the counter */
-  USB_Rx_Cnt = USB_SilRead(EP3_OUT, data_read);
-  
-  /* USB data will be immediately processed, this allow next USB traffic being 
-  NAKed till the end of the USART Xfer */
-  
-  USB_CDC_Recv_Data_Save(data_read, USB_Rx_Cnt);
- 
-  /* Enable the receive of data on EP3 */
-  USB_SetEpRxValid(ENDP3);
-}
-
-
-/*******************************************************************************
-* Function Name  : SOF_Callback / INTR_SOFINTR_Callback
-* Description    :
-* Input          : None.
-* Output         : None.
-* Return         : None.
-*******************************************************************************/
-void SOF_Callback(void)
-{
-  static uint32_t FrameCount = 0;
-  
-  if(bDeviceState == CONFIGURED)
-  {
-    if (FrameCount++ == VCOMPORT_IN_FRAME_INTERVAL)
-    {
-      /* Reset the frame counter */
-      FrameCount = 0;
-      
-      /* Check the data to be sent through IN pipe */
-      Handle_USBAsynchXfer();
-    }
-  }  
+    Mass_Storage_In();
 }
 
 /**
- * ERR_Callback
- * @brief 添加USB错误则去初始化USB
- * @author yangxy (rd52@hollyland-tech.com)
- * @par 修改日志:
- * <table>
- * <tr><th>Date             <th>Author         <th>Description
- * <tr><td>2021-12-09      <td>yangxy     <td>新建
- * </table>
+ * @brief EP2 OUT Callback Routine.
  */
-void ERR_Callback(void)
+void EP2_OUT_Callback(void)
 {
-  USB_Interrupts_Config(DISABLE);
+    Mass_Storage_Out();
+}
+
+
+/**
+ * @brief  EP1 IN Callback Routine.
+ */
+void EP5_IN_Callback (void)
+{
+    //uint16_t USB_Tx_ptr;
+    uint16_t USB_Tx_length;
+    uint8_t buffer[64];
+
+    if (USB_Tx_State == 1)
+    {
+        if (hl_util_fifo_data_size(&hl_cdc_out_fifo) == 0) 
+        {
+            USB_Tx_State = 0;
+        }
+        else 
+        {
+            if (hl_util_fifo_data_size(&hl_cdc_out_fifo) > VIRTUAL_COM_PORT_DATA_SIZE)
+            {
+                //read 64bytes
+                USB_Tx_length = VIRTUAL_COM_PORT_DATA_SIZE;
+                hl_util_fifo_read(&hl_cdc_out_fifo, buffer, USB_Tx_length);
+ 
+            }
+            else 
+            {
+                // read all bytes left
+            USB_Tx_length = hl_util_fifo_data_size(&hl_cdc_out_fifo);
+            hl_util_fifo_read(&hl_cdc_out_fifo, buffer, USB_Tx_length);
+            }
+            USB_CopyUserToPMABuf(buffer, ENDP5_TXADDR, USB_Tx_length);
+            USB_SetEpTxCnt(ENDP5, USB_Tx_length);
+            USB_SetEpTxValid(ENDP5); 
+        }
+    }
+}
+
+/**
+ * @brief  EP3 OUT Callback Routine.
+ */
+void EP3_OUT_Callback(void)
+{
+    uint16_t USB_Rx_Cnt;
+    uint8_t data_read[128];
+
+    /* Get the received data buffer and update the counter */
+    USB_Rx_Cnt = USB_SilRead(EP3_OUT, data_read);
+
+    /* USB data will be immediately processed, this allow next USB traffic being 
+    NAKed till the end of the USART Xfer */
+
+    USB_CDC_Recv_Data_Save(data_read, USB_Rx_Cnt);
+
+    /* Enable the receive of data on EP3 */
+    USB_SetEpRxValid(ENDP3);
+}
+
+/**
+ * @brief  SOF Callback Routine.
+ */
+void SOF_Callback(void)
+{
+    static uint32_t FrameCount = 0;
+
+    if(bDeviceState == CONFIGURED)
+    {
+        if (FrameCount++ == VCOMPORT_IN_FRAME_INTERVAL)
+        {
+            /* Reset the frame counter */
+            FrameCount = 0;
+
+            /* Check the data to be sent through IN pipe */
+            Handle_USBAsynchXfer();
+        }
+    }
 }
 

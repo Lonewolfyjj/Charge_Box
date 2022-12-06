@@ -26,58 +26,26 @@
  * ****************************************************************************/
 
 /**
- * @file usb_pwr.h
+ * @file memory.h
  * @author Nations
  * @version v1.2.0
  *
  * @copyright Copyright (c) 2022, Nations Technologies Inc. All rights reserved.
  */
-#ifndef __USB_PWR_H__
-#define __USB_PWR_H__
-#include "usb_core.h"
-#include "usb_type.h"
+/* Define to prevent recursive inclusion -------------------------------------*/
+#ifndef __memory_H
+#define __memory_H
 
-typedef enum _RESUME_STATE
-{
-    RESUME_EXTERNAL,
-    RESUME_INTERNAL,
-    RESUME_LATER,
-    RESUME_WAIT,
-    RESUME_START,
-    RESUME_ON,
-    RESUME_OFF,
-    RESUME_ESOF
-} RESUME_STATE;
+/* Includes ------------------------------------------------------------------*/
+#include "hw_config.h"
+/* Exported types ------------------------------------------------------------*/
+/* Exported constants --------------------------------------------------------*/
+#define TXFR_IDLE     0
+#define TXFR_ONGOING  1
 
-typedef enum _DEVICE_STATE
-{
-    UNCONNECTED,
-    ATTACHED,
-    POWERED,
-    SUSPENDED,
-    ADDRESSED,
-    CONFIGURED
-} DEVICE_STATE;
+/* Exported macro ------------------------------------------------------------*/
+/* Exported functions ------------------------------------------------------- */
+void Write_Memory (uint8_t lun, uint32_t Memory_Offset, uint32_t Transfer_Length);
+void Read_Memory (uint8_t lun, uint32_t Memory_Offset, uint32_t Transfer_Length);
+#endif /* __memory_H */
 
-void Suspend(void);
-void Resume_Init(void);
-void Resume(RESUME_STATE eResumeSetVal);
-USB_Result PowerOn(void);
-USB_Result PowerOff(void);
-
-extern __IO uint32_t bDeviceState; /* USB device status */
-extern __IO bool fSuspendEnabled;  /* true when suspend is possible */
-
-#endif /*__USB_PWR_H__*/
-
-/**
- * @}
- */
-
-/**
- * @}
- */
-
-/**
- * @}
- */

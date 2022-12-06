@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2019, Nations Technologies Inc.
+ * Copyright (c) 2022, Nations Technologies Inc.
  *
  * All rights reserved.
  * ****************************************************************************
@@ -28,149 +28,144 @@
 /**
  * @file usb_prop.c
  * @author Nations
- * @version v1.0.0
+ * @version v1.2.0
  *
- * @copyright Copyright (c) 2019, Nations Technologies Inc. All rights reserved.
+ * @copyright Copyright (c) 2022, Nations Technologies Inc. All rights reserved.
  */
-
-
 /* Includes ------------------------------------------------------------------*/
 #include "usb_lib.h"
-#include "usb_conf.h"
-#include "usb_prop.h"
 #include "usb_desc.h"
 #include "usb_pwr.h"
+#include "usb_bot.h"
 #include "hw_config.h"
+#include "memory.h"
+#include "mass_mal.h"
+#include "usb_prop.h"
+#include "usb_conf.h"
 
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
+extern uint32_t Max_Lun;
+
 uint8_t Request = 0;
 
 LINE_CODING linecoding =
-  {
+{
     115200, /* baud rate*/
     0x00,   /* stop bits-1*/
     0x00,   /* parity - none*/
     0x08    /* no. of bits 8*/
-  };
-
-/* -------------------------------------------------------------------------- */
-/*  Structures initializations */
-/* -------------------------------------------------------------------------- */
+};
 
 USB_Device Device_Table =
-  {
+{
     EP_NUM,
     1
-  };
+};
 
 DEVICE_PROP Device_Property =
-  {
-    Virtual_Com_Port_init,
-    Virtual_Com_Port_Reset,
-    Virtual_Com_Port_Status_In,
-    Virtual_Com_Port_Status_Out,
-    Virtual_Com_Port_Data_Setup,
-    Virtual_Com_Port_NoData_Setup,
-    Virtual_Com_Port_Get_Interface_Setting,
-    Virtual_Com_Port_GetDeviceDescriptor,
-    Virtual_Com_Port_GetConfigDescriptor,
-    Virtual_Com_Port_GetStringDescriptor,
+{
+    MASS_init,
+    MASS_Reset,
+    MASS_Status_In,
+    MASS_Status_Out,
+    MASS_Data_Setup,
+    MASS_NoData_Setup,
+    MASS_Get_Interface_Setting,
+    MASS_GetDeviceDescriptor,
+    MASS_GetConfigDescriptor,
+    MASS_GetStringDescriptor,
     0,
     0x40 /*MAX PACKET SIZE*/
-  };
+};
 
 USER_STANDARD_REQUESTS User_Standard_Requests =
-  {
-    Virtual_Com_Port_GetConfiguration,
-    Virtual_Com_Port_SetConfiguration,
-    Virtual_Com_Port_GetInterface,
-    Virtual_Com_Port_SetInterface,
-    Virtual_Com_Port_GetStatus,
-    Virtual_Com_Port_ClearFeature,
-    Virtual_Com_Port_SetEndPointFeature,
-    Virtual_Com_Port_SetDeviceFeature,
-    Virtual_Com_Port_SetDeviceAddress
-  };
+{
+    Mass_Storage_GetConfiguration,
+    Mass_Storage_SetConfiguration,
+    Mass_Storage_GetInterface,
+    Mass_Storage_SetInterface,
+    Mass_Storage_GetStatus,
+    Mass_Storage_ClearFeature,
+    Mass_Storage_SetEndPointFeature,
+    Mass_Storage_SetDeviceFeature,
+    Mass_Storage_SetDeviceAddress
+};
 
 USB_OneDescriptor Device_Descriptor =
-  {
-    (uint8_t*)Virtual_Com_Port_DeviceDescriptor,
-    VIRTUAL_COM_PORT_SIZ_DEVICE_DESC
-  };
+{
+    (uint8_t*)MASS_DeviceDescriptor,
+    MASS_SIZ_DEVICE_DESC
+};
 
 USB_OneDescriptor Config_Descriptor =
-  {
-    (uint8_t*)Virtual_Com_Port_ConfigDescriptor,
-    VIRTUAL_COM_PORT_SIZ_CONFIG_DESC
-  };
+{
+    (uint8_t*)MASS_ConfigDescriptor,
+    MASS_SIZ_CONFIG_DESC
+};
 
-USB_OneDescriptor String_Descriptor[4] =
-  {
-    {(uint8_t*)Virtual_Com_Port_StringLangID, VIRTUAL_COM_PORT_SIZ_STRING_LANGID},
-    {(uint8_t*)Virtual_Com_Port_StringVendor, VIRTUAL_COM_PORT_SIZ_STRING_VENDOR},
-    {(uint8_t*)Virtual_Com_Port_StringProduct, VIRTUAL_COM_PORT_SIZ_STRING_PRODUCT},
-    {(uint8_t*)Virtual_Com_Port_StringSerial, VIRTUAL_COM_PORT_SIZ_STRING_SERIAL}
-  };
+USB_OneDescriptor String_Descriptor[5] =
+{
+    {(uint8_t*)MASS_StringLangID, MASS_SIZ_STRING_LANGID},
+    {(uint8_t*)MASS_StringVendor, MASS_SIZ_STRING_VENDOR},
+    {(uint8_t*)MASS_StringProduct, MASS_SIZ_STRING_PRODUCT},
+    {(uint8_t*)MASS_StringSerial, MASS_SIZ_STRING_SERIAL},
+    {(uint8_t*)MASS_StringInterface, MASS_SIZ_STRING_INTERFACE},
+};
 
 /* Extern variables ----------------------------------------------------------*/
+extern unsigned char Bot_State;
+extern Bulk_Only_CBW CBW;
+
 /* Private function prototypes -----------------------------------------------*/
 /* Extern function prototypes ------------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
-/*******************************************************************************
-* Function Name  : Virtual_Com_Port_init.
-* Description    : Virtual COM Port Mouse init routine.
-* Input          : None.
-* Output         : None.
-* Return         : None.
-*******************************************************************************/
-void Virtual_Com_Port_init(void)
+
+/**
+ * @brief Mass Storage init routine.
+ */
+void MASS_init()
 {
-  pInformation->CurrentConfiguration = 0;
-
-  /* Connect the device */
-  PowerOn();
-
-  /* Perform basic device initialization operations */
-  USB_SilInit();
-
-  /* configure the USART to the default settings */
-  // USART_Config_Default();
-
-  bDeviceState = UNCONNECTED;
-}
-
-/*******************************************************************************
-* Function Name  : Virtual_Com_Port_Reset
-* Description    : Virtual_Com_Port Mouse reset routine
-* Input          : None.
-* Output         : None.
-* Return         : None.
-*******************************************************************************/
-void Virtual_Com_Port_Reset(void)
-{
-    /* Set Virtual_Com_Port DEVICE as not configured */
     pInformation->CurrentConfiguration = 0;
 
-    /* Current Feature initialization */
-    pInformation->CurrentFeature = Virtual_Com_Port_ConfigDescriptor[7];
+    /* Connect the device */
+    PowerOn();
 
-    /* Set Virtual_Com_Port DEVICE with the default Interface*/
-    pInformation->CurrentInterface = 0;
+    /* USB interrupts initialization */
+    /* clear pending interrupts */
+    _SetISTR(0);
+    wInterrupt_Mask = IMR_MSK;
+    /* set interrupts mask */
+    _SetCNTR(wInterrupt_Mask);
+	
+	/* Perform basic device initialization operations */
+    USB_SilInit();
+
+    /* configure the USART to the default settings */
+    //USART_Config_Default();
+
+    bDeviceState = UNCONNECTED;
+}
+
+/**
+ * @brief Mass Storage reset routine.
+ */
+void MASS_Reset()
+{
+    /* Set the device as not configured */
+    Device_Info.CurrentConfiguration = 0;
+
+    /* Current Feature initialization */
+    pInformation->CurrentFeature = MASS_ConfigDescriptor[7];
 
     USB_SetBuftab(BTABLE_ADDRESS);
 
     /* Initialize Endpoint 0 */
     USB_SetEpType(ENDP0, EP_CONTROL);
-    SetEPTxStatus(ENDP0, EP_TX_STALL);
+    SetEPTxStatus(ENDP0, EP_TX_NAK);
     USB_SetEpRxAddr(ENDP0, ENDP0_RXADDR);
+    USB_SetEpRxCnt(ENDP0, Device_Property.MaxPacketSize);
     USB_SetEpTxAddr(ENDP0, ENDP0_TXADDR);
     USB_ClrStsOut(ENDP0);
-    USB_SetEpRxCnt(ENDP0, Device_Property.MaxPacketSize);
     USB_SetEpRxValid(ENDP0);
-
 
     /* Initialize Endpoint 1 */
     USB_SetEpType(ENDP1, EP_BULK);
@@ -179,10 +174,23 @@ void Virtual_Com_Port_Reset(void)
     SetEPRxStatus(ENDP1, EP_RX_DIS);
 
     /* Initialize Endpoint 2 */
-    USB_SetEpType(ENDP2, EP_INTERRUPT);
-    USB_SetEpTxAddr(ENDP2, ENDP2_TXADDR);
-    SetEPRxStatus(ENDP2, EP_RX_DIS);
-    SetEPTxStatus(ENDP2, EP_TX_NAK);
+    USB_SetEpType(ENDP2, EP_BULK);
+    USB_SetEpRxAddr(ENDP2, ENDP2_RXADDR);
+    USB_SetEpRxCnt(ENDP2, Device_Property.MaxPacketSize);
+    SetEPRxStatus(ENDP2, EP_RX_VALID);
+    SetEPTxStatus(ENDP2, EP_TX_DIS);
+		
+		    /* Initialize Endpoint 1 */
+    USB_SetEpType(ENDP5, EP_BULK);
+    USB_SetEpTxAddr(ENDP5, ENDP5_TXADDR);
+    SetEPTxStatus(ENDP5, EP_TX_NAK);
+    SetEPRxStatus(ENDP5, EP_RX_DIS);
+
+    /* Initialize Endpoint 2 */
+    USB_SetEpType(ENDP4, EP_INTERRUPT);
+    USB_SetEpTxAddr(ENDP4, ENDP4_TXADDR);
+    SetEPRxStatus(ENDP4, EP_RX_DIS);
+    SetEPTxStatus(ENDP4, EP_TX_NAK);
 
     /* Initialize Endpoint 3 */
     USB_SetEpType(ENDP3, EP_BULK);
@@ -191,82 +199,82 @@ void Virtual_Com_Port_Reset(void)
     SetEPRxStatus(ENDP3, EP_RX_VALID);
     SetEPTxStatus(ENDP3, EP_TX_DIS);
 
-    /* Set this device to response on default address */
+    /* Set the device to response on default address */
     USB_SetDeviceAddress(0);
 
     bDeviceState = ATTACHED;
+
+    CBW.dSignature = BOT_CBW_SIGNATURE;
+    Bot_State = BOT_IDLE;
 }
 
-/*******************************************************************************
-* Function Name  : Virtual_Com_Port_SetConfiguration.
-* Description    : Update the device state to configured.
-* Input          : None.
-* Output         : None.
-* Return         : None.
-*******************************************************************************/
-void Virtual_Com_Port_SetConfiguration(void)
+/**
+ * @brief Handle the SetConfiguration request.
+ */
+void Mass_Storage_SetConfiguration(void)
 {
-    USB_DeviceMess *pInfo = &Device_Info;
-
-    if (pInfo->CurrentConfiguration != 0)
+    if (pInformation->CurrentConfiguration != 0)
     {
-    /* Device configured */
-    bDeviceState = CONFIGURED;
+        /* Device configured */
+        bDeviceState = CONFIGURED;
+
+        USB_ClrDattogTx(ENDP1);
+        USB_ClrDattogRx(ENDP2);
+        Bot_State = BOT_IDLE; /* set the Bot state machine to the IDLE state */
     }
 }
 
-/*******************************************************************************
-* Function Name  : Virtual_Com_Port_SetConfiguration.
-* Description    : Update the device state to addressed.
-* Input          : None.
-* Output         : None.
-* Return         : None.
-*******************************************************************************/
-void Virtual_Com_Port_SetDeviceAddress (void)
+/**
+ * @brief Handle the ClearFeature request.
+ */
+void Mass_Storage_ClearFeature(void)
+{
+    /* when the host send a CBW with invalid signature or invalid length the two
+       Endpoints (IN & OUT) shall stall until receiving a Mass Storage Reset     */
+    if (CBW.dSignature != BOT_CBW_SIGNATURE)
+        Bot_Abort(BOTH_DIR);
+}
+
+/**
+ * @brief Udpade the device state to addressed.
+ */
+void Mass_Storage_SetDeviceAddress (void)
 {
     bDeviceState = ADDRESSED;
 }
 
-/*******************************************************************************
-* Function Name  : Virtual_Com_Port_Status_In.
-* Description    : Virtual COM Port Status In Routine.
-* Input          : None.
-* Output         : None.
-* Return         : None.
-*******************************************************************************/
-void Virtual_Com_Port_Status_In(void)
+/**
+ * @brief Mass Storage Status IN routine.
+ */
+void MASS_Status_In(void)
 {
-    if (Request == SET_LINE_CODING)
+     if (Request == SET_LINE_CODING)
     {
-        // USART_Config();
+        //USART_Config();
         Request = 0;
     }
 }
 
-/*******************************************************************************
-* Function Name  : Virtual_Com_Port_Status_Out
-* Description    : Virtual COM Port Status OUT Routine.
-* Input          : None.
-* Output         : None.
-* Return         : None.
-*******************************************************************************/
-void Virtual_Com_Port_Status_Out(void)
-{}
+/**
+ * @brief Mass Storage Status OUT routine.
+ */
+void MASS_Status_Out(void)
+{
+    return;
+}
 
-/*******************************************************************************
-* Function Name  : Virtual_Com_Port_Data_Setup
-* Description    : handle the data class specific requests
-* Input          : Request Nb.
-* Output         : None.
-* Return         : UnSupport or Success.
-*******************************************************************************/
-USB_Result Virtual_Com_Port_Data_Setup(uint8_t RequestNo)
+/**
+ * @brief  Handle the data class specific requests.
+ * @param  RequestNo: request number.
+ * @return UnSupport or Success.
+ */
+USB_Result MASS_Data_Setup(uint8_t RequestNo)
 {
     uint8_t    *(*CopyRoutine)(uint16_t);
 
     CopyRoutine = NULL;
-
-    if (RequestNo == GET_LINE_CODING)
+	
+	 if (RequestNo == GET_LINE_CODING)
     {
         if (Type_Recipient == (CLASS_REQUEST | INTERFACE_RECIPIENT))
         {
@@ -281,6 +289,18 @@ USB_Result Virtual_Com_Port_Data_Setup(uint8_t RequestNo)
         }
         Request = SET_LINE_CODING;
     }
+		
+    if ((Type_Recipient == (CLASS_REQUEST | INTERFACE_RECIPIENT))
+            && (RequestNo == GET_MAX_LUN) && (pInformation->USBwValue == 0)
+            && (pInformation->USBwIndex == 0x200) && (pInformation->USBwLength == 0x01))
+    {
+        CopyRoutine = Get_Max_Lun;
+    }
+//    else
+//    {
+//        return UnSupport;
+//    }
+
 
     if (CopyRoutine == NULL)
     {
@@ -290,20 +310,35 @@ USB_Result Virtual_Com_Port_Data_Setup(uint8_t RequestNo)
     pInformation->Ctrl_Info.CopyData = CopyRoutine;
     pInformation->Ctrl_Info.Usb_wOffset = 0;
     (*CopyRoutine)(0);
+
     return Success;
+
 }
 
-/*******************************************************************************
-* Function Name  : Virtual_Com_Port_NoData_Setup.
-* Description    : handle the no data class specific requests.
-* Input          : Request Nb.
-* Output         : None.
-* Return         : UnSupport or Success.
-*******************************************************************************/
-USB_Result Virtual_Com_Port_NoData_Setup(uint8_t RequestNo)
+/**
+ * @brief  Handle the no data class specific requests.
+ * @param  RequestNo: request number.
+ * @return UnSupport or Success.
+ */
+USB_Result MASS_NoData_Setup(uint8_t RequestNo)
 {
+    if ((Type_Recipient == (CLASS_REQUEST | INTERFACE_RECIPIENT))
+            && (RequestNo == MASS_STORAGE_RESET) && (pInformation->USBwValue == 0)
+            && (pInformation->USBwIndex == 0x200) && (pInformation->USBwLength == 0x00))
+    {
+        /* Initialize Endpoint 1 */
+        USB_ClrDattogTx(ENDP1);
 
-    if (Type_Recipient == (CLASS_REQUEST | INTERFACE_RECIPIENT))
+        /* Initialize Endpoint 2 */
+        USB_ClrDattogRx(ENDP2);
+
+        /*intialise the CBW signature to enable the clear feature*/
+        CBW.dSignature = BOT_CBW_SIGNATURE;
+        Bot_State = BOT_IDLE;
+
+        return Success;
+    }
+		 if (Type_Recipient == (CLASS_REQUEST | INTERFACE_RECIPIENT))
     {
         if (RequestNo == SET_COMM_FEATURE)
         {
@@ -314,44 +349,57 @@ USB_Result Virtual_Com_Port_NoData_Setup(uint8_t RequestNo)
             return Success;
         }
     }
-
     return UnSupport;
 }
 
-/*******************************************************************************
-* Function Name  : Virtual_Com_Port_GetDeviceDescriptor.
-* Description    : Gets the device descriptor.
-* Input          : Length.
-* Output         : None.
-* Return         : The address of the device descriptor.
-*******************************************************************************/
-uint8_t *Virtual_Com_Port_GetDeviceDescriptor(uint16_t Length)
+/**
+ * @brief  Test the interface and the alternate setting according to the supported one.
+ * @param  Interface: interface.
+ * @param  AlternateSetting: alternate Setting.
+ * @return UnSupport or Success.
+ */
+USB_Result MASS_Get_Interface_Setting(uint8_t Interface, uint8_t AlternateSetting)
 {
-    return Standard_GetDescriptorData(Length, &Device_Descriptor);
+    if (AlternateSetting > 0)
+    {
+        return UnSupport;/* in this application we don't have AlternateSetting*/
+    }
+    else if (Interface > 2)				/////MSC  0;;CDC   1
+    {
+        return UnSupport;/*in this application we have only 1 interfaces*/
+    }
+    return Success;
 }
 
-/*******************************************************************************
-* Function Name  : Virtual_Com_Port_GetConfigDescriptor.
-* Description    : get the configuration descriptor.
-* Input          : Length.
-* Output         : None.
-* Return         : The address of the configuration descriptor.
-*******************************************************************************/
-uint8_t *Virtual_Com_Port_GetConfigDescriptor(uint16_t Length)
+/**
+ * @brief   Gets the device descriptor.
+ * @param   Length:Length.
+ * @return  The address of the device descriptor.
+ */
+uint8_t *MASS_GetDeviceDescriptor(uint16_t Length)
 {
-    return Standard_GetDescriptorData(Length, &Config_Descriptor);
+    return Standard_GetDescriptorData(Length, &Device_Descriptor );
 }
 
-/*******************************************************************************
-* Function Name  : Virtual_Com_Port_GetStringDescriptor
-* Description    : Gets the string descriptors according to the needed index
-* Input          : Length.
-* Output         : None.
-* Return         : The address of the string descriptors.
-*******************************************************************************/
-uint8_t *Virtual_Com_Port_GetStringDescriptor(uint16_t Length)
+/**
+ * @brief   Gets the configuration descriptor.
+ * @param   Length:Length.
+ * @return The address of the configuration descriptor.
+ */
+uint8_t *MASS_GetConfigDescriptor(uint16_t Length)
+{
+    return Standard_GetDescriptorData(Length, &Config_Descriptor );
+}
+
+/**
+ * @brief   Gets the string descriptors according to the needed index.
+ * @param   Length:Length.
+ * @return  The address of the string descriptors.
+ */
+uint8_t *MASS_GetStringDescriptor(uint16_t Length)
 {
     uint8_t wValue0 = pInformation->USBwValue0;
+
     if (wValue0 > 4)
     {
         return NULL;
@@ -360,37 +408,31 @@ uint8_t *Virtual_Com_Port_GetStringDescriptor(uint16_t Length)
     {
         return Standard_GetDescriptorData(Length, &String_Descriptor[wValue0]);
     }
+    
 }
 
-/*******************************************************************************
-* Function Name  : Virtual_Com_Port_Get_Interface_Setting.
-* Description    : test the interface and the alternate setting according to the
-*                  supported one.
-* Input1         : uint8_t: Interface : interface number.
-* Input2         : uint8_t: AlternateSetting : Alternate Setting number.
-* Output         : None.
-* Return         : The address of the string descriptors.
-*******************************************************************************/
-USB_Result Virtual_Com_Port_Get_Interface_Setting(uint8_t Interface, uint8_t AlternateSetting)
+/**
+ * @brief   Handle the Get Max Lun request.
+ * @param   Length:Length.
+ * @return  max lun.
+ */
+uint8_t *Get_Max_Lun(uint16_t Length)
 {
-    if (AlternateSetting > 0)
+    if (Length == 0)
     {
-        return UnSupport;
+        pInformation->Ctrl_Info.Usb_wLength = LUN_DATA_LENGTH;
+        return 0;
     }
-    else if (Interface > 1)
+    else
     {
-        return UnSupport;
+        return((uint8_t*)(&Max_Lun));
     }
-    return Success;
 }
-
-/*******************************************************************************
-* Function Name  : Virtual_Com_Port_GetLineCoding.
-* Description    : send the linecoding structure to the PC host.
-* Input          : Length.
-* Output         : None.
-* Return         : Linecoding structure base address.
-*******************************************************************************/
+/**
+ * @brief   Send the linecoding structure to the PC host.
+ * @param   Length: data length.
+ * @return  Linecoding structure base address.
+ */
 uint8_t *Virtual_Com_Port_GetLineCoding(uint16_t Length)
 {
     if (Length == 0)
@@ -401,13 +443,11 @@ uint8_t *Virtual_Com_Port_GetLineCoding(uint16_t Length)
     return(uint8_t *)&linecoding;
 }
 
-/*******************************************************************************
-* Function Name  : Virtual_Com_Port_SetLineCoding.
-* Description    : Set the linecoding structure fields.
-* Input          : Length.
-* Output         : None.
-* Return         : Linecoding structure base address.
-*******************************************************************************/
+/**
+ * @brief   Set the linecoding structure fields.
+ * @param   Length: data number.
+ * @return  Linecoding structure base address.
+ */
 uint8_t *Virtual_Com_Port_SetLineCoding(uint16_t Length)
 {
     if (Length == 0)

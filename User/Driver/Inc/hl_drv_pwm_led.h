@@ -1,9 +1,9 @@
 /**
- * @file hl_drv_flash_test.c
+ * @file hl_drv_pwm_led.h
  * @author yijiujun (jiujun.yi@hollyland-tech.com)
  * @brief 
  * @version V1.0
- * @date 2022-10-25
+ * @date 2022-11-14
  * 
  * ██╗  ██╗ ██████╗ ██╗     ██╗  ██╗   ██╗██╗      █████╗ ███╗   ██╗██████╗ 
  * ██║  ██║██╔═══██╗██║     ██║  ╚██╗ ██╔╝██║     ██╔══██╗████╗  ██║██╔══██╗
@@ -16,69 +16,60 @@
  * @par 修改日志:
  * <table>
  * <tr><th>Date           <th>Version  <th>Author         <th>Description
- * <tr><td>2022-10-25     <td>v1.0     <td>yijiujun     <td>内容
+ * <tr><td>2022-11-14     <td>v1.0     <td>yijiujun     <td>内容
  * </table>
  * 
  */ 
 /* Define to prevent recursive inclusion -------------------------------------*/
+
+#ifndef __HL_HAL_PWM_LED_H__
+#define __HL_HAL_PWM_LED_H__
+
 /* Includes ------------------------------------------------------------------*/
 
 #include "rtthread.h"
-#include "hl_drv_flash.h"
-#include "stdlib.h"
+#include "stdint.h"
+#include "stdbool.h"
+#include "n32l40x.h"
 
 /* typedef -------------------------------------------------------------------*/
+
+typedef enum _hl_drv_pwm_led_type_e {
+    HL_DRV_PWM_LED_SIGN,        //对应定时器4 PWM输出通道1
+    HL_DRV_PWM_LED_RX,          //对应定时器4 PWM输出通道2
+    HL_DRV_PWM_LED_TX2,         //对应定时器4 PWM输出通道3
+    HL_DRV_PWM_LED_TX1,         //对应定时器4 PWM输出通道4
+
+    HL_DRV_PWM_LED_BOX4,        //对应定时器9 PWM输出通道1
+    HL_DRV_PWM_LED_BOX1,        //对应定时器9 PWM输出通道2
+    HL_DRV_PWM_LED_BOX2,        //对应定时器9 PWM输出通道3
+    HL_DRV_PWM_LED_BOX3,        //对应定时器9 PWM输出通道4
+}hl_drv_pwm_led_type_e;
+
+typedef enum _hl_drv_pwm_led_op_cmd_e{
+    HL_DRV_PWM_SET_BREATH_MODE,         //呼吸灯模式
+    HL_DRV_PWM_SET_BRIGHT_MODE,         //常亮模式
+    HL_DRV_PWM_SET_CLOSE_MODE,          //熄灭模式
+    HL_DRV_PWM_SET_BREATH_MAX_VAL,      //设置呼吸的最大亮度值
+    HL_DRV_PWM_LED_SLEEP_MODE,          //睡眠模式
+    HL_DRV_PWM_LED_ACTIVE_MODE          //工作活跃模式
+}hl_drv_pwm_led_op_cmd_e;
+
 /* define --------------------------------------------------------------------*/
+
+#define DBG_LOG     rt_kprintf
+#define PWM_LED_FUNC_RET_ERR    1
+#define PWM_LED_FUNC_RET_OK     0
+
 /* variables -----------------------------------------------------------------*/
 /* Private function(only *.c)  -----------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 
+uint8_t hl_drv_pwm_led_init();
+uint8_t hl_drv_pwm_led_deinit();
+uint8_t hl_drv_pwm_led_ctrl(uint8_t op_cmd, void *arg, int32_t arg_size);
 
-int hl_drv_flash_test(int argc, char *argv[])
-{
-    int count, len, ret;
-    uint8_t data[50] = {0};     //这里数组过大，会导致线程空间不足，程序出现停止运行的可能
-
-    if (argc <= 1) {
-        rt_kprintf("format : [cmd datalen] max_len:50\n");
-        return -1;
-    }
-    len = atoi(argv[1]);
-    if (len > 50) {
-        rt_kprintf("[error] max_len:50\n");
-        return -1;
-    }
-
-    /* flash初始化 */
-    hl_drv_flash_init();
-    
-    for (count = 0; count < len; count++) {
-        data[count] = count;
-    }
-
-    /* 往flash中写入len个数据，可以跨页写 */
-    ret = hl_drv_flash_write(0x000000, data, len);
-    if (ret == FLASH_RET_OK) {
-        rt_kprintf("write [%d] data ok\n", len);
-    }
-
-    rt_memset(data, 0, sizeof(data));
-
-    /* 从flash中读取len个数据，并打印 */
-    hl_drv_flash_read(0x000000, data, len);
-
-    for (count = 0; count < len; count++) {
-        rt_kprintf("data[%d]:%d\t", count, data[count]);
-        if (count % 5 == 0) {
-            rt_kprintf("\n");
-        }
-    }
-    rt_kprintf("\nread [%d] data end\n", len);
-
-    return 0;
-}
-
-MSH_CMD_EXPORT(hl_drv_flash_test, flash driver test);
+#endif
 /*
  * EOF
  */

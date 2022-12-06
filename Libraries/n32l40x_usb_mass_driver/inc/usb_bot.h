@@ -26,76 +26,80 @@
  * ****************************************************************************/
 
 /**
- * @file usb_prop.h
+ * @file usb_bot.h
  * @author Nations
  * @version v1.2.0
  *
  * @copyright Copyright (c) 2022, Nations Technologies Inc. All rights reserved.
  */
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __USB_PROP_H
-#define __USB_PROP_H
-
-#include "stdint.h"
-#include "usb_core.h"
+#ifndef __USB_BOT_H
+#define __USB_BOT_H
 
 /* Includes ------------------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
-typedef struct
+/* Bulk-only Command Block Wrapper */
+
+typedef struct _Bulk_Only_CBW
 {
-  uint32_t bitrate;
-  uint8_t format;
-  uint8_t paritytype;
-  uint8_t datatype;
-}LINE_CODING;
+  uint32_t dSignature;
+  uint32_t dTag;
+  uint32_t dDataLength;
+  uint8_t  bmFlags;
+  uint8_t  bLUN;
+  uint8_t  bCBLength;
+  uint8_t  CB[16];
+}
+Bulk_Only_CBW;
 
+/* Bulk-only Command Status Wrapper */
+typedef struct _Bulk_Only_CSW
+{
+  uint32_t dSignature;
+  uint32_t dTag;
+  uint32_t dDataResidue;
+  uint8_t  bStatus;
+}
+Bulk_Only_CSW;
 /* Exported constants --------------------------------------------------------*/
-#define Mass_Storage_GetConfiguration          USB_ProcessNop
-/* #define Mass_Storage_SetConfiguration          USB_ProcessNop*/
-#define Mass_Storage_GetInterface              USB_ProcessNop
-#define Mass_Storage_SetInterface              USB_ProcessNop
-#define Mass_Storage_GetStatus                 USB_ProcessNop
-/* #define Mass_Storage_ClearFeature              USB_ProcessNop*/
-#define Mass_Storage_SetEndPointFeature        USB_ProcessNop
-#define Mass_Storage_SetDeviceFeature          USB_ProcessNop
-/*#define Mass_Storage_SetDeviceAddress          USB_ProcessNop*/
 
-/* MASS Storage Requests*/
-#define GET_MAX_LUN                0xFE
-#define MASS_STORAGE_RESET         0xFF
-#define LUN_DATA_LENGTH            1
+/*****************************************************************************/
+/*********************** Bulk-Only Transfer State machine ********************/
+/*****************************************************************************/
+#define BOT_IDLE                      0       /* Idle state */
+#define BOT_DATA_OUT                  1       /* Data Out state */
+#define BOT_DATA_IN                   2       /* Data In state */
+#define BOT_DATA_IN_LAST              3       /* Last Data In Last */
+#define BOT_CSW_Send                  4       /* Command Status Wrapper */
+#define BOT_ERROR                     5       /* error state */
 
+#define BOT_CBW_SIGNATURE             0x43425355
+#define BOT_CSW_SIGNATURE             0x53425355
+#define BOT_CBW_PACKET_LENGTH         31
 
-//#define SEND_ENCAPSULATED_COMMAND   0x00
-//#define GET_ENCAPSULATED_RESPONSE   0x01
-#define SET_COMM_FEATURE            0x02
-//#define GET_COMM_FEATURE            0x03
-//#define CLEAR_COMM_FEATURE          0x04
-#define SET_LINE_CODING             0x20
-#define GET_LINE_CODING             0x21
-#define SET_CONTROL_LINE_STATE      0x22
-//#define SEND_BREAK                  0x23
+#define CSW_DATA_LENGTH               0x000D
 
+/* CSW Status Definitions */
+#define CSW_CMD_PASSED                0x00
+#define CSW_CMD_FAILED                0x01
+#define CSW_PHASE_ERROR               0x02
+
+#define SEND_CSW_DISABLE              0
+#define SEND_CSW_ENABLE               1
+
+#define DIR_IN                        0
+#define DIR_OUT                       1
+#define BOTH_DIR                      2
 
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
-void MASS_init(void);
-void MASS_Reset(void);
-void Mass_Storage_SetConfiguration(void);
-void Mass_Storage_ClearFeature(void);
-void Mass_Storage_SetDeviceAddress (void);
-void MASS_Status_In (void);
-void MASS_Status_Out (void);
-USB_Result MASS_Data_Setup(uint8_t);
-USB_Result MASS_NoData_Setup(uint8_t);
-USB_Result MASS_Get_Interface_Setting(uint8_t Interface, uint8_t AlternateSetting);
-uint8_t *MASS_GetDeviceDescriptor(uint16_t );
-uint8_t *MASS_GetConfigDescriptor(uint16_t);
-uint8_t *MASS_GetStringDescriptor(uint16_t);
-uint8_t *Get_Max_Lun(uint16_t Length);
+void Mass_Storage_In (void);
+void Mass_Storage_Out (void);
+void CBW_Decode(void);
+void Transfer_Data_Request(uint8_t* Data_Pointer, uint16_t Data_Len);
+void Set_CSW (uint8_t CSW_Status, uint8_t Send_Permission);
+void Bot_Abort(uint8_t Direction);
 
-uint8_t *Virtual_Com_Port_GetLineCoding(uint16_t Length);
-uint8_t *Virtual_Com_Port_SetLineCoding(uint16_t Length);
+#endif /* __USB_BOT_H */
 
-#endif /* __USB_PROP_H */
 

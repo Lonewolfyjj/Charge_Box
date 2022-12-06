@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2019, Nations Technologies Inc.
+ * Copyright (c) 2022, Nations Technologies Inc.
  *
  * All rights reserved.
  * ****************************************************************************
@@ -24,25 +24,32 @@
  * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
  * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * ****************************************************************************/
-
 /**
  * @file hw_config.h
  * @author Nations
- * @version v1.0.0
+ * @version v1.2.0
  *
- * @copyright Copyright (c) 2019, Nations Technologies Inc. All rights reserved.
+ * @copyright Copyright (c) 2022, Nations Technologies Inc. All rights reserved.
  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __HW_CONFIG_H
 #define __HW_CONFIG_H
 
-/* Includes ------------------------------------------------------------------*/
-#include "usb_type.h"
 #include "n32l40x.h"
 
-//#define USB_LOW_PWR_MGMT_SUPPORT
+/* Includes ------------------------------------------------------------------*/
 
+/* Exported types ------------------------------------------------------------*/
+/* Exported constants --------------------------------------------------------*/
+/* Exported macro ------------------------------------------------------------*/
+/* Exported define -----------------------------------------------------------*/
+#define BULK_MAX_PACKET_SIZE  0x00000040
+#define MASS_MEMORY_START     0x04002000
+#define LED_ON                0xF0
+#define LED_OFF               0xFF
+
+#define USART_RX_DATA_SIZE   2048
 /* Exported define -----------------------------------------------------------*/
 #define SYSCLK_VALUE_48MHz            ((uint32_t)48000000)
 #define SYSCLK_VALUE_72MHz            ((uint32_t)72000000)
@@ -51,34 +58,27 @@
 #define PCLK2_VALUE_72MHz             ((uint32_t)72000000)
 #define PCLK2_VALUE_48MHz             ((uint32_t)48000000)
 
-
-/* Exported types ------------------------------------------------------------*/
-/* Exported constants --------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported define -----------------------------------------------------------*/
-#define MASS_MEMORY_START     0x04002000
-#define BULK_MAX_PACKET_SIZE  0x00000040
-#define LED_ON                0xF0
-#define LED_OFF               0xFF
-
-#define USART_RX_DATA_SIZE   2048
+//#define USB_LOW_PWR_MGMT_SUPPORT
 
 /* Exported functions ------------------------------------------------------- */
-
 void Set_System(void);
 ErrorStatus Set_USBClock(uint32_t sysclk);
 void Enter_LowPowerMode(void);
 void Leave_LowPowerMode(void);
-void USB_Interrupts_Config(uint8_t state);
-void USART_Config_Default(void);
-bool USART_Config(void);
-void USB_CDC_Recv_Data_Save(uint8_t* data_buffer, uint8_t Nb_bytes);
-void USART_To_USB_Send_Data(void);
-void Handle_USBAsynchXfer (void);
+void USB_Interrupts_Config(void);
+void USB_Configured_LED(void);
+void USB_NotConfigured_LED(void);
+void USB_Cable_Config (FunctionalState NewState);
 void Get_SerialNum(void);
+void MAL_Config(void);
+void Cfg_KeyIO(void);
 ErrorStatus USB_Config(uint32_t sysclk);
-
+void USB_CDC_Recv_Data_Save(uint8_t* data_buffer, uint8_t Nb_bytes);
 /* External variables --------------------------------------------------------*/
-
+// void USART_Config_Default(void);
+// bool USART_Config(void);
+// void USB_To_USART_Send_Data(uint8_t* data_buffer, uint8_t Nb_bytes);
+// void USART_To_USB_Send_Data(void);
+void Handle_USBAsynchXfer (void);
 #endif  /*__HW_CONFIG_H*/
 

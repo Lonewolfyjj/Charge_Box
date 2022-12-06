@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2019, Nations Technologies Inc.
+ * Copyright (c) 2022, Nations Technologies Inc.
  *
  * All rights reserved.
  * ****************************************************************************
@@ -28,9 +28,9 @@
 /**
  * @file usb_istr.c
  * @author Nations
- * @version v1.0.0
+ * @version v1.2.0
  *
- * @copyright Copyright (c) 2019, Nations Technologies Inc. All rights reserved.
+ * @copyright Copyright (c) 2022, Nations Technologies Inc. All rights reserved.
  */
 #include "usb_lib.h"
 #include "usb_prop.h"
@@ -63,16 +63,11 @@ void (*pEpInt_OUT[7])(void) = {
     EP7_OUT_Callback,
 };
 
-/*******************************************************************************
- * Function Name  : USB_Istr
- * Description    : STS events interrupt service routine
- * Input          : None.
- * Output         : None.
- * Return         : None.
- *******************************************************************************/
+/**
+ * @brief  STS events interrupt service routine.
+ */
 void USB_Istr(void)
 {
-    static uint8_t accept_error_cnt = 10;
     uint32_t i=0;
     __IO uint32_t EP[8];
 
@@ -115,15 +110,9 @@ void USB_Istr(void)
     if (wIstr & STS_ERROR & wInterrupt_Mask)
     {
         _SetISTR((uint16_t)CLR_ERROR);
-        accept_error_cnt--;
 #ifdef ERR_CALLBACK
-        if (accept_error_cnt == 0) {
-            accept_error_cnt = 10;
-            ERR_Callback();
-        }
+        ERR_Callback();
 #endif
-    }else {
-        accept_error_cnt = 10;
     }
 #endif
     /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/
@@ -230,20 +219,6 @@ void USB_Istr(void)
     }
 #endif
 } /* USB_Istr */
-
-/**
- * @brief  This function handles USB WakeUp interrupt request.
- */
-void USBWakeUp_IRQHandler(void)
-{
-  EXTI_ClrITPendBit(EXTI_LINE17);
-  USB_Interrupts_Config(ENABLE);
-}
-
-void USB_LP_IRQHandler(void)
-{
-    USB_Istr();
-}
 
 /**
  * @}

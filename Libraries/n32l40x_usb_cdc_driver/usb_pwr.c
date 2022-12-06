@@ -1,5 +1,5 @@
 /*****************************************************************************
- * Copyright (c) 2019, Nations Technologies Inc.
+ * Copyright (c) 2022, Nations Technologies Inc.
  *
  * All rights reserved.
  * ****************************************************************************
@@ -28,9 +28,9 @@
 /**
  * @file usb_pwr.c
  * @author Nations
- * @version v1.0.0
+ * @version v1.2.0
  *
- * @copyright Copyright (c) 2019, Nations Technologies Inc. All rights reserved.
+ * @copyright Copyright (c) 2022, Nations Technologies Inc. All rights reserved.
  */
 #include "usb_lib.h"
 #include "usb_conf.h"
@@ -51,13 +51,9 @@ __IO uint32_t remotewakeupon = 0;
 
 /* Extern function prototypes ------------------------------------------------*/
 
-/*******************************************************************************
- * Function Name  : PowerOn
- * Description    :
- * Input          : None.
- * Output         : None.
- * Return         : Success.
- *******************************************************************************/
+/**
+ * @brief  USB PowerOn.
+ */
 USB_Result PowerOn(void)
 {
     uint16_t wRegVal;
@@ -78,13 +74,9 @@ USB_Result PowerOn(void)
     return Success;
 }
 
-/*******************************************************************************
- * Function Name  : PowerOff
- * Description    : handles switch-off conditions
- * Input          : None.
- * Output         : None.
- * Return         : Success.
- *******************************************************************************/
+/**
+ * @brief  USB PowerOff.
+ */
 USB_Result PowerOff()
 {
     /* disable all interrupts and force USB reset */
@@ -99,13 +91,9 @@ USB_Result PowerOff()
     return Success;
 }
 
-/*******************************************************************************
- * Function Name  : Suspend
- * Description    : sets suspend mode operating conditions
- * Input          : None.
- * Output         : None.
- * Return         : Success.
- *******************************************************************************/
+/**
+ * @brief  USB Suspend.
+ */
 void Suspend(void)
 {
     uint32_t i = 0;
@@ -113,6 +101,11 @@ void Suspend(void)
         
     /* suspend preparation */
     /* ... */
+
+#if (XTALLESS == 1)
+    RCC->APB1PRST |= RCC_APB1PRST_UCDRRST;
+    RCC->APB1PRST &= ~RCC_APB1PRST_UCDRRST;
+#endif
 
     /*Store CTRL value */
     wCNTR = _GetCNTR();
@@ -161,13 +154,9 @@ void Suspend(void)
 #endif  /* USB_LOW_PWR_MGMT_SUPPORT */
 }
 
-/*******************************************************************************
- * Function Name  : Resume_Init
- * Description    : Handles wake-up restoring normal operations
- * Input          : None.
- * Output         : None.
- * Return         : Success.
- *******************************************************************************/
+/**
+ * @brief   Handles wake-up restoring normal operations.
+ */
 void Resume_Init(void)
 {
     uint16_t wCNTR;
@@ -194,18 +183,15 @@ void Resume_Init(void)
     /* ... */
 }
 
-/*******************************************************************************
- * Function Name  : Resume
- * Description    : This is the state machine handling resume operations and
- *                 timing sequence. The control is based on the Resume structure
- *                 variables and on the ESOF interrupt calling this subroutine
- *                 without changing machine state.
- * Input          : a state machine value (RESUME_STATE)
- *                  RESUME_ESOF doesn't change ResumeS.eState allowing
- *                  decrementing of the ESOF counter in different states.
- * Output         : None.
- * Return         : None.
- *******************************************************************************/
+/**
+ * @brief  USB Resume,This is the state machine handling resume operations and
+ *         timing sequence. The control is based on the Resume structure
+ *         variables and on the ESOF interrupt calling this subroutine
+ *         without changing machine state.
+ * @param  eResumeSetVal: a state machine value (RESUME_STATE)
+ *         RESUME_ESOF doesn't change ResumeS.eState allowing
+ *         decrementing of the ESOF counter in different states.
+ */
 void Resume(RESUME_STATE eResumeSetVal)
 {
     uint16_t wCNTR;
