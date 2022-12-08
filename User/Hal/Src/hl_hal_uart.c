@@ -78,6 +78,27 @@ void USART1_IRQHandler(void)
     rt_interrupt_leave();  //在中断中一定要调用这对函数，离开中断
 }
 
+void USART2_IRQHandler(void)
+{
+    uint8_t receive_data;  // 接收数据
+
+    /* enter interrupt */
+    rt_interrupt_enter();  //在中断中一定要调用这对函数，进入中断
+
+    if (USART_GetIntStatus(USART2, USART_INT_RXDNE) != RESET) {
+        /* Read one byte from the receive data register */
+        receive_data = USART_ReceiveData(USART2);
+        if (uart2_rcv_cb != RT_NULL) {
+            uart2_rcv_cb(receive_data);
+        }
+    } else {
+        receive_data = USART_ReceiveData(USART2);
+    }
+
+    /* leave interrupt */
+    rt_interrupt_leave();  //在中断中一定要调用这对函数，离开中断
+}
+
 void USART3_IRQHandler(void)
 {
     uint8_t receive_data;  // 接收数据
@@ -93,6 +114,27 @@ void USART3_IRQHandler(void)
         }
     } else {
         receive_data = USART_ReceiveData(USART3);
+    }
+
+    /* leave interrupt */
+    rt_interrupt_leave();  //在中断中一定要调用这对函数，离开中断
+}
+
+void UART5_IRQHandler(void)
+{
+    uint8_t receive_data;  // 接收数据
+
+    /* enter interrupt */
+    rt_interrupt_enter();  //在中断中一定要调用这对函数，进入中断
+
+    if (USART_GetIntStatus(UART5, USART_INT_RXDNE) != RESET) {
+        /* Read one byte from the receive data register */
+        receive_data = USART_ReceiveData(UART5);
+        if (uart5_rcv_cb != RT_NULL) {
+            uart5_rcv_cb(receive_data);
+        }
+    } else {
+        receive_data = USART_ReceiveData(UART5);
     }
 
     /* leave interrupt */
