@@ -124,9 +124,6 @@ static void _gpio_wakeup_config(void)
     hl_hal_gpio_attach_irq(GPIO_HALL_RX, PIN_IRQ_MODE_RISING_FALLING, _soc_gpio_irq_handle, RT_NULL);
     hl_hal_gpio_irq_enable(GPIO_HALL_RX, PIN_IRQ_ENABLE);
 
-    hl_hal_gpio_init(GPIO_CH_INT_N);
-    hl_hal_gpio_attach_irq(GPIO_CH_INT_N, PIN_IRQ_MODE_RISING_FALLING, _soc_gpio_irq_handle, RT_NULL);
-    hl_hal_gpio_irq_enable(GPIO_CH_INT_N, PIN_IRQ_ENABLE);
 }
 
 static void _gpio_lowpower_config(void)

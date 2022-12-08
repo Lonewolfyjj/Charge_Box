@@ -47,8 +47,8 @@ typedef struct _HL_GPIO_CONFIG_T
 // notice: The array element sequence must be the same as HL_GPIO PORT_E
 static const HL_GPIO_CONFIG_T gpio_config_table[USER_GPIO_NUMBER] =
 {
-    {GET_PIN(B,5),      PIN_MODE_INPUT},	// GPIO_HALL_TX2
-    {GET_PIN(B,4),      PIN_MODE_INPUT},	// GPIO_HALL_BOX
+    {GET_PIN(A,1),      PIN_MODE_INPUT},	// GPIO_HALL_TX2
+    {GET_PIN(A,0),      PIN_MODE_INPUT},	// GPIO_HALL_BOX
     {GET_PIN(B,3),      PIN_MODE_INPUT},	// GPIO_HALL_TX1
     {GET_PIN(A,7),      PIN_MODE_INPUT},	// GPIO_HALL_RX
     {GET_PIN(A,15),     PIN_MODE_INPUT},	// GPIO_CH_INT_N

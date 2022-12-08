@@ -470,8 +470,8 @@ static int _uart_init(void)
     int ret;
 
     objects[HL_MOD_EXTCOM_OBJECT_RX].uart_num  = HL_HAL_UART_NUMB_3;
-    objects[HL_MOD_EXTCOM_OBJECT_TX1].uart_num = HL_HAL_UART_NUMB_2;
-    objects[HL_MOD_EXTCOM_OBJECT_TX2].uart_num = HL_HAL_UART_NUMB_1;
+    objects[HL_MOD_EXTCOM_OBJECT_TX1].uart_num = HL_HAL_UART_NUMB_1;
+    objects[HL_MOD_EXTCOM_OBJECT_TX2].uart_num = HL_HAL_UART_NUMB_2;
 
     hl_hal_uart_init(objects[HL_MOD_EXTCOM_OBJECT_RX].uart_num, 115200);
     hl_hal_uart_init(objects[HL_MOD_EXTCOM_OBJECT_TX1].uart_num, 115200);

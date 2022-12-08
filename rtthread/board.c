@@ -93,9 +93,14 @@ static int _hl_util_config_read(char* data, int len)
 
 static void _hl_start_state_check(void)
 {
+    int ret;
+    
     hl_util_config_st_p config;
 
-    hl_drv_flash_init();
+    ret = hl_drv_flash_init();
+    if (ret == FLASH_RET_ERR) {
+        return;
+    }
 
     hl_util_config_init(_hl_util_config_write, _hl_util_config_read);
 

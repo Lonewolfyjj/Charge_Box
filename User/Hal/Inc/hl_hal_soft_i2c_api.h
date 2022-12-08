@@ -35,9 +35,9 @@
 
 typedef enum _hl_hal_soft_i2c_numb_e
 {
-    HL_HAL_SOFT_I2C_NUMB_1,         //i2c1，Gauge_PCF_SCL：PB8，Gauge_PCF_SDA：PB9
-    HL_HAL_SOFT_I2C_NUMB_2,         //i2c2，CH_LED_SCL：PA9，CH_LED_SDA：PA10
-    HL_HAL_SOFT_I2C_NUMB_3,         //i2c3，RT_LED_SCL：PA3，RT_LED_SDA：PA2
+    HL_HAL_SOFT_I2C_NUMB_1,         //i2c1，PB8，PB9，新板不用
+    HL_HAL_SOFT_I2C_NUMB_2,         //i2c2，PA9，PA10，新板不用
+    HL_HAL_SOFT_I2C_NUMB_3,         //i2c3，PA3，PA2，新版：Guage、Charger、Boost、RTC
 } hl_hal_soft_i2c_numb_e;
 
 /* define --------------------------------------------------------------------*/
