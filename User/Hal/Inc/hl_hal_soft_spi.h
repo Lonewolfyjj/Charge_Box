@@ -24,10 +24,8 @@
 #ifndef _HL_HAL_SPI_SOFT_H_
 #define _HL_HAL_SPI_SOFT_H_
 /* Includes ------------------------------------------------------------------*/
-#include <stdio.h>
-#include "stdint.h"
+
 #include "n32l40x.h"
-#include <rtthread.h>
 
 /* typedef -------------------------------------------------------------------*/
 typedef struct {

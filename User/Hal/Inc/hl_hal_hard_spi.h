@@ -59,6 +59,11 @@
 #define HARD_SPI_CS_HIGH()    GPIO_SetBits(FLASH_CS_GPIO_PORT, FLASH_CS_PIN)
 
 /* variables -----------------------------------------------------------------*/
+
+#define HARD_SPI_WAIT_TIMEOUT   1000000
+#define HARD_SPI_FUNC_RET_ERR   0xffff
+#define HARD_SPI_FUNC_RET_OK    0
+
 /* Private function(only *.c)  -----------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 

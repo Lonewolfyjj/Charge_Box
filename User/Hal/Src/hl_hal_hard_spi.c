@@ -84,14 +84,26 @@ void hl_hal_hard_spi_init(void)
 
 uint8_t hl_hal_hard_spi_send_recv(uint8_t byte)
 {
+    int num = 0;
     /*!< Loop while DAT register in not emplty */
-    while (SPI_I2S_GetStatus(FLASH_SPI, SPI_I2S_TE_FLAG) == RESET);
+    while (SPI_I2S_GetStatus(FLASH_SPI, SPI_I2S_TE_FLAG) == RESET) {
+        num++;
+        if (num > 1000 * 1000) {
+            return HARD_SPI_FUNC_RET_ERR;
+        }
+    }
 
     /*!< Send byte through the FLASH_SPI peripheral */
     SPI_I2S_TransmitData(FLASH_SPI, byte);
 
+    num = 0;
     /*!< Wait to receive a byte */
-    while (SPI_I2S_GetStatus(FLASH_SPI, SPI_I2S_RNE_FLAG) == RESET);
+    while (SPI_I2S_GetStatus(FLASH_SPI, SPI_I2S_RNE_FLAG) == RESET) {
+        num++;
+        if (num > 1000 * 1000) {
+            return HARD_SPI_FUNC_RET_ERR;
+        }
+    }
 
     /*!< Return the byte read from the SPI bus */
     return SPI_I2S_ReceiveData(FLASH_SPI);

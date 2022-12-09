@@ -29,6 +29,7 @@
 
 #include "hl_hal_soft_spi.h"
 #include "hl_hal_hard_spi.h"
+#include "rtthread.h"
 
 /* typedef -------------------------------------------------------------------*/
 
@@ -40,7 +41,8 @@
 //#define W25XXX_ID               0xEF3015    // W25X16
 //#define W25XXX_ID               0xEF4015    // W25Q16
 //#define W25XXX_ID               0xEF4018    // W25Q128
-#define W25XXX_ID               0xef4016    //W25Q32
+//#define W25XXX_ID               0xef4016    //W25Q32
+#define W25XXX_ID               0xc84017    //GD25LQ64
 
 #define debug_printf            rt_kprintf
 #define FLASH_RET_OK            0
@@ -54,7 +56,6 @@ int hl_drv_flash_init(void);
 int hl_drv_flash_deinit(void);
 int hl_drv_flash_read(uint32_t addr, uint8_t *r_data, uint32_t len);
 int hl_drv_flash_write(uint32_t addr, uint8_t* w_data, uint32_t len);
-void hl_drv_flash_erase_chip(void);
 
 #endif
 /*
