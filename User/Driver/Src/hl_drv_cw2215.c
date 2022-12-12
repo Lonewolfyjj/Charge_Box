@@ -611,6 +611,10 @@ static int clear_it_flag(hl_drv_guage_it_flag_e* p_param)
     int     ret;
     uint8_t reg_val;
 
+    if (*p_param == 0) {
+        return 0;
+    }
+
     ret = cw_read(CW2215_REG_GPIO_CONFIG, &reg_val);
     if (ret) {
         return CW2215_ERROR_IIC;

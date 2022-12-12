@@ -82,10 +82,27 @@ static rt_err_t read_regs(rt_uint8_t reg, rt_uint8_t* data, rt_uint8_t len)
 
 uint8_t hl_drv_rtc_pcf85063_init()
 {
+    uint8_t reg_val;
+    uint8_t val;
+
     if (hl_hal_soft_i2c_api_init(HL_HAL_SOFT_I2C_NUMB_1)) {
         rt_kprintf("get hl_drv_rtc_pcf85063_init  fail\n");
         return -1;
     }
+
+    val = 0xA9;
+    reg_val = val;
+
+    write_regs(RTC_PCF85063_RAM_byte, &reg_val, 1);
+
+    reg_val = 0;
+
+    read_regs(RTC_PCF85063_RAM_byte, &reg_val, 1);
+    if (reg_val != val) {
+        rt_kprintf("get hl_drv_rtc_pcf85063_init  fail\n");
+        return -1;
+    }
+
     return 0;
 }
 
