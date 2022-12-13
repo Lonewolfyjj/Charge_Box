@@ -56,7 +56,7 @@ typedef struct _hl_mod_pm_charge_info_st
 {
     uint8_t charge_status;       //充电状态
     uint8_t vbus_status;         //VBUS输入状态
-    uint8_t input_power_status;  //输入电源状态
+    uint8_t vbus_connect_status;  //输入电源状态
     uint8_t sys_vol_status;      //系统电压调节状态
     uint8_t vindpm_status;       //VINDPM 输入电压动态电源管理状态
     uint8_t iindpm_status;       //IINDPM 输入电流动态电源管理状态
@@ -78,8 +78,6 @@ typedef struct _hl_mod_pm_info_st
     bool             pm_init_flag;           //PM模块初始化标志
     bool             pth_start_flag;         //线程启动标志
     bool             init_bat_update_flag;   //程序运行后，电池信息第一次更新标志
-    bool             charge_it_update_flag;  //充电状态中断更新标志
-    bool             soc_it_update_flag;     //电量计中断更新标志
     void*            msg_hd;                 //消息队列句柄指针
     struct rt_thread pm_thread;              //线程ID
     int              thread_exit_flag;       //线程运行，退出标志
@@ -126,6 +124,12 @@ typedef enum _hl_mod_pm_charge_status_e
     HL_MOD_PM_WATCHDOG_ERR_STAT
 } hl_mod_pm_charge_status_e;
 
+typedef enum _hl_mod_pm_temp_state_e {
+    HL_MOD_PM_TEMP_FAULT,
+    HL_MOD_PM_TEMP_CHCK,
+    HL_TEMP_NOMAL
+}hl_mod_pm_temp_state_e;
+
 /* define --------------------------WATCHDOG_ERR_STAT------------------------------------------*/
 
 #define DBG_LOG rt_kprintf
@@ -134,12 +138,15 @@ typedef enum _hl_mod_pm_charge_status_e
 
 #define PM_STAT_COMPARE(m, n) ((m) == (n) ? (0) : (1))
 
+#define TEMP_MIN    -10
+#define TEMP_MAX    45
+
 /* variables -----------------------------------------------------------------*/
+
+static uint8_t  temp_state = HL_MOD_PM_TEMP_FAULT;
 
 static hl_mod_pm_info_st pm_mod_info = { .pm_init_flag          = false,
                                          .pth_start_flag        = false,
-                                         .charge_it_update_flag = false,
-                                         .soc_it_update_flag    = false,
                                          .msg_hd                = RT_NULL,
                                          .pm_thread             = { 0 },
                                          .thread_exit_flag      = -1 };
@@ -155,7 +162,7 @@ static hl_mod_pm_bat_info_st bat_info = { .soc_val.soc   = 0,
 
 static hl_mod_pm_charge_info_st old_charge_info = { .charge_status      = 0,
                                                     .vbus_status        = 0,
-                                                    .input_power_status = 0,
+                                                    .vbus_connect_status = 0,
                                                     .sys_vol_status     = 0,
                                                     .vindpm_status      = 0,
                                                     .iindpm_status      = 0 };
@@ -183,6 +190,9 @@ static hl_mod_msg_handle_st _pm_msg_hd = { .msg_id = 0, .msg_send = RT_NULL };
 
 static hl_mod_pm_drv_init_st _pm_drv_flag = { .pm_init_charge_flag = false, .pm_init_guage_flag = false };
 
+static bool temp_ovmax_flag = false;
+static bool  temp_ovmin_flag = false;
+
 /* Private function(only *.c)  -----------------------------------------------*/
 
 static int _mod_msg_send(uint8_t cmd, void* param, uint16_t len)
@@ -193,86 +203,6 @@ static int _mod_msg_send(uint8_t cmd, void* param, uint16_t len)
     }
 
     return HL_MOD_PM_FUNC_RET_ERR;
-}
-
-/**
- * @brief 电量计中断服务函数
- * @param [in] args 
- * @date 2022-10-27
- * @author yijiujun (jiujun.yi@hollyland-tech.com)
- * @details 
- * @note 
- * @par 修改日志:
- * <table>
- * <tr><th>Date             <th>Author         <th>Description
- * <tr><td>2022-10-27      <td>yijiujun     <td>新建
- * </table>
- */
-static void _soc_gpio_irq_handle(void* args)
-{
-    pm_mod_info.soc_it_update_flag = true;
-}
-
-static inline void _guage_soc_gpio_irq_init()
-{
-    hl_hal_gpio_init(GPIO_GAUGE_INT);
-    hl_hal_gpio_attach_irq(GPIO_GAUGE_INT, PIN_IRQ_MODE_FALLING, _soc_gpio_irq_handle, RT_NULL);
-    hl_hal_gpio_irq_enable(GPIO_GAUGE_INT, PIN_IRQ_DISABLE);
-}
-
-static inline void _guage_soc_gpio_irq_deinit()
-{
-    hl_hal_gpio_irq_enable(GPIO_GAUGE_INT, PIN_IRQ_DISABLE);
-    hl_hal_gpio_deinit(GPIO_GAUGE_INT);
-}
-
-static inline void _guage_soc_gpio_irq_enable(bool flag)
-{
-    if (flag) {
-        hl_hal_gpio_irq_enable(GPIO_GAUGE_INT, PIN_IRQ_ENABLE);
-    } else {
-        hl_hal_gpio_irq_enable(GPIO_GAUGE_INT, PIN_IRQ_DISABLE);
-    }
-}
-
-/**
- * @brief 充电中断服务函数
- * @param [in] args 
- * @date 2022-10-27
- * @author yijiujun (jiujun.yi@hollyland-tech.com)
- * @details 
- * @note 
- * @par 修改日志:
- * <table>
- * <tr><th>Date             <th>Author         <th>Description
- * <tr><td>2022-10-27      <td>yijiujun     <td>新建
- * </table>
- */
-static void _charge_gpio_irq_handle(void* args)
-{
-    pm_mod_info.charge_it_update_flag = true;
-}
-
-static inline void _charge_gpio_irq_init()
-{
-    hl_hal_gpio_init(GPIO_CH_INT_N);
-    hl_hal_gpio_attach_irq(GPIO_CH_INT_N, PIN_IRQ_MODE_FALLING, _charge_gpio_irq_handle, RT_NULL);
-    hl_hal_gpio_irq_enable(GPIO_CH_INT_N, PIN_IRQ_DISABLE);
-}
-
-static inline void _charge_gpio_irq_deinit()
-{
-    hl_hal_gpio_irq_enable(GPIO_CH_INT_N, PIN_IRQ_DISABLE);
-    hl_hal_gpio_deinit(GPIO_CH_INT_N);
-}
-
-static inline void _charge_gpio_irq_enable(bool flag)
-{
-    if (flag) {
-        hl_hal_gpio_irq_enable(GPIO_CH_INT_N, PIN_IRQ_ENABLE);
-    } else {
-        hl_hal_gpio_irq_enable(GPIO_CH_INT_N, PIN_IRQ_DISABLE);
-    }
 }
 
 /**
@@ -442,28 +372,24 @@ static void _pm_update_bat_info(hl_mod_pm_bat_info_e type)
 static inline void _pm_update_bat_info_check(void)
 {
     hl_drv_guage_it_flag_e it_flag;
-    uint8_t                flag;
+    uint8_t                reg_val;
     bool                   update_flag = false;
 
-    if (pm_mod_info.soc_it_update_flag == true) {
-        hl_drv_cw2215_ctrl(HL_DRV_GUAGE_CHECK_IT_FLAG, &it_flag, sizeof(it_flag));
+    hl_drv_cw2215_ctrl(HL_DRV_GUAGE_CHECK_IT_FLAG, &it_flag, sizeof(it_flag));
 
-        if (it_flag & HL_DRV_GUAGE_IT_FLAG_SOC) {
-            update_flag = true;
-        }
-
-        if (it_flag & HL_DRV_GUAGE_IT_FLAG_TMAX) {
-            // to be done
-        }
-
-        if (it_flag & HL_DRV_GUAGE_IT_FLAG_TMIN) {
-            // to be done
-        }
-
-        hl_drv_cw2215_ctrl(HL_DRV_GUAGE_CLEAR_IT_FLAG, &it_flag, sizeof(it_flag));
-
-        pm_mod_info.soc_it_update_flag = false;
+    if (it_flag & HL_DRV_GUAGE_IT_FLAG_SOC) {   //检测是否产生电量变化中断
+        update_flag = true;
     }
+
+    if (it_flag & HL_DRV_GUAGE_IT_FLAG_TMAX) {  //检测是否产生温度超最高阈值中断
+        temp_ovmax_flag = true;
+    }
+
+    if (it_flag & HL_DRV_GUAGE_IT_FLAG_TMIN) {  //检测是否产生温度超最低阈值中断
+        temp_ovmin_flag = true;
+    }
+
+    hl_drv_cw2215_ctrl(HL_DRV_GUAGE_CLEAR_IT_FLAG, &it_flag, sizeof(it_flag));
 
     if (pm_mod_info.init_bat_update_flag == true) {
         update_flag                      = true;
@@ -477,6 +403,35 @@ static inline void _pm_update_bat_info_check(void)
         _pm_update_bat_info(HL_MOD_PM_BAT_INFO_TEMP);
 
         _mod_msg_send(HL_MOD_PM_SOC_MSG, RT_NULL, 0);
+    }
+
+    /* 温度中断报警，温度超过限定值，在-10°c 和 45°c之外，关闭电池充电*/
+    if (temp_ovmax_flag == true || temp_ovmin_flag == true) {
+        switch (temp_state) {
+            case HL_MOD_PM_TEMP_FAULT:                         //关闭充电
+                reg_val = 0;
+                hl_drv_sgm41513_ctrl(SET_CHARGE_STATUS, &reg_val, sizeof(uint8_t));
+                _mod_msg_send(HL_MOD_PM_TEMP_FAULT_MSG, RT_NULL, 0);
+                temp_state = 1;
+                break;
+            case HL_MOD_PM_TEMP_CHCK:                         //检测温度是否正常
+                _pm_update_bat_info(HL_MOD_PM_BAT_INFO_TEMP);
+                DBG_LOG("-----temp fault: %d°c-----\n", bat_info.temp.temp);
+                if (bat_info.temp.temp > TEMP_MIN && bat_info.temp.temp < TEMP_MAX) {
+                    temp_state = HL_TEMP_NOMAL;  
+                }
+                break;
+            case HL_TEMP_NOMAL:                         //温度警报解除，恢复充电
+                temp_state = HL_MOD_PM_TEMP_FAULT;
+                temp_ovmax_flag = false;
+                temp_ovmin_flag = false;
+                reg_val = 1;
+                hl_drv_sgm41513_ctrl(SET_CHARGE_STATUS, &reg_val, sizeof(uint8_t));
+                _mod_msg_send(HL_MOD_PM_TEMP_NOMAL_MSG, RT_NULL, 0);
+                break;
+            default:
+                break;
+        }
     }
 }
 
@@ -498,7 +453,7 @@ static void _pm_get_charge_status_info()
     uint8_t reg_val;
     hl_drv_sgm41513_ctrl(GET_CHARGE_STATUS, &new_charge_info.charge_status, 1);
     hl_drv_sgm41513_ctrl(GET_VBUS_STATUS, &new_charge_info.vbus_status, 1);
-    hl_drv_sgm41513_ctrl(GET_INPUT_POWER_STATUS, &new_charge_info.input_power_status, 1);
+    hl_drv_sgm41513_ctrl(GET_VBUS_CONNECT_STATE, &new_charge_info.vbus_connect_status, 1);
     hl_drv_sgm41513_ctrl(GET_VINDPM_STATUS, &new_charge_info.vindpm_status, 1);
     hl_drv_sgm41513_ctrl(GET_IINDPM_STATUS, &new_charge_info.iindpm_status, 1);
     hl_drv_sgm41513_ctrl(GET_SYS_VOL_REGULATION_STATUS, &new_charge_info.sys_vol_status, 1);
@@ -529,11 +484,11 @@ static void _pm_charge_irq_pair_deal(uint8_t val)
     switch (val) {
         case HL_MOD_PM_CHAR_STAT:
             if (PM_STAT_COMPARE(old_charge_info.charge_status, new_charge_info.charge_status) == 1) {
-
+                
                 _mod_msg_send(HL_MOD_PM_CHARGE_MSG, RT_NULL, 0);
 
                 DBG_LOG("    msg send 0, charge status :%d, input:%d, bat_err:%d, charge_err:%d\n",
-                        new_charge_info.charge_status, new_charge_info.input_power_status,
+                        new_charge_info.charge_status, new_charge_info.vbus_connect_status,
                         new_charge_error_info.bat_error_status, new_charge_error_info.charge_error_status);
             }
             break;
@@ -543,11 +498,11 @@ static void _pm_charge_irq_pair_deal(uint8_t val)
             }
             break;
         case HL_MOD_PM_INPUT_STAT:
-            if (PM_STAT_COMPARE(old_charge_info.input_power_status, new_charge_info.input_power_status) == 1) {
+            if (PM_STAT_COMPARE(old_charge_info.vbus_connect_status, new_charge_info.vbus_connect_status) == 1) {
 
                 _mod_msg_send(HL_MOD_PM_VBUS_MSG, RT_NULL, 0);
 
-                DBG_LOG("    msg send 2, input power status: %d\n", new_charge_info.input_power_status);
+                DBG_LOG("    msg send 2, input power status: %d\n", new_charge_info.vbus_connect_status);
             }
             break;
         case HL_MOD_PM_VINDPM_STAT:
@@ -567,25 +522,27 @@ static void _pm_charge_irq_pair_deal(uint8_t val)
             break;
         case HL_MOD_PM_BAT_ERR_STAT:
             if (PM_STAT_COMPARE(old_charge_error_info.bat_error_status, new_charge_error_info.bat_error_status) == 1) {
-                DBG_LOG("    6\n");
+                _mod_msg_send(HL_MOD_PM_BAT_FAULT_MSG, RT_NULL, 0);
+
+                DBG_LOG("    msg send 6, battery fault status: %d\n", new_charge_error_info.bat_error_status);
             }
             break;
         case HL_MOD_PM_CHAR_ERR_STAT:
-            if (PM_STAT_COMPARE(old_charge_error_info.charge_error_status, new_charge_error_info.charge_error_status)
-                == 1) {
-                DBG_LOG("    7\n");
+            if (PM_STAT_COMPARE(old_charge_error_info.charge_error_status, new_charge_error_info.charge_error_status) == 1) {
+                _mod_msg_send(HL_MOD_CHAR_FAULT_MSG, RT_NULL, 0);
+
+                DBG_LOG("    msg send 7, charger fault status: %d\n", new_charge_error_info.charge_error_status);
             }
             break;
         case HL_MOD_PM_BOOST_ERR_STAT:
-            if (PM_STAT_COMPARE(old_charge_error_info.boost_mode_status, new_charge_error_info.boost_mode_status)
-                == 1) {
-                DBG_LOG("    8\n");
+            if (PM_STAT_COMPARE(old_charge_error_info.boost_mode_status, new_charge_error_info.boost_mode_status) == 1) {
+                _mod_msg_send(HL_MOD_BOOST_FAULT_MSG, RT_NULL, 0);
+
+                DBG_LOG("    msg send 8, BOOST fault status: %d\n", new_charge_error_info.boost_mode_status);
             }
             break;
         case HL_MOD_PM_WATCHDOG_ERR_STAT:
-            if (PM_STAT_COMPARE(old_charge_error_info.watchdog_error_status,
-                                new_charge_error_info.watchdog_error_status)
-                == 1) {
+            if (PM_STAT_COMPARE(old_charge_error_info.watchdog_error_status, new_charge_error_info.watchdog_error_status) == 1) {
                 DBG_LOG("    9\n");
             }
             break;
@@ -609,23 +566,18 @@ static void _pm_charge_irq_pair_deal(uint8_t val)
 static void _pm_charge_status_info_check(void)
 {
     uint8_t count;
-    if (pm_mod_info.charge_it_update_flag == true) {
-        DBG_LOG("\n*************charge*******it********\n");
+    _pm_get_charge_status_info();
 
-        _pm_get_charge_status_info();
-
-        for (count = 0; count < 10; count++) {
-            _pm_charge_irq_pair_deal(count);
-        }
-
-        old_charge_info                   = new_charge_info;
-        old_charge_error_info             = new_charge_error_info;
-        pm_mod_info.charge_it_update_flag = false;
+    for (count = 0; count < 10; count++) {
+        _pm_charge_irq_pair_deal(count);
     }
+
+    old_charge_info                   = new_charge_info;
+    old_charge_error_info             = new_charge_error_info;
 }
 
 /**
- * @brief 霍尔检测，是否负载发生插入拔出动作
+ * @brief 霍尔感应检测，是否负载发生插入拔出动作
  * @date 2022-10-29
  * @author yijiujun (jiujun.yi@hollyland-tech.com)
  * @details 
@@ -686,16 +638,16 @@ static void _pm_hall_load_info_check(void)
  */
 static void _pm_thread_start_init()
 {
-    if (_pm_drv_flag.pm_init_guage_flag == false) {
+    if (_pm_drv_flag.pm_init_guage_flag == false) {         //驱动初始化出现故障，上报故障类型给APP
         _mod_msg_send(HL_MOD_PM_GUAGE_ERR_MSG, RT_NULL, 0);
     } else {
-        _pm_get_charge_status_info();
+        _pm_get_charge_status_info();                       //驱动初始化成功，上报电量给APP
         _mod_msg_send(HL_MOD_PM_SOC_MSG, RT_NULL, 0);
     }
-    if (_pm_drv_flag.pm_init_charge_flag == false) {
+    if (_pm_drv_flag.pm_init_charge_flag == false) {        //驱动初始化出现故障，上报故障类型给APP
         _mod_msg_send(HL_MOD_PM_CHARGE_ERR_MSG, RT_NULL, 0);
     } else {
-        _pm_update_bat_info(HL_MOD_PM_BAT_INFO_SOC);
+        _pm_update_bat_info(HL_MOD_PM_BAT_INFO_SOC);        //驱动初始化成功，上报USB状态给APP
         _mod_msg_send(HL_MOD_PM_VBUS_MSG, RT_NULL, 0);
     }
 
@@ -716,14 +668,13 @@ static void _pm_thread_entry(void* arg)
     _mod_msg_send(HL_MOD_PM_MSG_START, RT_NULL, 0);
 
     while (pm_mod_info.thread_exit_flag == 0) {
+        _pm_update_bat_info_check();    //轮询读取
 
-        _pm_update_bat_info_check();
+        _pm_charge_status_info_check(); //轮询读取
 
-        _pm_charge_status_info_check();
-
-        _pm_hall_load_info_check();
-
-        rt_thread_mdelay(10);
+        _pm_hall_load_info_check();     //中断检测
+        
+        rt_thread_mdelay(500);
     }
 
     pm_mod_info.thread_exit_flag = -1;
@@ -765,7 +716,6 @@ int hl_mod_pm_init(void* msg_hd)
     } else {
         _pm_drv_flag.pm_init_guage_flag = true;
     }
-    _guage_soc_gpio_irq_init();
 
     /* 充电驱动初始化 */
     ret = hl_drv_sgm41513_init();
@@ -774,8 +724,6 @@ int hl_mod_pm_init(void* msg_hd)
     } else {
         _pm_drv_flag.pm_init_charge_flag = true;
     }
-
-    _charge_gpio_irq_init();
 
     /* 霍尔感应引脚初始化 */
     _hall_gpio_init();
@@ -796,13 +744,11 @@ int hl_mod_pm_deinit(void)
 
     _hall_gpio_deinit();
 
-    _charge_gpio_irq_deinit();
     ret = hl_drv_sgm41513_deinit();
     if (ret == SGM41513_ERROR) {
         return HL_MOD_PM_FUNC_RET_ERR;
     }
 
-    _guage_soc_gpio_irq_deinit();
     ret = hl_drv_cw2215_deinit();
     if (ret == CW2215_FUNC_RET_ERR) {
         return HL_MOD_PM_FUNC_RET_ERR;
@@ -835,13 +781,9 @@ int hl_mod_pm_start(void)
     hall_info.tx2_irq_flag            = false;
     hall_info.rx_irq_flag             = false;
     hall_info.box_irq_flag            = false;
-    pm_mod_info.charge_it_update_flag = false;
-    pm_mod_info.soc_it_update_flag    = false;
 
     pm_mod_info.init_bat_update_flag = false;
 
-    _guage_soc_gpio_irq_enable(true);
-    _charge_gpio_irq_enable(true);
     _hall_gpio_irq_enable(true);
 
     pm_mod_info.thread_exit_flag = 0;
@@ -871,8 +813,6 @@ int hl_mod_pm_stop(void)
         return HL_MOD_PM_FUNC_RET_ERR;
     }
 
-    _guage_soc_gpio_irq_enable(false);
-    _charge_gpio_irq_enable(false);
     _hall_gpio_irq_enable(true);
 
     pm_mod_info.thread_exit_flag = 1;
@@ -919,7 +859,7 @@ int hl_mod_pm_ctrl(int op, void* arg, int arg_size)
                 DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
                 return HL_MOD_PM_FUNC_RET_ERR;
             }
-            *arg_val = new_charge_info.input_power_status;
+            *arg_val = new_charge_info.vbus_connect_status;
             break;
         case HL_MOD_PM_GET_TX1_STATE:
             if (arg_size != sizeof(uint8_t)) {
