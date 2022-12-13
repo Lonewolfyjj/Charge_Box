@@ -1331,12 +1331,6 @@
                 <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_flash_test.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_pcf85063atl.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_pcf85063atl_test.c</name>
-            </file>
-            <file>
                 <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_pwm_led.c</name>
             </file>
             <file>
