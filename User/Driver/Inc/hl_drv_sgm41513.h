@@ -149,7 +149,7 @@ typedef struct _hl_sgm41513_reg05_t
 
 	rt_uint8_t CHG_TIMER:1; // Charge Safety Timer Setting
 						// 0 = 4hrs
-						// 1 = 6hrs (default)
+						// 1 = 16hrs (default)
 						
 	rt_uint8_t EN_TIMER	:1; // Charge Safety Timer Enable（当启用时，预充电和快速充电周期将包括在定时中）
 						// 0 = Disable
@@ -458,6 +458,9 @@ typedef enum _hl_drv_sgm41513_ctrl_op_cmd {
 
 #define SGM41513_ERROR	1
 #define SGM41513_OK		0
+
+#define SGMXXX_PART_ID	0
+
 /* variables -----------------------------------------------------------------*/
 /* Private function(only *.c)  -----------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/

@@ -507,7 +507,7 @@ static uint8_t _sgm41513_init_set()
 	st_reg01.WD_RST = 0;        // 0 = Normal ，I2C Watchdog Timer Reset(default)
 	st_reg01.PFM_DIS = 0;       // 0 = 启用脉冲频率调制 (default)
 	
-	st_reg02.ICHG = 0x34;       // 1980mA 快速充电电流值(default)
+	st_reg02.ICHG = 0x32;       // 1980mA (110100)快速充电电流值(default)-------------非默认，1740mA(110010)
 	st_reg02.Q1_FULLON = 0;     // VBUS FET 开关(default)
 	st_reg02.BOOST_LIM = 1;     //Boost Mode Current Limit  （0）0.5A  （1）1.2A(default)
 
@@ -518,27 +518,27 @@ static uint8_t _sgm41513_init_set()
 
 	st_reg04.VRECHG = 0;        //电池循环充电阈值 0:100mV(default)  1:200mV
 	st_reg04.TOPOFF_TIMER = 0;  //检测到充电终止条件后，增加的充电延长时间，0就是禁用(default)
-	st_reg04.VREG = 0x0b;       // 4.208V 最高充电电压限制(default)
+	st_reg04.VREG = 17;       // 4.208V (11)最高充电电压限制(default) ---------------------------非默认, 4.4V(17)
 
-	st_reg05.JEITA_ISET = 0;    // 1 = 20% of I-CHG (default) JEITA Charging Current
+	st_reg05.JEITA_ISET = 0;    // 1 = 20% of I-CHG (default) 低温充电电流限制值
 	st_reg05.TREG = 1;          //热调节阈值 0:80℃  1:120℃(default)
-	st_reg05.CHG_TIMER = 1;     // Charge Safety Timer Setting  0:4hours  1:6hours(default)
+	st_reg05.CHG_TIMER = 1;     // Charge Safety Timer Setting  0:4hours  1:16hours(default)
 	st_reg05.EN_TIMER = 1;      // 1 = 充电安全定时器使能(default)
-	st_reg05.WATCHDOG = 0;      // 0 = Watchdog Timer Setting disable----------------非默认
+	st_reg05.WATCHDOG = 0;      // 0 = Watchdog Timer Setting disable--------------------------非默认,禁用看门狗定时器
 	st_reg05.EN_TERM = 1;       // 1 = 充电终止启用 (default)
 
 
 	st_reg06.VINDPM = 6;        // 0110 = 4.5V (default)输入电压动态电源管理阈值
 	st_reg06.BOOSTV = 2;        // 10 = 5.15V (default) Boost Mode 电压调节
-	st_reg06.OVP = 1;           // 01 = 6.5V (5V input) (default) 电源引脚的过压保护阈值
+	st_reg06.OVP = 1;           // 01 = 6.5V (5V input), 11 = 14V（12V input）(default)电源引脚的过压保护阈值-----------------非默认
 
-	st_reg07.VDPM_BAT_TRACK = 0; 
+	st_reg07.VDPM_BAT_TRACK = 0; // 0 = 动态电压跟踪（VINDPM）设置disable(defalut)
 	st_reg07.BATFET_RST_EN = 1; // 1 = Enable BATFET reset (default)
 	st_reg07.BATFET_DLY = 1;    // 1 = Turn off BATFET after tSM_DLY(default)
-	st_reg07.JEITA_VSET = 1;    //1 = JEITA设置充电电压为 st_reg04.VREG----------------非默认
+	st_reg07.JEITA_VSET = 1;    //0 = JEITA设置充电电压为4.1V(default), 1 = JEITA设置充电电压为 st_reg04.VREG
 	st_reg07.BATFET_DIS = 0;    //0 = Allow BATFET (Q4) to turn on(default)
 	st_reg07.TMR2X_EN = 1;      //1 = 启用半时钟率安全计时器(default)
-	st_reg07.IINDET_EN = 1;     //0 = Not in input current limit detection(default)输入电流限制检测----------------非默认
+	st_reg07.IINDET_EN = 0;     //0 = Not in input current limit detection(default)输入电流限制检测
 
     hl_drv_sgm41513_write_reg(REG00_ADDR, (uint8_t *)&st_reg00);
     hl_drv_sgm41513_write_reg(REG01_ADDR, (uint8_t *)&st_reg01);
@@ -692,7 +692,7 @@ uint8_t hl_drv_sgm41513_init(void)
         return SGM41513_ERROR;
     }
     hl_drv_sgm41513_read_reg(REG0B_ADDR, (uint8_t *)&reg_val);
-    if (reg_val.PN != 0) {
+    if (reg_val.PN != SGMXXX_PART_ID) {
         sgm41513_init_status = false;
         debug_printf("[error] sgm41513 drv init failed 2 !\n");
         return SGM41513_ERROR;
