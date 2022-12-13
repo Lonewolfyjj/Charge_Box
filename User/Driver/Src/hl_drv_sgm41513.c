@@ -229,6 +229,14 @@ static void set_battery_fet_enbale(uint8_t val)
     hl_drv_sgm41513_write_reg(REG07_ADDR, (uint8_t *)&reg_val);
 }
 
+static void set_iindet_en(uint8_t val)
+{
+    hl_sgm41513_reg07_t reg_val;
+    hl_drv_sgm41513_read_reg(REG07_ADDR, (uint8_t *)&reg_val);
+    reg_val.IINDET_EN = REG_BIT_VAL(val);
+    hl_drv_sgm41513_write_reg(REG07_ADDR, (uint8_t *)&reg_val);
+}
+
 static void reset_all_reg_val(void)
 {
     hl_sgm41513_reg0b_t reg_val;
@@ -399,6 +407,13 @@ static uint8_t get_iindpm_status()
     
 }
 
+static uint8_t get_vbus_connect_status()
+{
+    hl_sgm41513_voltage_status_t reg_val;
+    hl_drv_sgm41513_read_reg(REG0A_ADDR, (uint8_t *)&reg_val);
+    return reg_val.VBUS_GD;
+}
+
 static uint8_t get_chip_part_id()
 {
     hl_sgm41513_reg0b_t reg_val;
@@ -538,7 +553,7 @@ static uint8_t _sgm41513_init_set()
 	st_reg07.JEITA_VSET = 1;    //0 = JEITA设置充电电压为4.1V(default), 1 = JEITA设置充电电压为 st_reg04.VREG
 	st_reg07.BATFET_DIS = 0;    //0 = Allow BATFET (Q4) to turn on(default)
 	st_reg07.TMR2X_EN = 1;      //1 = 启用半时钟率安全计时器(default)
-	st_reg07.IINDET_EN = 0;     //0 = Not in input current limit detection(default)输入电流限制检测
+	st_reg07.IINDET_EN = 1;     //0 = Not in input current limit detection(default)输入电流限制检测----------------非默认
 
     hl_drv_sgm41513_write_reg(REG00_ADDR, (uint8_t *)&st_reg00);
     hl_drv_sgm41513_write_reg(REG01_ADDR, (uint8_t *)&st_reg01);
@@ -620,6 +635,9 @@ uint8_t hl_drv_sgm41513_ctrl(uint8_t op_cmd, void *arg, int32_t arg_size)
         case SET_BATFET_USE_SWITCH:
             set_battery_fet_enbale(*reg_val);
             break;
+        case SET_IINDET_EN:
+            set_iindet_en(*reg_val);
+            break;
         case REST_ALL_REG_VAL:
             reset_all_reg_val();
             break;
@@ -661,6 +679,9 @@ uint8_t hl_drv_sgm41513_ctrl(uint8_t op_cmd, void *arg, int32_t arg_size)
             break;
         case GET_IINDPM_STATUS:
             *reg_val = get_iindpm_status();
+            break;
+        case GET_VBUS_CONNECT_STATE:
+            *reg_val = get_vbus_connect_status();
             break;
         case GET_CHIP_PART_ID:
             *reg_val = get_chip_part_id();

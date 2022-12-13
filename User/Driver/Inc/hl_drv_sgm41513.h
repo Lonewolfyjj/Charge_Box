@@ -396,13 +396,15 @@ typedef enum _hl_drv_sgm41513_ctrl_op_cmd {
 
 	SET_JEITA_CHARGE_VOL_VAL,		//设置JEITA的充电电压值
 	SET_BATFET_USE_SWITCH,			//设置BATFET的是否使能
+	SET_IINDET_EN,					//设置电流限制检测是否使能
+	
 	REST_ALL_REG_VAL,				//重置所有寄存器为默认值
 
 	GET_SYS_VOL_REGULATION_STATUS,	//获取系统电压调节状态
 	GET_THERMAL_REGULATION_STATUS,	//获取热调节状态
 	GET_INPUT_POWER_STATUS,			//获取输入电源状态
 	GET_CHARGE_STATUS,				//获取充电状态
-	GET_VBUS_STATUS,				//获取VBUS状态
+	GET_VBUS_STATUS,				//获取USB的状态
 
 	GET_BATTERY_TEMP_STATUS,		//获取电池温度状态
 	GET_BATTERY_ERROR_STATUS,		//获取电池故障状态
@@ -413,6 +415,7 @@ typedef enum _hl_drv_sgm41513_ctrl_op_cmd {
 	GET_INPUT_OVER_VOL_STATUS,		//获取输入过压状态（交流适配器为输入源）
 	GET_VINDPM_STATUS,				//获取VINDPM（输入电压动态电源管理）的状态
 	GET_IINDPM_STATUS,				//获取IINDPM（输入电流动态电源管理）的状态
+	GET_VBUS_CONNECT_STATE,			//获取VBUS连接状态
 
 	GET_CHIP_PART_ID,				//获取该芯片部分ID
 
