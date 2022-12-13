@@ -54,56 +54,56 @@ static void _soc_gpio_irq_handle(void* args)
 
 static void _gpio_wakeup_config(void)
 {
-//    GPIO_InitType GPIO_InitStructure;
-//    EXTI_InitType EXTI_InitStructure;
-//    NVIC_InitType NVIC_InitStructure;
-//
-//    RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOB | RCC_APB2_PERIPH_AFIO, ENABLE);
-//    RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOA, ENABLE);
-//
-//    GPIO_InitStruct(&GPIO_InitStructure);
-//    GPIO_InitStructure.Pin       = GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5;
-//    GPIO_InitStructure.GPIO_Pull = GPIO_Pull_Up;
-//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Input;
-//    GPIO_InitPeripheral(GPIOB, &GPIO_InitStructure);
-//
-//    GPIO_InitStruct(&GPIO_InitStructure);
-//    GPIO_InitStructure.Pin       = GPIO_PIN_7;
-//    GPIO_InitStructure.GPIO_Pull = GPIO_Pull_Up;
-//    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Input;
-//    GPIO_InitPeripheral(GPIOA, &GPIO_InitStructure);
-//
-//    GPIO_ConfigEXTILine(GPIOB_PORT_SOURCE, GPIO_PIN_SOURCE3);
-//    GPIO_ConfigEXTILine(GPIOB_PORT_SOURCE, GPIO_PIN_SOURCE4);
-//    GPIO_ConfigEXTILine(GPIOB_PORT_SOURCE, GPIO_PIN_SOURCE5);
-//    GPIO_ConfigEXTILine(GPIOA_PORT_SOURCE, GPIO_PIN_SOURCE7);
-//
-//    /*Configure key EXTI line*/
-//    EXTI_InitStructure.EXTI_Line    = EXTI_LINE3 | EXTI_LINE4 | EXTI_LINE5 | EXTI_LINE7;
-//    EXTI_InitStructure.EXTI_Mode    = EXTI_Mode_Interrupt;
-//    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
-//
-//    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
-//    EXTI_InitPeripheral(&EXTI_InitStructure);
-//
-//    /*Set key input interrupt priority*/
-//    NVIC_InitStructure.NVIC_IRQChannel                   = EXTI3_IRQn;
-//    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x05;
-//    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 0x0F;
-//    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
-//    NVIC_Init(&NVIC_InitStructure);
-//
-//    NVIC_InitStructure.NVIC_IRQChannel                   = EXTI4_IRQn;
-//    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x05;
-//    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 0x0F;
-//    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
-//    NVIC_Init(&NVIC_InitStructure);
-//
-//    NVIC_InitStructure.NVIC_IRQChannel                   = EXTI9_5_IRQn;
-//    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x05;
-//    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 0x0F;
-//    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
-//    NVIC_Init(&NVIC_InitStructure);
+    //    GPIO_InitType GPIO_InitStructure;
+    //    EXTI_InitType EXTI_InitStructure;
+    //    NVIC_InitType NVIC_InitStructure;
+    //
+    //    RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOB | RCC_APB2_PERIPH_AFIO, ENABLE);
+    //    RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOA, ENABLE);
+    //
+    //    GPIO_InitStruct(&GPIO_InitStructure);
+    //    GPIO_InitStructure.Pin       = GPIO_PIN_3 | GPIO_PIN_4 | GPIO_PIN_5;
+    //    GPIO_InitStructure.GPIO_Pull = GPIO_Pull_Up;
+    //    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Input;
+    //    GPIO_InitPeripheral(GPIOB, &GPIO_InitStructure);
+    //
+    //    GPIO_InitStruct(&GPIO_InitStructure);
+    //    GPIO_InitStructure.Pin       = GPIO_PIN_7;
+    //    GPIO_InitStructure.GPIO_Pull = GPIO_Pull_Up;
+    //    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Input;
+    //    GPIO_InitPeripheral(GPIOA, &GPIO_InitStructure);
+    //
+    //    GPIO_ConfigEXTILine(GPIOB_PORT_SOURCE, GPIO_PIN_SOURCE3);
+    //    GPIO_ConfigEXTILine(GPIOB_PORT_SOURCE, GPIO_PIN_SOURCE4);
+    //    GPIO_ConfigEXTILine(GPIOB_PORT_SOURCE, GPIO_PIN_SOURCE5);
+    //    GPIO_ConfigEXTILine(GPIOA_PORT_SOURCE, GPIO_PIN_SOURCE7);
+    //
+    //    /*Configure key EXTI line*/
+    //    EXTI_InitStructure.EXTI_Line    = EXTI_LINE3 | EXTI_LINE4 | EXTI_LINE5 | EXTI_LINE7;
+    //    EXTI_InitStructure.EXTI_Mode    = EXTI_Mode_Interrupt;
+    //    EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
+    //
+    //    EXTI_InitStructure.EXTI_LineCmd = ENABLE;
+    //    EXTI_InitPeripheral(&EXTI_InitStructure);
+    //
+    //    /*Set key input interrupt priority*/
+    //    NVIC_InitStructure.NVIC_IRQChannel                   = EXTI3_IRQn;
+    //    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x05;
+    //    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 0x0F;
+    //    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
+    //    NVIC_Init(&NVIC_InitStructure);
+    //
+    //    NVIC_InitStructure.NVIC_IRQChannel                   = EXTI4_IRQn;
+    //    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x05;
+    //    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 0x0F;
+    //    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
+    //    NVIC_Init(&NVIC_InitStructure);
+    //
+    //    NVIC_InitStructure.NVIC_IRQChannel                   = EXTI9_5_IRQn;
+    //    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0x05;
+    //    NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 0x0F;
+    //    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
+    //    NVIC_Init(&NVIC_InitStructure);
 
     RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOA, ENABLE);
     RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOB, ENABLE);
@@ -124,19 +124,22 @@ static void _gpio_wakeup_config(void)
     hl_hal_gpio_attach_irq(GPIO_HALL_RX, PIN_IRQ_MODE_RISING_FALLING, _soc_gpio_irq_handle, RT_NULL);
     hl_hal_gpio_irq_enable(GPIO_HALL_RX, PIN_IRQ_ENABLE);
 
+    hl_hal_gpio_init(GPIO_USB_DP_WAKE_UP);
+    hl_hal_gpio_attach_irq(GPIO_USB_DP_WAKE_UP, PIN_IRQ_MODE_RISING, _soc_gpio_irq_handle, RT_NULL);
+    hl_hal_gpio_irq_enable(GPIO_USB_DP_WAKE_UP, PIN_IRQ_ENABLE);
 }
 
 static void _gpio_lowpower_config(void)
 {
-    // GPIO_InitType GPIO_InitStructure;
+    GPIO_InitType GPIO_InitStructure;
 
-    // RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOA, ENABLE);
+    RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOA, ENABLE);
 
-    // GPIO_InitStruct(&GPIO_InitStructure);
-    // GPIO_InitStructure.Pin       = GPIO_PIN_14 | GPIO_PIN_13;
-    // GPIO_InitStructure.GPIO_Pull = GPIO_Pull_Down;
-    // GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Input;
-    // GPIO_InitPeripheral(GPIOA, &GPIO_InitStructure);
+    GPIO_InitStruct(&GPIO_InitStructure);
+    GPIO_InitStructure.Pin       = GPIO_PIN_15;
+    GPIO_InitStructure.GPIO_Pull = GPIO_No_Pull;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Analog;
+    GPIO_InitPeripheral(GPIOA, &GPIO_InitStructure);
 }
 
 /**

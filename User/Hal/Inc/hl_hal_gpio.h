@@ -23,6 +23,8 @@ typedef enum _HL_GPIO_PORT_E
     GPIO_HALL_RX,
     GPIO_CH_INT_N,
     GPIO_GAUGE_INT,
+    GPIO_USB_DP_WAKE_UP,
+    GPIO_UART_RX_WAKE_UP,
 
     GPIO_1V8_EN,
     GPIO_BOOST_EN,
