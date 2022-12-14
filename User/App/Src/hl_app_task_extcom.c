@@ -47,6 +47,27 @@ static hl_app_task_extcom_st _extcom_task = {
 
 /* Private function(only *.c)  -----------------------------------------------*/
 
+static void _extcom_state_reset_poll(void)
+{
+    if (_extcom_task.task_comm->tx1_hall_state == HL_APP_HALL_STATE_OUT) {
+        _extcom_task.task_comm->tx1_online_flag  = false;
+        _extcom_task.task_comm->tx1_bat_state    = HL_APP_BAT_STATE_UNKNOWN;
+        _extcom_task.task_comm->tx1_charge_state = HL_APP_BAT_CHARGE_STATE_UNKNOWN;
+    }
+
+    if (_extcom_task.task_comm->tx2_hall_state == HL_APP_HALL_STATE_OUT) {
+        _extcom_task.task_comm->tx2_online_flag  = false;
+        _extcom_task.task_comm->tx2_bat_state    = HL_APP_BAT_STATE_UNKNOWN;
+        _extcom_task.task_comm->tx2_charge_state = HL_APP_BAT_CHARGE_STATE_UNKNOWN;
+    }
+
+    if (_extcom_task.task_comm->rx_hall_state == HL_APP_HALL_STATE_OUT) {
+        _extcom_task.task_comm->rx_online_flag  = false;
+        _extcom_task.task_comm->rx_bat_state    = HL_APP_BAT_STATE_UNKNOWN;
+        _extcom_task.task_comm->rx_charge_state = HL_APP_BAT_CHARGE_STATE_UNKNOWN;
+    }
+}
+
 static void _extcom_dev_online_probe_set(void)
 {
     bool flag;
@@ -57,8 +78,6 @@ static void _extcom_dev_online_probe_set(void)
     } else {
         flag = false;
         hl_mod_extcom_ctrl(HL_MOD_EXTCOM_START_TX1_PROBE, &flag, sizeof(flag));
-        _extcom_task.task_comm->tx1_online_flag = false;
-        _extcom_task.task_comm->tx1_bat_state   = HL_APP_BAT_STATE_UNKNOWN;
     }
 
     if (_extcom_task.task_comm->tx2_hall_state == HL_APP_HALL_STATE_IN) {
@@ -67,8 +86,6 @@ static void _extcom_dev_online_probe_set(void)
     } else {
         flag = false;
         hl_mod_extcom_ctrl(HL_MOD_EXTCOM_START_TX2_PROBE, &flag, sizeof(flag));
-        _extcom_task.task_comm->tx2_online_flag = false;
-        _extcom_task.task_comm->tx2_bat_state   = HL_APP_BAT_STATE_UNKNOWN;
     }
 
     if (_extcom_task.task_comm->rx_hall_state == HL_APP_HALL_STATE_IN) {
@@ -77,8 +94,6 @@ static void _extcom_dev_online_probe_set(void)
     } else {
         flag = false;
         hl_mod_extcom_ctrl(HL_MOD_EXTCOM_START_RX_PROBE, &flag, sizeof(flag));
-        _extcom_task.task_comm->rx_online_flag = false;
-        _extcom_task.task_comm->rx_bat_state   = HL_APP_BAT_STATE_UNKNOWN;
     }
 }
 
@@ -90,7 +105,8 @@ static void _extcom_bat_soc_set_poll(void)
     }
 
     if (_extcom_task.task_comm->charge_state != HL_APP_BAT_CHARGE_STATE_UNKNOWN) {
-        hl_mod_extcom_ctrl(HL_MOD_EXTCOM_SET_BOX_CHARGE_STATE, &(_extcom_task.task_comm->charge_state), sizeof(uint32_t));
+        hl_mod_extcom_ctrl(HL_MOD_EXTCOM_SET_BOX_CHARGE_STATE, &(_extcom_task.task_comm->charge_state),
+                           sizeof(uint32_t));
     }
 }
 
@@ -252,6 +268,7 @@ void hl_app_task_extcom_proc(void)
         return;
     }
 
+    _extcom_state_reset_poll();
     _extcom_dev_online_probe_set();
     _extcom_bat_soc_set_poll();
 }
