@@ -83,28 +83,42 @@ static void _hl_hal_pwm_channelx_config(TIM_Module *timx, hl_hal_pwm_tim_channel
 
     tim_oc_init_struct.OcMode      = TIM_OCMODE_PWM1;
     tim_oc_init_struct.OutputState = TIM_OUTPUT_STATE_ENABLE;
-
     tim_oc_init_struct.Pulse = TIM_CCR_INIT_VAL;                  //CCR的初始值
-    tim_oc_init_struct.OcPolarity  = TIM_OC_POLARITY_LOW;
+    tim_oc_init_struct.OcPolarity  = TIM_OC_POLARITY_HIGH;
+
+    if (timx == TIM1 || timx == TIM8) {                          //TIM1和TIM8输出3路互补波形和一路CH4波形，所以要另外多配置
+        tim_oc_init_struct.OutputNState = TIM_OUTPUT_NSTATE_ENABLE;
+        tim_oc_init_struct.OcNPolarity  = TIM_OCN_POLARITY_HIGH;
+        tim_oc_init_struct.OcIdleState  = TIM_OC_IDLE_STATE_SET;
+        tim_oc_init_struct.OcNIdleState = TIM_OC_IDLE_STATE_RESET;
+    }
 
     if (channel_num & HL_HAL_PWM_TIM_CHANNEL_1) {
         TIM_InitOc1(timx, &tim_oc_init_struct);
-        TIM_ConfigOc1Preload(timx, TIM_OC_PRE_LOAD_ENABLE);
+        if (timx != TIM1 || timx != TIM8) {
+           TIM_ConfigOc1Preload(timx, TIM_OC_PRE_LOAD_ENABLE); 
+        } 
     }
 
     if (channel_num & HL_HAL_PWM_TIM_CHANNEL_2) {
         TIM_InitOc2(timx, &tim_oc_init_struct);
-        TIM_ConfigOc2Preload(timx, TIM_OC_PRE_LOAD_ENABLE);
+        if (timx != TIM1 || timx != TIM8) {
+           TIM_ConfigOc2Preload(timx, TIM_OC_PRE_LOAD_ENABLE); 
+        } 
     }
 
     if (channel_num & HL_HAL_PWM_TIM_CHANNEL_3) {
         TIM_InitOc3(timx, &tim_oc_init_struct);
-        TIM_ConfigOc3Preload(timx, TIM_OC_PRE_LOAD_ENABLE);
+        if (timx != TIM1 || timx != TIM8) {
+           TIM_ConfigOc3Preload(timx, TIM_OC_PRE_LOAD_ENABLE); 
+        } 
     }
 
     if (channel_num & HL_HAL_PWM_TIM_CHANNEL_4) {
         TIM_InitOc4(timx, &tim_oc_init_struct);
-        TIM_ConfigOc4Preload(timx, TIM_OC_PRE_LOAD_ENABLE);
+        if (timx != TIM1 || timx != TIM8) {
+           TIM_ConfigOc4Preload(timx, TIM_OC_PRE_LOAD_ENABLE); 
+        } 
     }
 }
 
@@ -119,7 +133,11 @@ uint8_t hl_hal_pwm_init(hl_hal_pwm_timx_info_st *tim_info)
     }
     _hl_hal_pwm_channelx_config(tim_info->timx, tim_info->tim_channel);
     
-    TIM_ConfigArPreload(tim_info->timx, ENABLE);
+    if (tim_info->timx == TIM1 || tim_info->timx == TIM8) {             //TIM1和TIM8输出3路互补波形和一路CH4波形，使能方式不一样
+        TIM_EnableCtrlPwmOutputs(tim_info->timx, ENABLE);
+    } else {
+        TIM_ConfigArPreload(tim_info->timx, ENABLE);
+    }
 
     TIM_Enable(tim_info->timx, ENABLE);
 
