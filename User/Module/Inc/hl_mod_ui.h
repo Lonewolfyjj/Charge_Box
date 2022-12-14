@@ -38,6 +38,7 @@ typedef enum _hl_mod_ui_charge_state_e {
     HL_MOD_UI_NO_CHARGING = 0,
     HL_MOD_UI_CHARGING,
     HL_MOD_UI_CHARG_FULL,
+    HL_MOD_UI_CHARG_UNKNOW,
 }hl_mod_ui_charge_state_e;
 
 typedef enum _hl_mod_ui_fault_state_e {

@@ -35,7 +35,8 @@ typedef enum _hl_mod_ui_soc_type_e {
     HL_MOD_UI_SOC_75_100_PERCENT,
     HL_MOD_UI_SOC_FULL,
     HL_MOD_UI_SOC_LOWPOWER,
-    HL_MOD_UI_SOC_NOMAL
+    HL_MOD_UI_SOC_NOMAL,
+    HL_MOD_UI_SOC_UNKNOW
 }hl_mod_ui_soc_type_e;
 typedef struct _hl_mod_ui_st {
     void*                   msg_hd;
@@ -67,7 +68,7 @@ static hl_mod_ui_st _ui_info = {
 static uint8_t _ui_thread_stack[UI_THREAD_STACK_SIZE] = { 0 };
 
 static hl_ui_mod_info_st _new_ui_state_st = {
-    .box_charge_state   = 0,
+    .box_charge_state   = HL_MOD_UI_CHARG_UNKNOW,
     .tx1_charge_state   = 0,
     .tx2_charge_state   = 0,
     .rx_charge_state    = 0,
@@ -460,18 +461,21 @@ static void _ui_box_led_no_charge_show()
 
 static void _ui_box_led_show()
 {
-    switch (_new_ui_state_st.box_charge_state) {
-        case HL_MOD_UI_NO_CHARGING:
-            _ui_box_led_no_charge_show();
-            break;
-        case HL_MOD_UI_CHARGING:
-            _ui_box_led_charge_show();
-            break;
-        case HL_MOD_UI_CHARG_FULL:
-            _battery_soc_state_display(HL_MOD_UI_FULL_MOD);
-            break;
-        default:
-            break;  
+    if (_old_ui_state_st.box_charge_state != _new_ui_state_st.box_charge_state) {
+        _old_ui_state_st.soc_val = 254;
+        switch (_new_ui_state_st.box_charge_state) {
+            case HL_MOD_UI_NO_CHARGING:
+                _ui_box_led_no_charge_show();
+                break;
+            case HL_MOD_UI_CHARGING:
+                _ui_box_led_charge_show();
+                break;
+            case HL_MOD_UI_CHARG_FULL:
+                _battery_soc_state_display(HL_MOD_UI_FULL_MOD);
+                break;
+            default:
+                break;  
+        }
     }
 }
 
@@ -596,6 +600,8 @@ int hl_mod_ui_init(void *msg_hd)
         DBG_LOG("[erro] ui mod init failed!\n");
         return HL_MOD_UI_FUNC_ERR;
     }
+    _set_all_box_led_close();
+    _set_all_load_led_close();
 
     DBG_LOG("ui mod init success\n");
 
@@ -621,7 +627,7 @@ int hl_mod_ui_start(void)
 
     _ui_info.thread_exit_flag = 0;
 
-    rt_err = rt_thread_init(&(_ui_info.ui_thread_fd), "hl_mod_pm_thread", _ui_thread_entry, RT_NULL, _ui_thread_stack,
+    rt_err = rt_thread_init(&(_ui_info.ui_thread_fd), "ui_thread", _ui_thread_entry, RT_NULL, _ui_thread_stack,
                             sizeof(_ui_thread_stack), 6, 10);
     if (rt_err == RT_ERROR) {
         DBG_LOG("ui thread create failed\n");
