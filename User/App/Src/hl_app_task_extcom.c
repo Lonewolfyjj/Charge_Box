@@ -110,6 +110,11 @@ static void _extcom_bat_soc_set_poll(void)
     }
 }
 
+static void _extcom_box_lid_state_set_poll(void)
+{
+    hl_mod_extcom_ctrl(HL_MOD_EXTCOM_SET_BOX_LID_STATE, &(_extcom_task.task_comm->box_hall_state), sizeof(uint32_t));
+}
+
 static void _update_tx1_bat_state(uint8_t soc)
 {
     if (soc == 100) {
@@ -271,6 +276,7 @@ void hl_app_task_extcom_proc(void)
     _extcom_state_reset_poll();
     _extcom_dev_online_probe_set();
     _extcom_bat_soc_set_poll();
+    _extcom_box_lid_state_set_poll();
 }
 
 /*

@@ -294,6 +294,10 @@ void hl_app_task_pm_msg_proc(hl_app_msg_st* msg)
 
 void hl_app_task_pm_proc(void)
 {
+    if (_pm_task.task_comm->pm_start_flag == false) {
+        return;
+    }
+
     _lowpower_poll();
     _dev_charge_ctrl_poll();
 }
