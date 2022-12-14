@@ -246,6 +246,7 @@ void hl_app_task_pm_init(void)
     _pm_task.task_comm->rx_hall_state   = HL_APP_HALL_STATE_UNKNOWN;
     _pm_task.task_comm->box_hall_state  = HL_APP_HALL_STATE_UNKNOWN;
     _pm_task.task_comm->pm_timeout_flag = false;
+    _pm_task.task_comm->drv_state       = HL_APP_DRV_STATE_NO_ERR;
 
     rt_timer_init(&(_pm_task.timer), "task_pm_timer", _timer_timeout_handle, RT_NULL, 1000 * 60 * 2,
                   RT_TIMER_FLAG_ONE_SHOT | RT_TIMER_FLAG_SOFT_TIMER);

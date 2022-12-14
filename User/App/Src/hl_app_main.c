@@ -30,6 +30,7 @@
 #include "hl_mod_typedef.h"
 #include "hl_mod_extcom.h"
 #include "hl_mod_pm.h"
+#include "hl_mod_ui.h"
 
 /* typedef -------------------------------------------------------------------*/
 
@@ -72,6 +73,13 @@ static int _mod_init(void)
         return HL_APP_MAIN_FUNC_REE;
     }
 
+    msg_hd.msg_id = HL_APP_MSG_ID_UI_MOD;
+
+    ret = hl_mod_ui_init(&msg_hd);
+    if (ret == HL_MOD_UI_FUNC_ERR) {
+        return HL_APP_MAIN_FUNC_REE;
+    }
+
     return HL_APP_MAIN_FUNC_OK;
 }
 
@@ -86,6 +94,11 @@ static int _mod_start(void)
 
     ret = hl_mod_pm_start();
     if (ret == HL_MOD_PM_FUNC_RET_ERR) {
+        return HL_APP_MAIN_FUNC_REE;
+    }
+
+    ret = hl_mod_ui_start();
+    if (ret == HL_MOD_UI_FUNC_ERR) {
         return HL_APP_MAIN_FUNC_REE;
     }
 
@@ -106,6 +119,11 @@ static int _mod_deinit(void)
         return HL_APP_MAIN_FUNC_REE;
     }
 
+    ret = hl_mod_ui_deinit();
+    if (ret == HL_MOD_UI_FUNC_ERR) {
+        return HL_APP_MAIN_FUNC_REE;
+    }
+
     return HL_APP_MAIN_FUNC_OK;
 }
 
@@ -120,6 +138,11 @@ static int _mod_stop(void)
 
     ret = hl_mod_pm_stop();
     if (ret == HL_MOD_PM_FUNC_RET_ERR) {
+        return HL_APP_MAIN_FUNC_REE;
+    }
+
+    ret = hl_mod_ui_stop();
+    if (ret == HL_MOD_UI_FUNC_ERR) {
         return HL_APP_MAIN_FUNC_REE;
     }
 

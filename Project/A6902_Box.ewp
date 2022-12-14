@@ -1402,6 +1402,12 @@
             <file>
                 <name>$PROJ_DIR$\..\User\Module\Src\hl_mod_pm_test.c</name>
             </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Module\Src\hl_mod_ui.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\User\Module\Src\hl_mod_ui_test.c</name>
+            </file>
         </group>
         <group>
             <name>utility</name>

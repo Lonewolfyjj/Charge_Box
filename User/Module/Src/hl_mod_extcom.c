@@ -1279,7 +1279,7 @@ int hl_mod_extcom_start(void)
 
     _extcom_mod.thread_exit_flag = 0;
 
-    rt_err = rt_thread_init(&(_extcom_mod.extcom_thread), "hl_mod_extcom_thread", _extcom_thread_entry, RT_NULL,
+    rt_err = rt_thread_init(&(_extcom_mod.extcom_thread), "extcom_thread", _extcom_thread_entry, RT_NULL,
                             extcom_thread_stack, sizeof(extcom_thread_stack), 6, 32);
     if (rt_err == RT_ERROR) {
         DBG_LOG("extcom thread init failed\n");

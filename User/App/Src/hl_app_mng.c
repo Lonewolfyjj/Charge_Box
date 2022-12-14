@@ -26,7 +26,6 @@
 #include "hl_app_mng.h"
 #include "hl_app_msg.h"
 #include "hl_app_task.h"
-#include "hl_mod_extcom.h"
 
 /* typedef -------------------------------------------------------------------*/
 
@@ -126,8 +125,8 @@ int hl_app_mng_start(void)
 
     _mng_app.thread_exit_flag = 0;
 
-    rt_err = rt_thread_init(&(_mng_app.mng_thread), "hl_app_mng_thread", _app_mng_thread_entry, RT_NULL,
-                            mng_thread_stack, sizeof(mng_thread_stack), 6, 32);
+    rt_err = rt_thread_init(&(_mng_app.mng_thread), "app_mng_thread", _app_mng_thread_entry, RT_NULL,
+                            mng_thread_stack, sizeof(mng_thread_stack), 5, 32);
     if (rt_err == RT_ERROR) {
         DBG_LOG("mng thread init failed\n");
         return HL_APP_MNG_FUNC_ERR;
