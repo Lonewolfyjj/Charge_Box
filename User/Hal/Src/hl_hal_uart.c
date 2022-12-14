@@ -171,22 +171,22 @@ static void _uart1_gpio_init(void)
     GPIO_InitType GPIO_InitStructure;
 
     /* Enable GPIO clock */
-    RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOB, ENABLE);
+    RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_GPIOA, ENABLE);
 
     /* Initialize GPIO_InitStructure */
     GPIO_InitStruct(&GPIO_InitStructure);
 
     /* Configure USARTx Tx as alternate function push-pull */
-    GPIO_InitStructure.Pin            = GPIO_PIN_6;
+    GPIO_InitStructure.Pin            = GPIO_PIN_4;
     GPIO_InitStructure.GPIO_Mode      = GPIO_Mode_AF_PP;
-    GPIO_InitStructure.GPIO_Alternate = GPIO_AF0_USART1;
-    GPIO_InitPeripheral(GPIOB, &GPIO_InitStructure);
+    GPIO_InitStructure.GPIO_Alternate = GPIO_AF1_USART1;
+    GPIO_InitPeripheral(GPIOA, &GPIO_InitStructure);
 
     /* Configure USARTx Rx as alternate function push-pull and pull-up */
-    GPIO_InitStructure.Pin            = GPIO_PIN_7;
+    GPIO_InitStructure.Pin            = GPIO_PIN_5;
     GPIO_InitStructure.GPIO_Pull      = GPIO_Pull_Up;
-    GPIO_InitStructure.GPIO_Alternate = GPIO_AF0_USART1;
-    GPIO_InitPeripheral(GPIOB, &GPIO_InitStructure);
+    GPIO_InitStructure.GPIO_Alternate = GPIO_AF4_USART1;
+    GPIO_InitPeripheral(GPIOA, &GPIO_InitStructure);
 }
 
 static void _uart1_gpio_deinit(void)
@@ -592,6 +592,9 @@ bool hl_hal_uart_receive_reg(hl_hal_uart_numb_e USARTx, uart_rcv_cb_t rcv_cb_han
         case HL_HAL_UART_NUMB_4:
             lpuart_rcv_cb = rcv_cb_handle;
             break;
+        case HL_HAL_UART_NUMB_5:
+            uart1_rcv_cb = rcv_cb_handle;
+            break;
 
         default:
             return false;
@@ -630,6 +633,10 @@ bool hl_hal_uart_init(hl_hal_uart_numb_e USARTx, uint32_t baudrate)
 
         case HL_HAL_UART_NUMB_4:
             return hl_hal_lpuart_config(baudrate);
+            break;
+
+        case HL_HAL_UART_NUMB_5:
+            return hl_hal_uart1_config(baudrate);
             break;
 
         default:
@@ -685,6 +692,15 @@ bool hl_hal_uart_deinit(hl_hal_uart_numb_e USARTx)
             LPUART_DeInit();
             _lpuart_gpio_deinit();
             RCC_EnableRETPeriphClk(RCC_RET_PERIPH_LPUART, DISABLE);
+            break;
+
+        case HL_HAL_UART_NUMB_5:
+            s_uart1_is_active = false;
+            USART_ConfigInt(USART1, USART_INT_RXDNE, DISABLE);
+            USART_Enable(USART1, DISABLE);
+            USART_DeInit(USART1);
+            _uart1_gpio_deinit();
+            RCC_EnableAPB2PeriphClk(RCC_APB2_PERIPH_USART1, DISABLE);
             break;
 
         default:
@@ -754,6 +770,17 @@ bool hl_hal_uart_send(hl_hal_uart_numb_e USARTx, uint8_t* p_data, uint16_t size)
                     while (LPUART_GetFlagStatus(LPUART_FLAG_TXC) == RESET)
                         ;
                     LPUART_ClrFlag(LPUART_FLAG_TXC);
+                }
+            }
+            break;
+
+        case HL_HAL_UART_NUMB_5:
+            if (s_uart1_is_active == true) {
+                while (size--) {
+                    USART_SendData(USART1, *p_data);
+                    p_data++;
+                    while (USART_GetFlagStatus(USART1, USART_FLAG_TXDE) == RESET)
+                        ;
                 }
             }
             break;

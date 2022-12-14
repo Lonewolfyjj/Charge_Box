@@ -42,6 +42,7 @@ typedef enum _hl_hal_uart_numb_e
     HL_HAL_UART_NUMB_2,     //tx2
     HL_HAL_UART_NUMB_3,     //rx
     HL_HAL_UART_NUMB_4,     // not use
+    HL_HAL_UART_NUMB_5,     //box debug
 } hl_hal_uart_numb_e;
 
 /**************************************************************************
