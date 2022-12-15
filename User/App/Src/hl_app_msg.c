@@ -25,6 +25,10 @@
 
 #include "hl_app_msg.h"
 
+#define DBG_SECTION_NAME "app_msg"
+#define DBG_LEVEL DBG_INFO
+#include <rtdbg.h>
+
 /* typedef -------------------------------------------------------------------*/
 
 typedef struct _hl_app_msg_handle_st
@@ -34,8 +38,6 @@ typedef struct _hl_app_msg_handle_st
 } hl_app_msg_handle_st;
 
 /* define --------------------------------------------------------------------*/
-
-#define DBG_LOG rt_kprintf
 
 #define MAX_MSG_NUM 20
 
@@ -56,18 +58,18 @@ int hl_app_msg_init(void)
     rt_err_t rt_err;
 
     if (_msg_app.init_flag == true) {
-        DBG_LOG("msg already inited!\n");
+        LOG_E("msg already inited!");
         return HL_APP_MSG_FUNC_ERR;
     }
 
     rt_err = rt_mq_init(&(_msg_app.msg_queue), "app_msg_queue", (void*)_msg_pool, sizeof(hl_app_msg_st),
                         sizeof(_msg_pool), RT_IPC_FLAG_PRIO);
     if (rt_err != RT_EOK) {
-        DBG_LOG("init message queue failed.\n");
+        LOG_E("init message queue failed.");
         return -1;
     }
 
-    DBG_LOG("msg init success!\n");
+    LOG_I("msg init success!");
 
     _msg_app.init_flag = true;
 
@@ -77,13 +79,13 @@ int hl_app_msg_init(void)
 int hl_app_msg_deinit(void)
 {
     if (_msg_app.init_flag == false) {
-        DBG_LOG("msg not init yet!\n");
+        LOG_E("msg not init yet!");
         return HL_APP_MSG_FUNC_ERR;
     }
 
     rt_mq_detach(&(_msg_app.msg_queue));
 
-    DBG_LOG("msg deinit success!\n");
+    LOG_I("msg deinit success!");
 
     _msg_app.init_flag = false;
 
@@ -96,7 +98,7 @@ int hl_app_msg_send(int msg_id, uint8_t cmd, void* param, uint16_t len)
     hl_app_msg_st msg;
 
     if (_msg_app.init_flag == false) {
-        DBG_LOG("msg not init yet!\n");
+        LOG_E("msg not init yet!");
         return HL_APP_MSG_FUNC_ERR;
     }
 
@@ -122,7 +124,7 @@ int hl_app_msg_recv(hl_app_msg_st* msg, int timeout)
     }
 
     if (_msg_app.init_flag == false) {
-        DBG_LOG("msg not init yet!\n");
+        LOG_E("msg not init yet!");
         return HL_APP_MSG_FUNC_ERR;
     }
 

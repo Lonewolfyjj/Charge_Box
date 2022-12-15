@@ -28,6 +28,10 @@
 
 #include "hl_mod_pm.h"
 
+#define DBG_SECTION_NAME "app_pm"
+#define DBG_LEVEL DBG_INFO
+#include <rtdbg.h>
+
 /* typedef -------------------------------------------------------------------*/
 
 typedef struct _hl_app_task_pm_st
@@ -37,15 +41,14 @@ typedef struct _hl_app_task_pm_st
 } hl_app_task_pm_st;
 
 /* define --------------------------------------------------------------------*/
-
-#define DBG_LOG rt_kprintf
-
 /* variables -----------------------------------------------------------------*/
 
 static hl_app_task_pm_st _pm_task = {
     .task_comm = RT_NULL,
     .timer     = { 0 },
 };
+
+extern bool _flash_init_flag;
 
 /* Private function(only *.c)  -----------------------------------------------*/
 
@@ -67,7 +70,7 @@ static void _pm_mod_bat_state_set()
         _pm_task.task_comm->bat_state = HL_APP_BAT_STATE_LOWPOWER;
     } else {
         _pm_task.task_comm->bat_state = HL_APP_BAT_STATE_ERR;
-        DBG_LOG("pm bat state err!");
+        LOG_E("pm bat state err!");
     }
 }
 
@@ -79,12 +82,12 @@ static void _pm_mod_charge_state_set(void)
 
     if (charge_value == 0) {
         _pm_task.task_comm->charge_state = HL_APP_BAT_CHARGE_STATE_NO_CHARGE;
-        DBG_LOG("pm no charge!\n");
+        LOG_I("pm no charge!");
     } else if (charge_value == 3) {
-        DBG_LOG("pm charge completed!\n");
+        LOG_I("pm charge completed!");
         _pm_task.task_comm->charge_state = HL_APP_BAT_CHARGE_STATE_CHARGE_COMPLETE;
     } else {
-        DBG_LOG("pm is charging!\n");
+        LOG_I("pm is charging!");
         _pm_task.task_comm->charge_state = HL_APP_BAT_CHARGE_STATE_CHARGING;
     }
 }
@@ -165,7 +168,7 @@ static void _pm_mod_vbus_state_set(void)
 
 static void _timer_timeout_handle(void* arg)
 {
-    DBG_LOG("pm task timeout\n");
+    LOG_I("pm task timeout");
     _pm_task.task_comm->pm_timeout_flag = true;
 }
 
@@ -248,6 +251,11 @@ void hl_app_task_pm_init(void)
     _pm_task.task_comm->pm_timeout_flag = false;
     _pm_task.task_comm->drv_state       = HL_APP_DRV_STATE_NO_ERR;
 
+    if (_flash_init_flag == false) {
+        _pm_task.task_comm->drv_state |= HL_APP_DRV_STATE_FLASH_ERR;
+        LOG_E("flash drv err!");
+    }
+
     rt_timer_init(&(_pm_task.timer), "task_pm_timer", _timer_timeout_handle, RT_NULL, 1000 * 60 * 2,
                   RT_TIMER_FLAG_ONE_SHOT | RT_TIMER_FLAG_SOFT_TIMER);
 
@@ -258,7 +266,7 @@ void hl_app_task_pm_msg_proc(hl_app_msg_st* msg)
 {
     switch (msg->cmd) {
         case HL_MOD_PM_MSG_START: {
-            DBG_LOG("pm mod thread start!\n");
+            LOG_I("pm mod thread start!");
             _pm_task.task_comm->pm_start_flag = true;
         } break;
         case HL_MOD_PM_SOC_MSG: {
@@ -281,9 +289,11 @@ void hl_app_task_pm_msg_proc(hl_app_msg_st* msg)
         } break;
         case HL_MOD_PM_GUAGE_ERR_MSG: {
             _pm_task.task_comm->drv_state |= HL_APP_DRV_STATE_GUAGE_ERR;
+            LOG_E("guage drv err!");
         } break;
         case HL_MOD_PM_CHARGE_ERR_MSG: {
             _pm_task.task_comm->drv_state |= HL_APP_DRV_STATE_CHARGER_ERR;
+            LOG_E("charger drv err!");
         } break;
         case HL_MOD_PM_VBUS_MSG: {
             _pm_mod_vbus_state_set();

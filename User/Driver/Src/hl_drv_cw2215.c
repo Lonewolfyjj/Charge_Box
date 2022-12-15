@@ -20,11 +20,12 @@
 #include "hl_drv_cw2215.h"
 #include "hl_hal_soft_i2c_api.h"
 
+#define DBG_SECTION_NAME "cw2215"
+#define DBG_LEVEL DBG_INFO
+#include <rtdbg.h>
+
 /* typedef -------------------------------------------------------------------*/
 /* define --------------------------------------------------------------------*/
-
-#define DBG_LOG rt_kprintf
-
 /* IIC Macro */
 
 #define CW2215_IIC_READ_FLAG 1
@@ -116,7 +117,7 @@ static inline int cw_read(unsigned char PointReg, unsigned char* pData)
         == SOFT_I2C_API_FUNC_RET_OK) {
         return CW2215_FUNC_RET_OK;
     } else {
-        DBG_LOG("i2c read err!\n");
+        LOG_E("i2c read err!");
         return CW2215_FUNC_RET_ERR;
     }
 }
@@ -127,7 +128,7 @@ static inline int cw_write(unsigned char PointReg, unsigned char* pData)
         == SOFT_I2C_API_FUNC_RET_OK) {
         return CW2215_FUNC_RET_OK;
     } else {
-        DBG_LOG("i2c write err!\n");
+        LOG_E("i2c write err!");
         return CW2215_FUNC_RET_ERR;
     }
 }
@@ -174,7 +175,7 @@ static int get_state(void)
     }
 
     if (reg_val != CW2215_CONFIG_MODE_ACTIVE) {
-        DBG_LOG("Guage state: not active!\n");
+        LOG_I("Guage state: not active!");
         return CW2215_NOT_ACTIVE;
     }
 
@@ -184,7 +185,7 @@ static int get_state(void)
     }
 
     if (0x00 == (reg_val & CW2215_CONFIG_UPDATE_FLG)) {
-        DBG_LOG("Guage state: not ready!\n");
+        LOG_I("Guage state: not ready!");
         return CW2215_PROFILE_NOT_READY;
     }
 
@@ -194,17 +195,17 @@ static int get_state(void)
             return CW2215_ERROR_IIC;
         }
 
-        /*printf("R reg[%02X] = %02X\n", REG_BAT_PROFILE + i, reg_val);*/
+        /*printf("R reg[%02X] = %02X", REG_BAT_PROFILE + i, reg_val);*/
         if (battery_profile_info[i] != reg_val)
             break;
     }
 
     if (i != CW2215_BATINFO_SIZE) {
-        DBG_LOG("Guage state: need update!\n");
+        LOG_I("Guage state: need update!");
         return CW2215_PROFILE_NEED_UPDATE;
     }
 
-    DBG_LOG("Guage state: normal!\n");
+    LOG_I("Guage state: normal!");
 
     return 0;
 }
@@ -414,7 +415,7 @@ static int init(void)
     }
 
     if (chip_id != CW2215_CHIP_ID) {
-        DBG_LOG("chip id err:%02x, STD id:%02x", chip_id, CW2215_CHIP_ID);
+        LOG_E("chip id err:%02x, STD id:%02x", chip_id, CW2215_CHIP_ID);
         return CW2215_ERROR_CHIP_ID;
     }
 
@@ -424,7 +425,7 @@ static int init(void)
     }
 
     if (ret != 0) {
-        DBG_LOG("config Guage!\n");
+        LOG_I("config Guage!");
         ret = config_start_ic();
         if (ret < 0)
             return ret;
@@ -648,12 +649,12 @@ static int dump_all_register_value(void)
     for (i = 0; i <= 0x5F; i++) {
         cw_read(i, &reg_val);
         /*Please add print if use*/
-        /*printf("reg[%02X] = %02X\n", i, (int)reg_val);*/
+        /*printf("reg[%02X] = %02X", i, (int)reg_val);*/
     }
     for (i = 0xA0; i <= 0xAB; i++) {
         cw_read(i, &reg_val);
         /*Please add print if use*/
-        /*printf("reg[%02X] = %02X\n", i, (int)reg_val);*/
+        /*printf("reg[%02X] = %02X", i, (int)reg_val);*/
     }
     return 0;
 }
@@ -665,7 +666,7 @@ int8_t hl_drv_cw2215_init(void)
     int ret;
 
     if (_init_flag != 0) {
-        DBG_LOG("Guage is already inited!\n");
+        LOG_E("Guage is already inited!");
         return CW2215_FUNC_RET_ERR;
     }
 
@@ -673,11 +674,11 @@ int8_t hl_drv_cw2215_init(void)
 
     ret = init();
     if (ret < 0) {
-        DBG_LOG("Guage init err!\n");
+        LOG_E("Guage init err!");
         return CW2215_FUNC_RET_ERR;
     }
 
-    DBG_LOG("\nGuage init success!\n");
+    LOG_I("Guage init success!");
 
     _init_flag = 1;
 
@@ -688,7 +689,7 @@ int8_t hl_drv_cw2215_deinit(void)
 {
     int ret;
     if (_init_flag != 1) {
-        DBG_LOG("Guage is not inited!\n");
+        LOG_E("Guage is not inited!");
         return CW2215_FUNC_RET_ERR;
     }
 
@@ -697,7 +698,7 @@ int8_t hl_drv_cw2215_deinit(void)
         return CW2215_FUNC_RET_ERR;
     }
 
-    DBG_LOG("Guage deinit success!\n");
+    LOG_I("Guage deinit success!");
     _init_flag = 0;
     return CW2215_FUNC_RET_OK;
 }
@@ -706,14 +707,14 @@ int8_t hl_drv_cw2215_ctrl(uint8_t op, void* arg, int32_t arg_size)
 {
     int ret;
     if (_init_flag != 1) {
-        DBG_LOG("Guage is not inited!\n");
+        LOG_E("Guage is not inited!");
         return CW2215_FUNC_RET_ERR;
     }
 
     switch (op) {
         case HL_DRV_GUAGE_GET_CHIP_ID: {
             if (arg_size != sizeof(char)) {
-                DBG_LOG("size err, ctrl arg need <char> type pointer!\n");
+                LOG_E("size err, ctrl arg need <char> type pointer!");
                 return CW2215_FUNC_RET_ERR;
             }
 
@@ -724,7 +725,7 @@ int8_t hl_drv_cw2215_ctrl(uint8_t op, void* arg, int32_t arg_size)
         } break;
         case HL_DRV_GUAGE_GET_VOLTAGE: {
             if (arg_size != sizeof(uint16_t)) {
-                DBG_LOG("size err, ctrl arg need <uint16_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint16_t> type pointer!");
                 return CW2215_FUNC_RET_ERR;
             }
 
@@ -735,7 +736,7 @@ int8_t hl_drv_cw2215_ctrl(uint8_t op, void* arg, int32_t arg_size)
         } break;
         case HL_DRV_GUAGE_GET_SOC: {
             if (arg_size != sizeof(hl_st_drv_guage_soc_t)) {
-                DBG_LOG("size err, ctrl arg need <hl_st_drv_guage_soc_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <hl_st_drv_guage_soc_t> type pointer!");
                 return CW2215_FUNC_RET_ERR;
             }
 
@@ -746,7 +747,7 @@ int8_t hl_drv_cw2215_ctrl(uint8_t op, void* arg, int32_t arg_size)
         } break;
         case HL_DRV_GUAGE_GET_TEMP: {
             if (arg_size != sizeof(hl_st_drv_guage_temp_t)) {
-                DBG_LOG("size err, ctrl arg need <hl_st_drv_guage_temp_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <hl_st_drv_guage_temp_t> type pointer!");
                 return CW2215_FUNC_RET_ERR;
             }
 
@@ -757,7 +758,7 @@ int8_t hl_drv_cw2215_ctrl(uint8_t op, void* arg, int32_t arg_size)
         } break;
         case HL_DRV_GUAGE_GET_CURRENT: {
             if (arg_size != sizeof(int32_t)) {
-                DBG_LOG("size err, ctrl arg need <int32_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <int32_t> type pointer!");
                 return CW2215_FUNC_RET_ERR;
             }
 
@@ -768,7 +769,7 @@ int8_t hl_drv_cw2215_ctrl(uint8_t op, void* arg, int32_t arg_size)
         } break;
         case HL_DRV_GUAGE_GET_SOH: {
             if (arg_size != sizeof(uint8_t)) {
-                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return CW2215_FUNC_RET_ERR;
             }
 
@@ -779,7 +780,7 @@ int8_t hl_drv_cw2215_ctrl(uint8_t op, void* arg, int32_t arg_size)
         } break;
         case HL_DRV_GUAGE_GET_CYCLE_COUNT: {
             if (arg_size != sizeof(uint32_t)) {
-                DBG_LOG("size err, ctrl arg need <uint32_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint32_t> type pointer!");
                 return CW2215_FUNC_RET_ERR;
             }
 
@@ -790,7 +791,7 @@ int8_t hl_drv_cw2215_ctrl(uint8_t op, void* arg, int32_t arg_size)
         } break;
         case HL_DRV_GUAGE_CHECK_IT_FLAG: {
             if (arg_size != sizeof(hl_drv_guage_it_flag_e)) {
-                DBG_LOG("size err, ctrl arg need <hl_drv_guage_it_flag_e> type pointer!\n");
+                LOG_E("size err, ctrl arg need <hl_drv_guage_it_flag_e> type pointer!");
                 return CW2215_FUNC_RET_ERR;
             }
 
@@ -801,7 +802,7 @@ int8_t hl_drv_cw2215_ctrl(uint8_t op, void* arg, int32_t arg_size)
         } break;
         case HL_DRV_GUAGE_CLEAR_IT_FLAG: {
             if (arg_size != sizeof(hl_drv_guage_it_flag_e)) {
-                DBG_LOG("size err, ctrl arg need <hl_drv_guage_it_flag_e> type pointer!\n");
+                LOG_E("size err, ctrl arg need <hl_drv_guage_it_flag_e> type pointer!");
                 return CW2215_FUNC_RET_ERR;
             }
 

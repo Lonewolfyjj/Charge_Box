@@ -19,7 +19,7 @@
  * <tr><td>2022-10-28     <td>v1.0     <td>lilin     <td>内容
  * </table>
  * 
- */ 
+ */
 /* Define to prevent recursive inclusion -------------------------------------*/
 /* Includes ------------------------------------------------------------------*/
 
@@ -31,6 +31,10 @@
 #include "hl_util_config.h"
 #include "hl_mod_extcom.h"
 
+#define DBG_SECTION_NAME "app_pt"
+#define DBG_LEVEL DBG_INFO
+#include <rtdbg.h>
+
 /* typedef -------------------------------------------------------------------*/
 /* define --------------------------------------------------------------------*/
 /* variables -----------------------------------------------------------------*/
@@ -39,24 +43,36 @@
 
 static void hl_app_pt_enter_boot(void)
 {
+    int                 ret;
     hl_util_config_st_p config;
 
-    hl_util_config_get(&config);
+    ret = hl_util_config_get(&config);
+    if (ret == HL_UTIL_CONFIG_FUNC_ERR) {
+        LOG_E("config get err!");
+        return;
+    }
+
     config->boot_jump_flag = 1;
     hl_util_config_save();
 
-    __NVIC_SystemReset();                                      //重启
+    __NVIC_SystemReset();  //重启
 }
 
 static void hl_app_pt_enter_lowpower(void)
 {
+    int                 ret;
     hl_util_config_st_p config;
 
-    hl_util_config_get(&config);
+    ret = hl_util_config_get(&config);
+    if (ret == HL_UTIL_CONFIG_FUNC_ERR) {
+        LOG_E("config get err!");
+        return;
+    }
+
     config->lowpower_flag = 1;
     hl_util_config_save();
 
-    __NVIC_SystemReset();                                      //重启
+    __NVIC_SystemReset();  //重启
 }
 
 static void hl_app_pt_enter_upgrade(void)

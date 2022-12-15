@@ -28,6 +28,10 @@
 
 #include "hl_mod_extcom.h"
 
+#define DBG_SECTION_NAME "app_extcom"
+#define DBG_LEVEL DBG_INFO
+#include <rtdbg.h>
+
 /* typedef -------------------------------------------------------------------*/
 
 typedef struct _hl_app_task_extcom_st
@@ -36,9 +40,6 @@ typedef struct _hl_app_task_extcom_st
 } hl_app_task_extcom_st;
 
 /* define --------------------------------------------------------------------*/
-
-#define DBG_LOG rt_kprintf
-
 /* variables -----------------------------------------------------------------*/
 
 static hl_app_task_extcom_st _extcom_task = {
@@ -232,7 +233,7 @@ void hl_app_task_extcom_msg_proc(hl_app_msg_st* msg)
 {
     switch (msg->cmd) {
         case HL_MOD_EXTCOM_MSG_START: {
-            DBG_LOG("extcom mod thread start!\n");
+            LOG_I("extcom mod thread start!");
             _extcom_task.task_comm->extcom_start_flag = true;
         } break;
         case HL_MOD_EXTCOM_MSG_RX_ONLINE_STATE: {

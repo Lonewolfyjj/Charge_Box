@@ -20,10 +20,12 @@
 #include "hl_drv_aw2016a.h"
 #include "hl_hal_soft_i2c_api.h"
 
+#define DBG_SECTION_NAME "aw2016"
+#define DBG_LEVEL DBG_INFO
+#include <rtdbg.h>
+
 /* typedef -------------------------------------------------------------------*/
 /* define --------------------------------------------------------------------*/
-
-#define DBG_LOG rt_kprintf
 
 #define AW2016_IIC_BUS_0_NAME "i2c2"
 #define AW2016_IIC_BUS_1_NAME "i2c3"
@@ -65,7 +67,7 @@ static inline int aw_read(hl_hal_soft_i2c_numb_e* p_i2c_bus, uint8_t PointReg, u
     if (hl_hal_soft_i2c_api_read(*p_i2c_bus, AW2016A_IIC_DEV_ADDR, PointReg, pData, 1) == SOFT_I2C_API_FUNC_RET_OK) {
         return AW2016A_FUNC_RET_OK;
     } else {
-        DBG_LOG("i2c read err!\n");
+        LOG_E("i2c read err!");
         return AW2016A_FUNC_RET_ERR;
     }
 }
@@ -75,7 +77,7 @@ static inline int aw_write(hl_hal_soft_i2c_numb_e* p_i2c_bus, uint8_t PointReg, 
     if (hl_hal_soft_i2c_api_write(*p_i2c_bus, AW2016A_IIC_DEV_ADDR, PointReg, pData, 1) == SOFT_I2C_API_FUNC_RET_OK) {
         return AW2016A_FUNC_RET_OK;
     } else {
-        DBG_LOG("i2c write err!\n");
+        LOG_E("i2c write err!");
         return AW2016A_FUNC_RET_ERR;
     }
 }
@@ -478,7 +480,7 @@ static int dump_register_value(hl_hal_soft_i2c_numb_e* p_i2c_bus, uint8_t* reg_a
         return AW2016A_FUNC_RET_ERR;
     }
 
-    DBG_LOG("reg:%02x,value:%02x\n", *reg_addr, reg_val);
+    LOG_I("reg:%02x,value:%02x", *reg_addr, reg_val);
 
     return AW2016A_FUNC_RET_OK;
 }
@@ -662,7 +664,7 @@ int hl_drv_aw2016a_init(void)
     hl_hal_soft_i2c_numb_e i2c3 = HL_HAL_SOFT_I2C_NUMB_3;
 
     if (_init_flag == 1) {
-        DBG_LOG("LED is already inited!\n");
+        LOG_E("LED is already inited!");
         return AW2016A_FUNC_RET_ERR;
     }
 
@@ -675,7 +677,7 @@ int hl_drv_aw2016a_init(void)
     }
 
     if (chip_id != AW2016A_CHIP_ID) {
-        DBG_LOG("aw2016a chip0 id err: %02x!", chip_id);
+        LOG_E("aw2016a chip0 id err: %02x!", chip_id);
         return AW2016A_FUNC_RET_ERR;
     }
 
@@ -685,7 +687,7 @@ int hl_drv_aw2016a_init(void)
     }
 
     if (chip_id != AW2016A_CHIP_ID) {
-        DBG_LOG("aw2016a chip1 id err: %02x!", chip_id);
+        LOG_E("aw2016a chip1 id err: %02x!", chip_id);
         return AW2016A_FUNC_RET_ERR;
     }
 
@@ -701,7 +703,7 @@ int hl_drv_aw2016a_init(void)
         return AW2016A_FUNC_RET_ERR;
     }
 
-    DBG_LOG("LED init success!\n");
+    LOG_I("LED init success!");
 
     _init_flag = 1;
 
@@ -716,7 +718,7 @@ int hl_drv_aw2016a_deinit(void)
     hl_hal_soft_i2c_numb_e i2c3 = HL_HAL_SOFT_I2C_NUMB_3;
 
     if (_init_flag == 0) {
-        DBG_LOG("LED is not inited!\n");
+        LOG_E("LED is not inited!");
         return AW2016A_FUNC_RET_ERR;
     }
 
@@ -732,7 +734,7 @@ int hl_drv_aw2016a_deinit(void)
         return AW2016A_FUNC_RET_ERR;
     }
 
-    DBG_LOG("LED deinit success!\n");
+    LOG_I("LED deinit success!");
 
     _init_flag = 0;
 
@@ -745,7 +747,7 @@ int hl_drv_aw2016a_ctrl(uint8_t led_num, uint8_t op, void* arg, int32_t arg_size
     hl_hal_soft_i2c_numb_e i2cx;
 
     if (_init_flag == 0) {
-        DBG_LOG("LED is not inited!\n");
+        LOG_E("LED is not inited!");
         return AW2016A_FUNC_RET_ERR;
     }
 
@@ -754,14 +756,14 @@ int hl_drv_aw2016a_ctrl(uint8_t led_num, uint8_t op, void* arg, int32_t arg_size
     } else if (led_num == HL_DRV_AW2016A_LED1) {
         i2cx = HL_HAL_SOFT_I2C_NUMB_3;
     } else {
-        DBG_LOG("LED NUM is not 0 or 1!\n");
+        LOG_E("LED NUM is not 0 or 1!");
         return AW2016A_FUNC_RET_ERR;
     }
 
     switch (op) {
         case HL_DRV_AW2016A_GET_CHIP_ID: {
             if (arg_size != sizeof(uint8_t)) {
-                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return AW2016A_FUNC_RET_ERR;
             }
 
@@ -772,7 +774,7 @@ int hl_drv_aw2016a_ctrl(uint8_t led_num, uint8_t op, void* arg, int32_t arg_size
         } break;
         case HL_DRV_AW2016A_SET_WORK_MODE: {
             if (arg_size != sizeof(uint8_t)) {
-                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return AW2016A_FUNC_RET_ERR;
             }
 
@@ -783,7 +785,7 @@ int hl_drv_aw2016a_ctrl(uint8_t led_num, uint8_t op, void* arg, int32_t arg_size
         } break;
         case HL_DRV_AW2016A_SET_GLOBAL_MAX_OUTPUT_CURRENT: {
             if (arg_size != sizeof(uint8_t)) {
-                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return AW2016A_FUNC_RET_ERR;
             }
 
@@ -794,7 +796,7 @@ int hl_drv_aw2016a_ctrl(uint8_t led_num, uint8_t op, void* arg, int32_t arg_size
         } break;
         case HL_DRV_AW2016A_OPEN_LED_CHANNEL: {
             if (arg_size != sizeof(uint8_t)) {
-                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return AW2016A_FUNC_RET_ERR;
             }
 
@@ -805,7 +807,7 @@ int hl_drv_aw2016a_ctrl(uint8_t led_num, uint8_t op, void* arg, int32_t arg_size
         } break;
         case HL_DRV_AW2016A_CLOSE_LED_CHANNEL: {
             if (arg_size != sizeof(uint8_t)) {
-                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return AW2016A_FUNC_RET_ERR;
             }
 
@@ -816,7 +818,7 @@ int hl_drv_aw2016a_ctrl(uint8_t led_num, uint8_t op, void* arg, int32_t arg_size
         } break;
         case HL_DRV_AW2016A_SET_PATTERN_MODE: {
             if (arg_size != sizeof(uint8_t)) {
-                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return AW2016A_FUNC_RET_ERR;
             }
 
@@ -827,7 +829,7 @@ int hl_drv_aw2016a_ctrl(uint8_t led_num, uint8_t op, void* arg, int32_t arg_size
         } break;
         case HL_DRV_AW2016A_SET_BREATH_PARAM: {
             if (arg_size != sizeof(hl_drv_aw2016a_breath_param_st)) {
-                DBG_LOG("size err, ctrl arg need <hl_drv_aw2016a_breath_param_st> type pointer!\n");
+                LOG_E("size err, ctrl arg need <hl_drv_aw2016a_breath_param_st> type pointer!");
                 return AW2016A_FUNC_RET_ERR;
             }
 
@@ -838,7 +840,7 @@ int hl_drv_aw2016a_ctrl(uint8_t led_num, uint8_t op, void* arg, int32_t arg_size
         } break;
         case HL_DRV_AW2016A_SET_MANUAL_MODE: {
             if (arg_size != sizeof(uint8_t)) {
-                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return AW2016A_FUNC_RET_ERR;
             }
 
@@ -849,7 +851,7 @@ int hl_drv_aw2016a_ctrl(uint8_t led_num, uint8_t op, void* arg, int32_t arg_size
         } break;
         case HL_DRV_AW2016A_SET_LED_CHANNEL_OUTPUT_CURRENT: {
             if (arg_size != sizeof(hl_drv_aw2016a_output_current_st)) {
-                DBG_LOG("size err, ctrl arg need <hl_drv_aw2016a_output_current_st> type pointer!\n");
+                LOG_E("size err, ctrl arg need <hl_drv_aw2016a_output_current_st> type pointer!");
                 return AW2016A_FUNC_RET_ERR;
             }
 
@@ -860,7 +862,7 @@ int hl_drv_aw2016a_ctrl(uint8_t led_num, uint8_t op, void* arg, int32_t arg_size
         } break;
         case HL_DRV_AW2016A_SET_LED_CHANNEL_PWM_LEVEL: {
             if (arg_size != sizeof(hl_drv_aw2016a_pwm_level_st)) {
-                DBG_LOG("size err, ctrl arg need <hl_drv_aw2016a_pwm_level_st> type pointer!\n");
+                LOG_E("size err, ctrl arg need <hl_drv_aw2016a_pwm_level_st> type pointer!");
                 return AW2016A_FUNC_RET_ERR;
             }
 
@@ -871,7 +873,7 @@ int hl_drv_aw2016a_ctrl(uint8_t led_num, uint8_t op, void* arg, int32_t arg_size
         } break;
         case HL_DRV_AW2016A_DUMP_REGISTER_VALUE: {
             if (arg_size != sizeof(uint8_t)) {
-                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return AW2016A_FUNC_RET_ERR;
             }
 
@@ -882,7 +884,7 @@ int hl_drv_aw2016a_ctrl(uint8_t led_num, uint8_t op, void* arg, int32_t arg_size
         } break;
         case HL_DRV_AW2016A_SET_LED_LIGHT_EFFECT: {
             if (arg_size != sizeof(hl_drv_aw2016a_light_st)) {
-                DBG_LOG("size err, ctrl arg need <hl_drv_aw2016a_light_st> type pointer!\n");
+                LOG_E("size err, ctrl arg need <hl_drv_aw2016a_light_st> type pointer!");
                 return AW2016A_FUNC_RET_ERR;
             }
 
@@ -893,7 +895,7 @@ int hl_drv_aw2016a_ctrl(uint8_t led_num, uint8_t op, void* arg, int32_t arg_size
         } break;
         case HL_DRV_AW2016A_SET_SYNC_CONTROL_MODE: {
             if (arg_size != sizeof(bool)) {
-                DBG_LOG("size err, ctrl arg need <bool> type pointer!\n");
+                LOG_E("size err, ctrl arg need <bool> type pointer!");
                 return AW2016A_FUNC_RET_ERR;
             }
 
@@ -904,7 +906,7 @@ int hl_drv_aw2016a_ctrl(uint8_t led_num, uint8_t op, void* arg, int32_t arg_size
         } break;
         case HL_DRV_AW2016A_SET_FADE_OUT_ENABLE: {
             if (arg_size != sizeof(hl_drv_aw2016a_set_fade_in_out_st)) {
-                DBG_LOG("size err, ctrl arg need <hl_drv_aw2016a_set_fade_in_out_st> type pointer!\n");
+                LOG_E("size err, ctrl arg need <hl_drv_aw2016a_set_fade_in_out_st> type pointer!");
                 return AW2016A_FUNC_RET_ERR;
             }
 
@@ -915,7 +917,7 @@ int hl_drv_aw2016a_ctrl(uint8_t led_num, uint8_t op, void* arg, int32_t arg_size
         } break;
         case HL_DRV_AW2016A_SET_FADE_IN_ENABLE: {
             if (arg_size != sizeof(hl_drv_aw2016a_set_fade_in_out_st)) {
-                DBG_LOG("size err, ctrl arg need <hl_drv_aw2016a_set_fade_in_out_st> type pointer!\n");
+                LOG_E("size err, ctrl arg need <hl_drv_aw2016a_set_fade_in_out_st> type pointer!");
                 return AW2016A_FUNC_RET_ERR;
             }
 

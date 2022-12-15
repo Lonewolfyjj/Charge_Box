@@ -27,6 +27,10 @@
 #include "hl_app_msg.h"
 #include "hl_app_task.h"
 
+#define DBG_SECTION_NAME "app_mng"
+#define DBG_LEVEL DBG_INFO
+#include <rtdbg.h>
+
 /* typedef -------------------------------------------------------------------*/
 
 typedef struct _hl_app_mng_handle_st
@@ -38,8 +42,6 @@ typedef struct _hl_app_mng_handle_st
 } hl_app_mng_handle_st;
 
 /* define --------------------------------------------------------------------*/
-
-#define DBG_LOG rt_kprintf
 
 #define APP_MNG_THREAD_STACK_SIZE 512
 
@@ -82,11 +84,11 @@ static void _app_mng_thread_entry(void* arg)
 int hl_app_mng_init(void)
 {
     if (_mng_app.init_flag == true) {
-        DBG_LOG("mng app already inited!\n");
+        LOG_E("mng app already inited!");
         return HL_APP_MNG_FUNC_ERR;
     }
 
-    DBG_LOG("mng app init success!\n");
+    LOG_I("mng app init success!");
 
     _mng_app.init_flag = true;
 
@@ -96,13 +98,13 @@ int hl_app_mng_init(void)
 int hl_app_mng_deinit(void)
 {
     if (_mng_app.init_flag == false) {
-        DBG_LOG("mng app not init yet!\n");
+        LOG_E("mng app not init yet!");
         return HL_APP_MNG_FUNC_ERR;
     }
 
     hl_app_mng_stop();
 
-    DBG_LOG("mng app deinit success!\n");
+    LOG_I("mng app deinit success!");
 
     _mng_app.init_flag = false;
 
@@ -114,12 +116,12 @@ int hl_app_mng_start(void)
     rt_err_t rt_err;
 
     if (_mng_app.init_flag == false) {
-        DBG_LOG("mng app not init yet!\n");
+        LOG_E("mng app not init yet!");
         return HL_APP_MNG_FUNC_ERR;
     }
 
     if (_mng_app.start_flag == true) {
-        DBG_LOG("mng app already start!\n");
+        LOG_W("mng app already start!");
         return HL_APP_MNG_FUNC_OK;
     }
 
@@ -128,13 +130,13 @@ int hl_app_mng_start(void)
     rt_err = rt_thread_init(&(_mng_app.mng_thread), "app_mng_thread", _app_mng_thread_entry, RT_NULL,
                             mng_thread_stack, sizeof(mng_thread_stack), 5, 32);
     if (rt_err == RT_ERROR) {
-        DBG_LOG("mng thread init failed\n");
+        LOG_E("mng thread init failed");
         return HL_APP_MNG_FUNC_ERR;
     }
 
     rt_thread_startup(&(_mng_app.mng_thread));
 
-    DBG_LOG("mng app start success!\n");
+    LOG_I("mng app start success!");
 
     _mng_app.start_flag = true;
 
@@ -144,24 +146,24 @@ int hl_app_mng_start(void)
 int hl_app_mng_stop(void)
 {
     if (_mng_app.init_flag == false) {
-        DBG_LOG("mng app not init yet!\n");
+        LOG_E("mng app not init yet!");
         return HL_APP_MNG_FUNC_ERR;
     }
 
     if (_mng_app.start_flag == false) {
-        DBG_LOG("mng app already stop!\n");
+        LOG_W("mng app already stop!");
         return HL_APP_MNG_FUNC_OK;
     }
 
     _mng_app.thread_exit_flag = 1;
 
-    DBG_LOG("wait mng thread exit\n");
+    LOG_I("wait mng thread exit");
 
     while (_mng_app.thread_exit_flag != -1) {
         rt_thread_mdelay(10);
     }
 
-    DBG_LOG("mng app stop success!\n");
+    LOG_I("mng app stop success!");
 
     _mng_app.start_flag = false;
 

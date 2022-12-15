@@ -32,6 +32,10 @@
 #include "hl_mod_pm.h"
 #include "hl_mod_ui.h"
 
+#define DBG_SECTION_NAME "app_main"
+#define DBG_LEVEL DBG_INFO
+#include <rtdbg.h>
+
 /* typedef -------------------------------------------------------------------*/
 
 typedef struct _hl_app_main_st
@@ -41,9 +45,6 @@ typedef struct _hl_app_main_st
 } hl_app_main_st;
 
 /* define --------------------------------------------------------------------*/
-
-#define DBG_LOG rt_kprintf
-
 /* variables -----------------------------------------------------------------*/
 
 static hl_app_main_st _main_app = {
@@ -156,7 +157,7 @@ int hl_app_main_init(void)
     int ret;
 
     if (_main_app.init_flag == true) {
-        DBG_LOG("main app already inited!\n");
+        LOG_E("main app already inited!");
         return HL_APP_MAIN_FUNC_REE;
     }
 
@@ -175,7 +176,7 @@ int hl_app_main_init(void)
         return HL_APP_MAIN_FUNC_REE;
     }
 
-    DBG_LOG("main app init success!\n");
+    LOG_I("main app init success!");
 
     _main_app.init_flag = true;
 
@@ -187,7 +188,7 @@ int hl_app_main_deinit(void)
     int ret;
 
     if (_main_app.init_flag == false) {
-        DBG_LOG("main app not init yet!\n");
+        LOG_E("main app not init yet!");
         return HL_APP_MAIN_FUNC_REE;
     }
 
@@ -205,7 +206,7 @@ int hl_app_main_deinit(void)
         return HL_APP_MAIN_FUNC_REE;
     }
 
-    DBG_LOG("main app deinit success!\n");
+    LOG_I("main app deinit success!");
 
     _main_app.init_flag = false;
 
@@ -218,12 +219,12 @@ int hl_app_main_start(void)
     int      ret;
 
     if (_main_app.init_flag == false) {
-        DBG_LOG("main app not init yet!\n");
+        LOG_E("main app not init yet!");
         return HL_APP_MAIN_FUNC_REE;
     }
 
     if (_main_app.start_flag == true) {
-        DBG_LOG("main app already start!\n");
+        LOG_W("main app already start!");
         return HL_APP_MAIN_FUNC_OK;
     }
 
@@ -237,7 +238,7 @@ int hl_app_main_start(void)
         return HL_APP_MAIN_FUNC_REE;
     }
 
-    DBG_LOG("main app start success!\n");
+    LOG_I("main app start success!");
 
     _main_app.start_flag = true;
 
@@ -249,12 +250,12 @@ int hl_app_main_stop(void)
     int ret;
 
     if (_main_app.init_flag == false) {
-        DBG_LOG("main app not init yet!\n");
+        LOG_E("main app not init yet!");
         return HL_APP_MAIN_FUNC_REE;
     }
 
     if (_main_app.start_flag == false) {
-        DBG_LOG("main app already stop!\n");
+        LOG_W("main app already stop!");
         return HL_APP_MAIN_FUNC_OK;
     }
 
@@ -268,7 +269,7 @@ int hl_app_main_stop(void)
         return HL_APP_MAIN_FUNC_REE;
     }
 
-    DBG_LOG("main app stop success!\n");
+    LOG_I("main app stop success!");
 
     _main_app.start_flag = false;
 
