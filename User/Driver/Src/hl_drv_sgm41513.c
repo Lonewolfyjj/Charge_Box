@@ -23,7 +23,6 @@
 /* Define to prevent recursive inclusion -------------------------------------*/
 /* Includes ------------------------------------------------------------------*/
 #include "hl_drv_sgm41513.h"
-#include "hl_hal_soft_i2c.h"
 #include "hl_hal_soft_i2c_api.h"
 #include "n32l40x.h"
 /* typedef -------------------------------------------------------------------*/
@@ -44,7 +43,12 @@
 #define	REG0B_ADDR		0x0B
 #define	REG0E_ADDR		0x0E
 
-#define debug_printf    rt_kprintf
+#define LOG_I    rt_kprintf
+
+#define DBG_SECTION_NAME "drv_sgm41513"
+#define DBG_LEVEL DBG_INFO
+#include <rtdbg.h>
+
 #define REG_BIT_VAL(n)  (((n) == 0) ? (0):(1))
 
 /* variables -----------------------------------------------------------------*/
@@ -435,69 +439,69 @@ static void hl_drv_sgm41513_printf_reg_val(void)
     hl_sgm41513_info_t info;
     uint8_t data;
     hl_drv_sgm41513_read_reg(REG00_ADDR, (rt_uint8_t *)&info.reg00);
-    debug_printf("EN_HIZ:%x, EN_ICHG_MON:%x, IINDPM:%x\n", info.reg00.EN_HIZ, info.reg00.EN_ICHG_MON, info.reg00.IINDPM);
-    debug_printf("\n*************************************************************\n");
+    LOG_I("EN_HIZ:%x, EN_ICHG_MON:%x, IINDPM:%x\n", info.reg00.EN_HIZ, info.reg00.EN_ICHG_MON, info.reg00.IINDPM);
+    LOG_I("\n*************************************************************\n");
 
     hl_drv_sgm41513_read_reg(REG01_ADDR, (rt_uint8_t *)&info.reg01);
-    debug_printf("PFM_DIS:%x, WD_RST:%x, OTG_CONFIG:%x, CHG_CONFIG:%x, SYS_MIN:%x, MIN_BAT_SEL:%x\n", info.reg01.PFM_DIS, info.reg01.WD_RST, 
+    LOG_I("PFM_DIS:%x, WD_RST:%x, OTG_CONFIG:%x, CHG_CONFIG:%x, SYS_MIN:%x, MIN_BAT_SEL:%x\n", info.reg01.PFM_DIS, info.reg01.WD_RST, 
                                         info.reg01.OTG_CONFIG, info.reg01.CHG_CONFIG, info.reg01.SYS_MIN, info.reg01.MIN_BAT_SEL);
-    debug_printf("\n*************************************************************\n");
+    LOG_I("\n*************************************************************\n");
 
     hl_drv_sgm41513_read_reg(REG02_ADDR, (rt_uint8_t *)&info.reg02);
-    debug_printf("BOOST_LIM:%x, Q1_FULLON:%x, ICHG:%x\n", info.reg02.BOOST_LIM, info.reg02.Q1_FULLON, info.reg02.ICHG);
-    debug_printf("\n*************************************************************\n");
+    LOG_I("BOOST_LIM:%x, Q1_FULLON:%x, ICHG:%x\n", info.reg02.BOOST_LIM, info.reg02.Q1_FULLON, info.reg02.ICHG);
+    LOG_I("\n*************************************************************\n");
 
     hl_drv_sgm41513_read_reg(REG03_ADDR, (rt_uint8_t *)&info.reg03);
-    debug_printf("IPRECHG:%x, ITERM:%x\n", info.reg03.IPRECHG, info.reg03.ITERM);
-    debug_printf("\n*************************************************************\n");
+    LOG_I("IPRECHG:%x, ITERM:%x\n", info.reg03.IPRECHG, info.reg03.ITERM);
+    LOG_I("\n*************************************************************\n");
 
     hl_drv_sgm41513_read_reg(REG04_ADDR, (rt_uint8_t *)&info.reg04);
-    debug_printf("VREG:%x, TOPOFF_TIMER:%x, VRECHG:%x\n", info.reg04.VREG, info.reg04.TOPOFF_TIMER, info.reg04.VRECHG);
-    debug_printf("\n*************************************************************\n");
+    LOG_I("VREG:%x, TOPOFF_TIMER:%x, VRECHG:%x\n", info.reg04.VREG, info.reg04.TOPOFF_TIMER, info.reg04.VRECHG);
+    LOG_I("\n*************************************************************\n");
 
     hl_drv_sgm41513_read_reg(REG05_ADDR, (rt_uint8_t *)&info.reg05);
-    debug_printf("EN_TERM:%x, ITERM_TIMER:%x, WATCHDOG:%x, EN_TIMER:%x, CHG_TIMER:%x, TREG:%x, JEITA_ISET:%x\n", 
+    LOG_I("EN_TERM:%x, ITERM_TIMER:%x, WATCHDOG:%x, EN_TIMER:%x, CHG_TIMER:%x, TREG:%x, JEITA_ISET:%x\n", 
     info.reg05.EN_TERM, info.reg05.ITERM_TIMER, info.reg05.WATCHDOG, info.reg05.EN_TIMER, 
     info.reg05.CHG_TIMER, info.reg05.TREG, info.reg05.JEITA_ISET);
-    debug_printf("\n*************************************************************\n");
+    LOG_I("\n*************************************************************\n");
 
     hl_drv_sgm41513_read_reg(REG06_ADDR, (rt_uint8_t *)&info.reg06);
-    debug_printf("OVP:%x, BOOSTV:%x, VINDPM:%x\n", info.reg06.OVP, info.reg06.BOOSTV, info.reg06.VINDPM);
-    debug_printf("\n*************************************************************\n");
+    LOG_I("OVP:%x, BOOSTV:%x, VINDPM:%x\n", info.reg06.OVP, info.reg06.BOOSTV, info.reg06.VINDPM);
+    LOG_I("\n*************************************************************\n");
 
     hl_drv_sgm41513_read_reg(REG07_ADDR, (rt_uint8_t *)&info.reg07);
-    debug_printf("IINDET_EN:%x, TMR2X_EN:%x, BATFET_RST_EN:%x, JEITA_VSET:%x, BATFET_DLY:%x, BATFET_RST_EN:%x, VDPM_BAT_TRACK:%x\n",
+    LOG_I("IINDET_EN:%x, TMR2X_EN:%x, BATFET_RST_EN:%x, JEITA_VSET:%x, BATFET_DLY:%x, BATFET_RST_EN:%x, VDPM_BAT_TRACK:%x\n",
     info.reg07.IINDET_EN, info.reg07.TMR2X_EN, info.reg07.BATFET_RST_EN, info.reg07.JEITA_VSET, info.reg07.BATFET_DLY,
     info.reg07.BATFET_RST_EN, info.reg07.VDPM_BAT_TRACK);
-    debug_printf("\n*************************************************************\n");
+    LOG_I("\n*************************************************************\n");
  
     hl_drv_sgm41513_read_reg(REG08_ADDR, (rt_uint8_t *)&info.charge_stu);
-    debug_printf("VBUS_STAT:%x, CHRG_STAT:%x, PG_STAT:%x, THERM_STAT:%x, VSYS_STAT:%x\n", 
+    LOG_I("VBUS_STAT:%x, CHRG_STAT:%x, PG_STAT:%x, THERM_STAT:%x, VSYS_STAT:%x\n", 
     info.charge_stu.VBUS_STAT, info.charge_stu.CHRG_STAT, info.charge_stu.PG_STAT, info.charge_stu.THERM_STAT, info.charge_stu.VSYS_STAT);
-    debug_printf("\n*************************************************************\n");
+    LOG_I("\n*************************************************************\n");
 
     hl_drv_sgm41513_read_reg(REG09_ADDR, (rt_uint8_t *)&info.fault_stu);
-    debug_printf("WATCHDOG_FAULT:%x, BOOST_FAULT:%x, CHRG_FAULT:%x, BAT_FAULT:%x, NTC_FAULT:%x\n", 
+    LOG_I("WATCHDOG_FAULT:%x, BOOST_FAULT:%x, CHRG_FAULT:%x, BAT_FAULT:%x, NTC_FAULT:%x\n", 
     info.fault_stu.WATCHDOG_FAULT, info.fault_stu.BOOST_FAULT, info.fault_stu.CHRG_FAULT, info.fault_stu.BAT_FAULT, info.fault_stu.NTC_FAULT);
-    debug_printf("\n*************************************************************\n");
+    LOG_I("\n*************************************************************\n");
 
     hl_drv_sgm41513_read_reg(REG0A_ADDR, (rt_uint8_t *)&info.vol_stu);
-    debug_printf("VBUS_GD:%x, VINDPM_STAT:%x, IINDPM_STAT:%x, TOPOFF_ACTIVE:%x, ACOV_STAT:%x, VINDPM_INT_MASK:%x, IINDPM_INT_MASK:%x\n",
+    LOG_I("VBUS_GD:%x, VINDPM_STAT:%x, IINDPM_STAT:%x, TOPOFF_ACTIVE:%x, ACOV_STAT:%x, VINDPM_INT_MASK:%x, IINDPM_INT_MASK:%x\n",
     info.vol_stu.VBUS_GD, info.vol_stu.VINDPM_STAT, info.vol_stu.IINDPM_STAT, info.vol_stu.TOPOFF_ACTIVE, 
     info.vol_stu.ACOV_STAT, info.vol_stu.VINDPM_INT_MASK, info.vol_stu.IINDPM_INT_MASK);
-    debug_printf("\n*************************************************************\n");
+    LOG_I("\n*************************************************************\n");
 
     hl_drv_sgm41513_read_reg(REG0B_ADDR, (rt_uint8_t *)&info.reg0b);
-    debug_printf("REG_RST:%x, PN:%x, SGMPART:%x, DEV_REV:%x\n", info.reg0b.REG_RST, info.reg0b.PN, info.reg0b.SGMPART, info.reg0b.DEV_REV);
-    debug_printf("\n*************************************************************\n");
+    LOG_I("REG_RST:%x, PN:%x, SGMPART:%x, DEV_REV:%x\n", info.reg0b.REG_RST, info.reg0b.PN, info.reg0b.SGMPART, info.reg0b.DEV_REV);
+    LOG_I("\n*************************************************************\n");
     
     hl_drv_sgm41513_read_reg(REG08_ADDR, &data);
-    debug_printf("--usb--bit 7-5 : %d, %d, %d\n", (data >> 7) & 0x1, (data >> 6) & 0x1, (data >> 5) & 0x1);
-    debug_printf("--usb--bit 4-3 : %d, %d\n", (data >> 4) & 0x01, (data >> 3) & 0x1);
-    debug_printf("--usb--bit 2 : %d\n", (data >> 2) & 0x01);
-    debug_printf("--usb--bit 1 : %d\n", (data >> 1) & 0x01);
-    debug_printf("--usb--bit 0 : %d\n", data & 0x01);
-    debug_printf("\n*************************************************************\n");
+    LOG_I("--usb--bit 7-5 : %d, %d, %d\n", (data >> 7) & 0x1, (data >> 6) & 0x1, (data >> 5) & 0x1);
+    LOG_I("--usb--bit 4-3 : %d, %d\n", (data >> 4) & 0x01, (data >> 3) & 0x1);
+    LOG_I("--usb--bit 2 : %d\n", (data >> 2) & 0x01);
+    LOG_I("--usb--bit 1 : %d\n", (data >> 1) & 0x01);
+    LOG_I("--usb--bit 0 : %d\n", data & 0x01);
+    LOG_I("\n*************************************************************\n");
 }
 
 static uint8_t _sgm41513_init_set()
@@ -571,10 +575,10 @@ uint8_t hl_drv_sgm41513_ctrl(uint8_t op_cmd, void *arg, int32_t arg_size)
 {
     uint8_t *reg_val = (uint8_t *)arg;
     if (arg_size != sizeof(char)) {
-        debug_printf("[size error], hl_drv_sgm41513_ctrl, ctrl arg need <char> type pointer!\n");
+        LOG_E("[size error], hl_drv_sgm41513_ctrl, ctrl arg need <char> type pointer!\n");
         return SGM41513_ERROR;
     } else if (!sgm41513_init_status) {
-        debug_printf("[error] hl_drv_sgm41513_init!\n");
+        LOG_E("[error] hl_drv_sgm41513_init!\n");
         return SGM41513_ERROR;
     }
     switch (op_cmd) {
@@ -703,25 +707,25 @@ uint8_t hl_drv_sgm41513_init(void)
     uint8_t re_val = 0;
     hl_sgm41513_reg0b_t reg_val;
     if (sgm41513_init_status == true) {
-        debug_printf("[error] sgm41513 drv already init!\n");
+        LOG_E("[error] sgm41513 drv already init!\n");
         return SGM41513_ERROR;
     }
     re_val = hl_hal_soft_i2c_api_init(HL_HAL_SOFT_I2C_NUMB_2);
     if (SOFT_I2C_API_FUNC_RET_ERR == re_val) {
         sgm41513_init_status = false;
-        debug_printf("[error] sgm41513 drv init failed 1 !\n");
+        LOG_E("[error] sgm41513 drv init failed 1 !\n");
         return SGM41513_ERROR;
     }
     hl_drv_sgm41513_read_reg(REG0B_ADDR, (uint8_t *)&reg_val);
     if (reg_val.PN != SGMXXX_PART_ID) {
         sgm41513_init_status = false;
-        debug_printf("[error] sgm41513 drv init failed 2 !\n");
+        LOG_E("[error] sgm41513 drv init failed 2 !\n");
         return SGM41513_ERROR;
     }
 
     _sgm41513_init_set();
 
-    debug_printf("sgm41513 drv init success!\n");
+    LOG_I("sgm41513 drv init success!\n");
     sgm41513_init_status = true;
     return SGM41513_OK; 
 }
@@ -729,7 +733,7 @@ uint8_t hl_drv_sgm41513_init(void)
 uint8_t hl_drv_sgm41513_deinit(void)
 {   
     if (sgm41513_init_status == false) {
-        debug_printf("[error] sgm41513 drv not init!\n");
+        LOG_E("[error] sgm41513 drv not init!\n");
         return SGM41513_ERROR;
     }
     hl_hal_soft_i2c_api_deinit(HL_HAL_SOFT_I2C_NUMB_2);

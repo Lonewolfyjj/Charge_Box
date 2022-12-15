@@ -57,7 +57,6 @@ typedef enum _hl_drv_pwm_led_op_cmd_e{
 
 /* define --------------------------------------------------------------------*/
 
-#define DBG_LOG     rt_kprintf
 #define PWM_LED_FUNC_RET_ERR    1
 #define PWM_LED_FUNC_RET_OK     0
 

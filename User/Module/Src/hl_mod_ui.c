@@ -48,7 +48,9 @@ typedef struct _hl_mod_ui_st {
 
 /* define --------------------------------------------------------------------*/
 
-#define DBG_LOG     rt_kprintf
+#define DBG_SECTION_NAME "mod_ui"
+#define DBG_LEVEL DBG_INFO
+#include <rtdbg.h>
 
 #define UI_THREAD_STACK_SIZE    512
 
@@ -355,11 +357,11 @@ static int _ui_mod_lowpower_state(uint8_t state_val)
     
     if (state_val == ENABLE) {
         hl_drv_pwm_led_ctrl(HL_DRV_PWM_LED_SLEEP_MODE, RT_NULL, 1);
-        DBG_LOG("ui enter lowpower\n");
+        LOG_I("ui enter lowpower\n");
     } else {
         
         hl_drv_pwm_led_ctrl(HL_DRV_PWM_LED_ACTIVE_MODE, RT_NULL, 1);
-        DBG_LOG("ui mod wake up\n");
+        LOG_I("ui mod wake up\n");
     }
     return HL_MOD_UI_FUNC_OK;
 }
@@ -594,19 +596,19 @@ int hl_mod_ui_init(void *msg_hd)
 {
     int ret;
     if (_ui_info.init_flag == true) {
-        DBG_LOG("ui mod already inited!\n");
+        LOG_E("ui mod already inited!\n");
         return HL_MOD_UI_FUNC_ERR;
     }
 
     ret = hl_drv_pwm_led_init();
     if (PWM_LED_FUNC_RET_ERR == ret) {
-        DBG_LOG("[erro] ui mod init failed!\n");
+        LOG_E("[erro] ui mod init failed!\n");
         return HL_MOD_UI_FUNC_ERR;
     }
     _set_all_box_led_close();
     _set_all_load_led_close();
 
-    DBG_LOG("ui mod init success\n");
+    LOG_I("ui mod init success\n");
 
     _old_ui_state_st = _new_ui_state_st;
     _ui_info.msg_hd = msg_hd;
@@ -619,12 +621,12 @@ int hl_mod_ui_start(void)
     rt_err_t rt_err;
 
     if (_ui_info.init_flag == false) {
-        DBG_LOG("ui mod not init!\n");
+        LOG_E("ui mod not init!\n");
         return HL_MOD_UI_FUNC_ERR;
     }
 
     if (_ui_info.start_flag == true) {
-        DBG_LOG("ui mod already start!\n");
+        LOG_E("ui mod already start!\n");
         return HL_MOD_UI_FUNC_OK;
     }
 
@@ -633,12 +635,12 @@ int hl_mod_ui_start(void)
     rt_err = rt_thread_init(&(_ui_info.ui_thread_fd), "ui_thread", _ui_thread_entry, RT_NULL, _ui_thread_stack,
                             sizeof(_ui_thread_stack), 6, 10);
     if (rt_err == RT_ERROR) {
-        DBG_LOG("ui thread create failed\n");
+        LOG_E("ui thread create failed\n");
         return HL_MOD_UI_FUNC_ERR;
     }
     rt_thread_startup(&(_ui_info.ui_thread_fd));
 
-    DBG_LOG("ui mod start success!\n");
+    LOG_I("ui mod start success!\n");
 
     _ui_info.start_flag = true;
 
@@ -648,24 +650,24 @@ int hl_mod_ui_start(void)
 int hl_mod_ui_stop(void)
 {
     if (_ui_info.init_flag == false) {
-        DBG_LOG("ui mod not init!\n");
+        LOG_E("ui mod not init!\n");
         return HL_MOD_UI_FUNC_ERR;
     }
 
     if (_ui_info.start_flag == false) {
-        DBG_LOG("ui mod not start!\n");
+        LOG_E("ui mod not start!\n");
         return HL_MOD_UI_FUNC_OK;
     }
 
     _ui_info.thread_exit_flag = 1;
 
-    DBG_LOG("wait ui thread exit\n");
+    LOG_I("wait ui thread exit\n");
 
     while (_ui_info.thread_exit_flag != -1) {
         rt_thread_mdelay(10);
     }
 
-    DBG_LOG("ui mod stop success!\n");
+    LOG_I("ui mod stop success!\n");
 
     _ui_info.start_flag = false;
 
@@ -676,7 +678,7 @@ int hl_mod_ui_deinit(void)
 {
     uint8_t val;
     if (_ui_info.init_flag == false) {
-        DBG_LOG("ui mod not init!\n");
+        LOG_E("ui mod not init!\n");
         return HL_MOD_UI_FUNC_ERR;
     }
     hl_mod_ui_stop();
@@ -685,7 +687,7 @@ int hl_mod_ui_deinit(void)
 
     hl_drv_pwm_led_deinit();
 
-    DBG_LOG("ui mod init success\n");
+    LOG_I("ui mod init success\n");
 
     _ui_info.msg_hd = RT_NULL;
     _ui_info.init_flag = false;
@@ -696,7 +698,7 @@ int hl_mod_ui_ctrl(int op, void *arg, int arg_size)
 {
     uint8_t *state_val = (uint8_t *)arg;
     if (_ui_info.init_flag == false) {
-        DBG_LOG("ui mod not init!\n");
+        LOG_E("ui mod not init!\n");
         return HL_MOD_UI_FUNC_ERR;
     }
     
@@ -802,7 +804,7 @@ int hl_mod_ui_ctrl(int op, void *arg, int arg_size)
             _ui_mod_lowpower_state(DISABLE);
             break;
         default:
-            DBG_LOG("op err, hl_mod_ui_ctrl!\n");
+            LOG_E("op err, hl_mod_ui_ctrl!\n");
             break;
     }
 

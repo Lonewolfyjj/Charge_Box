@@ -118,8 +118,6 @@ typedef enum _hl_drv_rt4813_ctrl_op_e {
 #define RT4813_WRITE_ADDR	0x39
 #define RT4813_READ_ADDR	0x3A
 
-#define DBG_LOG     rt_kprintf
-
 #define RT4813_LG_DRV_ABILITY   0x07
 
 #define RT4813_FUNC_RET_ERR     1
