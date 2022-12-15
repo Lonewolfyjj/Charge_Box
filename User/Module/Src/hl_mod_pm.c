@@ -683,8 +683,11 @@ static void _pm_thread_entry(void* arg)
 static void _hl_mod_pm_lowpower_enter(void)
 {
     hl_util_config_st_p config;
-
-    hl_util_config_get(&config);
+    uint8_t ret = hl_util_config_get(&config);
+    if (ret == HL_UTIL_CONFIG_FUNC_ERR) {
+        DBG_LOG("[error] --pm--hl_util_config_get !\n");
+        return;
+    }
     config->lowpower_flag = 1;
     hl_util_config_save();
 
