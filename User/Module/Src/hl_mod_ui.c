@@ -36,7 +36,7 @@ typedef enum _hl_mod_ui_soc_type_e {
     HL_MOD_UI_SOC_FULL,
     HL_MOD_UI_SOC_LOWPOWER,
     HL_MOD_UI_SOC_NOMAL,
-    HL_MOD_UI_SOC_UNKNOW
+    HL_MOD_UI_SOC_UNKNOW = 255
 }hl_mod_ui_soc_type_e;
 typedef struct _hl_mod_ui_st {
     void*                   msg_hd;
@@ -69,13 +69,13 @@ static uint8_t _ui_thread_stack[UI_THREAD_STACK_SIZE] = { 0 };
 
 static hl_ui_mod_info_st _new_ui_state_st = {
     .box_charge_state   = HL_MOD_UI_CHARG_UNKNOW,
-    .tx1_charge_state   = 0,
-    .tx2_charge_state   = 0,
-    .rx_charge_state    = 0,
-    .soc_val            = 255,
-    .fault_state        = 0,
-    .upgrade_state      = 0,
-    .timeout_flag       = 0
+    .tx1_charge_state   = HL_MOD_UI_CHARG_UNKNOW,
+    .tx2_charge_state   = HL_MOD_UI_CHARG_UNKNOW,
+    .rx_charge_state    = HL_MOD_UI_CHARG_UNKNOW,
+    .soc_val            = HL_MOD_UI_SOC_UNKNOW,
+    .fault_state        = HL_MOD_UI_NO_FAULT,
+    .upgrade_state      = HL_MOD_UI_NO_UPGRADE,
+    .timeout_flag       = TIMEOUT_FALG_NULL
 };
 
 static hl_ui_mod_info_st _old_ui_state_st;
@@ -462,20 +462,21 @@ static void _ui_box_led_no_charge_show()
 static void _ui_box_led_show()
 {
     if (_old_ui_state_st.box_charge_state != _new_ui_state_st.box_charge_state) {
-        _old_ui_state_st.soc_val = 254;
-        switch (_new_ui_state_st.box_charge_state) {
-            case HL_MOD_UI_NO_CHARGING:
-                _ui_box_led_no_charge_show();
-                break;
-            case HL_MOD_UI_CHARGING:
-                _ui_box_led_charge_show();
-                break;
-            case HL_MOD_UI_CHARG_FULL:
-                _battery_soc_state_display(HL_MOD_UI_FULL_MOD);
-                break;
-            default:
-                break;  
-        }
+        _old_ui_state_st.soc_val = HL_MOD_UI_SOC_UNKNOW; 
+        _old_ui_state_st.box_charge_state = _new_ui_state_st.box_charge_state;
+    }
+    switch (_new_ui_state_st.box_charge_state) {
+        case HL_MOD_UI_NO_CHARGING:
+            _ui_box_led_no_charge_show();
+            break;
+        case HL_MOD_UI_CHARGING:
+            _ui_box_led_charge_show();
+            break;
+        case HL_MOD_UI_CHARG_FULL:
+            _battery_soc_state_display(HL_MOD_UI_FULL_MOD);
+            break;
+        default:
+            break;  
     }
 }
 
@@ -540,6 +541,11 @@ static void _ui_rx_led_show()
         _old_ui_state_st.rx_charge_state = _new_ui_state_st.rx_charge_state;
     }
 }
+static void _ui_clear_old_state()
+{
+    rt_memset(&_old_ui_state_st, 0, sizeof(_old_ui_state_st));
+    _old_ui_state_st.soc_val = HL_MOD_UI_SOC_UNKNOW;
+}
 
 static void _ui_mod_state_check()
 {
@@ -552,14 +558,12 @@ static void _ui_mod_state_check()
         if (_new_ui_state_st.timeout_flag == TIMEOUT_FALG_NULL) {   //无超时显示
             _ui_box_led_show();
         } else {                                                    //超时显示
-            rt_memset(&_old_ui_state_st, 0, sizeof(_old_ui_state_st));
-            _old_ui_state_st.soc_val = 255;                                             
+            _ui_clear_old_state();                                             
             _set_all_box_led_close();
         }  
             
     } else {                                                      //故障显示
-        rt_memset(&_old_ui_state_st, 0, sizeof(_old_ui_state_st));
-        _old_ui_state_st.soc_val = 255;
+        _ui_clear_old_state();
         _error_state_display(ENABLE);
     }
 }
@@ -570,8 +574,7 @@ static void _ui_thread_entry(void* arg)
     while (_ui_info.thread_exit_flag == 0) {
    
         if (_new_ui_state_st.upgrade_state == HL_MOD_UI_UPGRADING) {        //升级中
-            rt_memset(&_old_ui_state_st, 0, sizeof(_old_ui_state_st));
-            _old_ui_state_st.soc_val = 255;
+            _ui_clear_old_state();
             _set_all_box_led_close();
             _set_all_load_led_close();
         } else {                                                        //不在升级中/升级成功恢复显示
