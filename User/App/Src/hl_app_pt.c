@@ -38,41 +38,40 @@
 /* typedef -------------------------------------------------------------------*/
 /* define --------------------------------------------------------------------*/
 /* variables -----------------------------------------------------------------*/
+
+extern bool hl_iwdog_feed_flag;
+
 /* Private function(only *.c)  -----------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 
 static void hl_app_pt_enter_boot(void)
 {
-    int                 ret;
-    hl_util_config_st_p config;
+    // hl_note: 使用窗口看门狗进行系统重启来进boot dfu ，喂狗时只喂一个数字1，这样狗很快就饿死了，然后看门狗复位，开机进boot dfu
+    RCC_ClocksType temp;
+    // DBG_ConfigPeriph(DBG_WWDG_STOP,ENABLE);
 
-    ret = hl_util_config_get(&config);
-    if (ret == HL_UTIL_CONFIG_FUNC_ERR) {
-        LOG_E("config get err!");
-        return;
-    }
+    /* WWDG configuration */
+    /* Enable WWDG clock */
+    RCC_EnableAPB1PeriphClk(RCC_APB1_PERIPH_WWDG, ENABLE);
+    RCC_GetClocksFreqValue(&temp);
+    /* WWDG clock counter = (PCLK1(16MHz)/4096)/8 = 488 Hz (~2049 us)  */
+    WWDG_SetPrescalerDiv(WWDG_PRESCALER_DIV8);
 
-    config->boot_jump_flag = 1;
-    hl_util_config_save();
+    /* Set Window value to 80; WWDG counter should be refreshed only when the counter
+    is below 80 (and greater than 64) otherwise a reset will be generated */
+    WWDG_SetWValue(80);
+    /*
+    Enable WWDG and set counter value to 127, WWDG timeout = ~2049 us * (127-63) = 131.136 ms
+    In this case the refresh window is: ~2049 us * (127-80) = 96.3 ms < refresh window < ~2049us * 64 = 131.136 ms
+  */
+    WWDG_Enable(127);
 
-    __NVIC_SystemReset();  //重启
+    return;
 }
 
 static void hl_app_pt_enter_lowpower(void)
 {
-    int                 ret;
-    hl_util_config_st_p config;
-
-    ret = hl_util_config_get(&config);
-    if (ret == HL_UTIL_CONFIG_FUNC_ERR) {
-        LOG_E("config get err!");
-        return;
-    }
-
-    config->lowpower_flag = 1;
-    hl_util_config_save();
-
-    __NVIC_SystemReset();  //重启
+    hl_iwdog_feed_flag = false;
 }
 
 static void hl_app_pt_enter_upgrade(void)

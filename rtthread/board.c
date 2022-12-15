@@ -92,11 +92,9 @@ static int _hl_util_config_read(char* data, int len)
 
 bool _flash_init_flag = false;
 
-static void _hl_start_state_check(void)
+static void _hl_board_power_on_init(void)
 {
     int ret;
-
-    hl_util_config_st_p config;
 
     ret = hl_drv_flash_init();
     if (ret == FLASH_RET_ERR) {
@@ -106,24 +104,23 @@ static void _hl_start_state_check(void)
     }
 
     hl_util_config_init(_hl_util_config_write, _hl_util_config_read);
+}
 
-    hl_util_config_get(&config);
-
-    if (config->boot_jump_flag == 1) {
-        config->boot_jump_flag = 0;
-        hl_util_config_save();
-        hl_drv_flash_deinit();
-
-        hl_hal_jump_to_boot();
+static void _hl_start_state_check(void)
+{
+    if (RCC_GetFlagStatus(RCC_CTRLSTS_FLAG_WWDGRSTF) != RESET)  //hl_note: 进入窗口看门狗中断重启则进行boot跳转
+    {
+        RCC_ClrFlag();
+        hl_hal_jump_to_boot();  //hl_note: 这里是进入DFU的方法
     }
 
-    if (config->lowpower_flag == 1) {
-        config->lowpower_flag = 0;
-        hl_util_config_save();
-        hl_drv_flash_deinit();
-
+    if (RCC_GetFlagStatus(RCC_CTRLSTS_FLAG_IWDGRSTF) != RESET)  //独立看门狗中断: 进入低功耗
+    {
+        RCC_ClrFlag();
         hl_hal_lowpower_enter();
     }
+
+    RCC_ClrFlag();
 }
 
 /**
@@ -132,6 +129,7 @@ static void _hl_start_state_check(void)
 void rt_hw_board_init()
 {
     _hl_start_state_check();
+    _hl_board_power_on_init();
 
     /* System Clock Update */
     SystemCoreClockUpdate();
