@@ -48,8 +48,14 @@
 #define W25X_Enable_Reset 0x66
 #define W25X_Reset 0x99
 
-/* variables -----------------------------------------------------------------*/
+#define DBG_SECTION_NAME "drv_flash"
+#define DBG_LEVEL DBG_INFO
+#include <rtdbg.h>
 
+/* variables -----------------------------------------------------------------*/
+#if (HL_DRV_FLASH_TYPE)
+    
+#else
 static hl_hal_soft_spi_info spi_info = { .spi_mosi_pin_num = 15,
                                          .spi_miso_pin_num = 14,
                                          .spi_sck_pin_num  = 13,
@@ -61,10 +67,24 @@ static hl_hal_soft_spi_info spi_info = { .spi_mosi_pin_num = 15,
                                          .gpiox_base       = GPIOB_BASE,
                                          .rcc_periph_gpiox = RCC_APB2_PERIPH_GPIOB,
                                          .gpiox            = GPIOB };
+#endif
 
-static bool flash_init_flag = false;
+static bool _flash_init_flag = false;
+
+static bool _flash_mutex_enbale_flag = false;
+
+static struct rt_mutex _flash_mutex = { 0 };
+
 
 /* Private function(only *.c)  -----------------------------------------------*/
+
+static int _flash_mutex_enable()
+{
+    _flash_mutex_enbale_flag = true;
+    return 0;
+}
+
+INIT_APP_EXPORT(_flash_mutex_enable);
 
 static void hl_drv_flash_write_enable(void)
 {
@@ -176,14 +196,17 @@ static int hl_drv_flash_wait_write_end(void)
 static int hl_drv_flash_write_page(uint32_t addr, uint8_t* w_data, int32_t len)
 {
     uint8_t ret = 0;
-    if (w_data == NULL) {
-        return -1;
+    if (w_data == RT_NULL || _flash_init_flag == false) {
+        LOG_E("[error] hl_drv_flash_write_page 2\n");
+        return FLASH_RET_ERR;
     }
-
+    if (_flash_mutex_enbale_flag == true) {
+        rt_mutex_take(&_flash_mutex, RT_WAITING_FOREVER); 
+    }
     hl_drv_flash_write_enable();
     ret = hl_drv_flash_wait_write_enable_ok();  //等待完全写使能
     if (ret == FLASH_RET_ERR) {
-        debug_printf("[error] hl_drv_flash_write_page 1\n");
+        LOG_E("[error] hl_drv_flash_write_page 1\n");
         return FLASH_RET_ERR;
     }
 
@@ -214,15 +237,16 @@ static int hl_drv_flash_write_page(uint32_t addr, uint8_t* w_data, int32_t len)
     hl_drv_flash_write_disable();
     ret = hl_drv_flash_wait_write_end();  // 等待写入结束
     if (ret == FLASH_RET_ERR) {
-        debug_printf("[error] hl_drv_flash_write_page 2\n");
+        LOG_E("[error] hl_drv_flash_write_page 2\n");
         return FLASH_RET_ERR;
     }
-    return 0;
+    if (_flash_mutex_enbale_flag == true) {
+        rt_mutex_release(&_flash_mutex); 
+    }
+    return FLASH_RET_OK;
 }
 
-/* Exported functions --------------------------------------------------------*/
-
-uint16_t hl_drv_flash_read_maker_dev_id(void)
+static uint16_t hl_drv_flash_read_maker_dev_id(void)
 {
     uint16_t reg_val = 0;
 
@@ -254,12 +278,16 @@ uint16_t hl_drv_flash_read_maker_dev_id(void)
 
 static uint32_t hl_drv_flash_read_id(void)
 {
-    uint32_t reg_val = 0;
+    uint32_t reg_val = 0, ret = 0;
 
 #if (HL_DRV_FLASH_TYPE)
     HARD_SPI_CS_LOW();
 
-    hl_hal_hard_spi_send_recv(W25X_JedecDeviceID);  //发送读取ID命令 0x9f
+    ret = hl_hal_hard_spi_send_recv(W25X_JedecDeviceID);  //发送读取ID命令 0x9f
+    if (ret == HARD_SPI_FUNC_RET_ERR) {
+        LOG_E("[error] hl_drv_flash_read_id\n");
+        return FLASH_RET_ERR;
+    }
 
     reg_val |= hl_hal_hard_spi_send_recv(0xff) << 16;
     reg_val |= hl_hal_hard_spi_send_recv(0xff) << 8;
@@ -282,7 +310,7 @@ static uint32_t hl_drv_flash_read_id(void)
     return reg_val;
 }
 
-static void hl_drv_flash_soft_reset_device()
+static void hl_drv_flash_reset_device()
 {
 
 #if (HL_DRV_FLASH_TYPE)
@@ -326,13 +354,19 @@ static void hl_drv_flash_soft_reset_device()
 static uint8_t hl_drv_flash_erase_sector(uint32_t addr)
 {
     uint8_t ret = 0;
+    if (_flash_init_flag == false) {
+        LOG_E("[error] hl_drv_flash_erase_sector 0\n");
+        return FLASH_RET_ERR;
+    }
     //addr *= 4096;
     addr &= 0xFFF000;  //得到这个地址对应的扇区首地址
-
+    if (_flash_mutex_enbale_flag == true) {
+        rt_mutex_take(&_flash_mutex, RT_WAITING_FOREVER); 
+    }
     hl_drv_flash_write_enable();
     ret = hl_drv_flash_wait_write_enable_ok();  //等待完全写使能
     if (ret == FLASH_RET_ERR) {
-        debug_printf("[error] hl_drv_flash_erase_sector 1\n");
+        LOG_E("[error] hl_drv_flash_erase_sector 1\n");
         return FLASH_RET_ERR;
     }
 #if (HL_DRV_FLASH_TYPE)
@@ -354,8 +388,11 @@ static uint8_t hl_drv_flash_erase_sector(uint32_t addr)
     hl_drv_flash_write_disable();
     ret = hl_drv_flash_wait_write_end();  //等待擦除完成
     if (ret == FLASH_RET_ERR) {
-        debug_printf("[error] hl_drv_flash_erase_sector 1\n");
+        LOG_E("[error] hl_drv_flash_erase_sector 2\n");
         return FLASH_RET_ERR;
+    }
+    if (_flash_mutex_enbale_flag == true) {
+        rt_mutex_release(&_flash_mutex); 
     }
     return FLASH_RET_OK;
 }
@@ -365,8 +402,12 @@ static uint8_t hl_drv_flash_erase_sector(uint32_t addr)
  * @param  无
  * @retval 无
  */
-void hl_drv_flash_erase_chip(void)
+static int hl_drv_flash_erase_chip(void)
 {
+    if (_flash_init_flag == false) {
+        LOG_E("[error] hl_drv_flash_erase_chip\n");
+        return FLASH_RET_ERR;
+    }
     /* 发送FLASH写使能命令 */
     hl_drv_flash_write_enable();
     hl_drv_flash_wait_write_enable_ok();
@@ -385,7 +426,10 @@ void hl_drv_flash_erase_chip(void)
 
     /* 等待擦除完毕*/
     hl_drv_flash_wait_write_end();
+
+    return FLASH_RET_OK;
 }
+/* Exported functions --------------------------------------------------------*/
 
 /**
  * @brief 可以连续读数据
@@ -405,14 +449,22 @@ void hl_drv_flash_erase_chip(void)
  */
 int hl_drv_flash_read(uint32_t addr, uint8_t* r_data, uint32_t len)
 {
-    if (r_data == NULL || flash_init_flag == false) {
-        debug_printf("[error] hl_drv_flash_read\n");
+    uint32_t reg_val;
+    if (r_data == RT_NULL || _flash_init_flag == false) {
+        LOG_E("[error] hl_drv_flash_read 1 \n");
         return FLASH_RET_ERR;
+    }
+    if (_flash_mutex_enbale_flag == true) {
+        rt_mutex_take(&_flash_mutex, RT_WAITING_FOREVER); 
     }
 #if HL_DRV_FLASH_TYPE
     /* 硬件SPI读取FLASH */
     HARD_SPI_CS_LOW();
-    hl_hal_hard_spi_send_recv(W25X_ReadData);  //启用复位
+    reg_val = hl_hal_hard_spi_send_recv(W25X_ReadData);  //发送读取数据命令0x03
+    if (reg_val == HARD_SPI_FUNC_RET_ERR) {
+        LOG_E("[error] hl_drv_flash_read 2 \n");
+        return FLASH_RET_ERR;
+    }
     /*发送24bit地址*/
     hl_hal_hard_spi_send_recv(((addr) >> 16) & 0xff);  //高八位
     hl_hal_hard_spi_send_recv(((addr) >> 8) & 0xff);   //中八位
@@ -436,7 +488,9 @@ int hl_drv_flash_read(uint32_t addr, uint8_t* r_data, uint32_t len)
     }
     HL_HAL_SPI_CS_HIGH(spi_info.spi_cs_pin_num, spi_info.gpiox_base);
 #endif
-
+    if (_flash_mutex_enbale_flag == true) {
+        rt_mutex_release(&_flash_mutex);
+    }
     return FLASH_RET_OK;
 }
 
@@ -460,7 +514,11 @@ int hl_drv_flash_write(uint32_t addr, uint8_t* w_data, uint32_t len)
 {
     uint8_t  ret;
     uint32_t pager;
-
+    if (w_data == RT_NULL || _flash_init_flag == false) {
+        LOG_E("[error] hl_drv_flash_write 1\n");
+        return FLASH_RET_ERR;
+    }
+    
     pager = 256 - addr % 256;  //单页剩余的字节数
     if (len <= pager) {
         pager = len;  //不大于256字节
@@ -475,7 +533,7 @@ int hl_drv_flash_write(uint32_t addr, uint8_t* w_data, uint32_t len)
 
         ret = hl_drv_flash_write_page(addr, w_data, pager);
         if (ret == FLASH_RET_ERR) {
-            debug_printf("[error] hl_drv_flash_write failed 3\n");
+            LOG_E("[error] hl_drv_flash_write failed 2\n");
             return FLASH_RET_ERR;
         }
         if (len == pager) {
@@ -496,12 +554,12 @@ int hl_drv_flash_write(uint32_t addr, uint8_t* w_data, uint32_t len)
 
 int hl_drv_flash_init(void)
 {
-    if (flash_init_flag == true) {
-        debug_printf("[error] flash already init\n");
+    if (_flash_init_flag == true) {
+        LOG_E("[error] flash already init\n");
         return FLASH_RET_ERR;
     }
 
-#if HL_DRV_FLASH_TYPE
+#if (HL_DRV_FLASH_TYPE)
     /* 硬件SPI引脚初始化 */
     hl_hal_hard_spi_init();
 #else
@@ -509,15 +567,18 @@ int hl_drv_flash_init(void)
     hl_hal_soft_spi_init(&spi_info);
 #endif
     if (W25XXX_ID != hl_drv_flash_read_id()) {
+        LOG_E("[error] hl_drv_flash_init\n");
         return FLASH_RET_ERR;
     }
-    flash_init_flag = true;
+    rt_mutex_init(&_flash_mutex, "flash__mutex", RT_IPC_FLAG_PRIO);
+
+    _flash_init_flag = true;
     return FLASH_RET_OK;
 }
 
 int hl_drv_flash_deinit(void)
 {
-    if (flash_init_flag == false) {
+    if (_flash_init_flag == false) {
         return FLASH_RET_ERR;
     }
 
@@ -527,7 +588,9 @@ int hl_drv_flash_deinit(void)
     hl_hal_soft_spi_deinit(&spi_info);
 #endif
 
-    flash_init_flag = false;
+    rt_mutex_detach(&_flash_mutex);
+
+    _flash_init_flag = false;
     return FLASH_RET_OK;
 }
 /*
