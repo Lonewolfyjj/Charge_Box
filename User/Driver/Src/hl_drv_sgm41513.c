@@ -46,7 +46,7 @@
 #define LOG_I    rt_kprintf
 
 #define DBG_SECTION_NAME "drv_sgm41513"
-#define DBG_LEVEL DBG_INFO
+#define DBG_LEVEL DBG_WARNING
 #include <rtdbg.h>
 
 #define REG_BIT_VAL(n)  (((n) == 0) ? (0):(1))

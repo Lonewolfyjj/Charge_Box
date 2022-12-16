@@ -50,7 +50,7 @@ typedef struct {
 /* define --------------------------------------------------------------------*/
 
 #define DBG_SECTION_NAME "drv_pwm_led"
-#define DBG_LEVEL DBG_INFO
+#define DBG_LEVEL DBG_WARNING
 #include <rtdbg.h>
 
 #define BREATH_ARR_DEFAULT_VAL      500      //定时器重装载值，该为默认值
@@ -126,7 +126,7 @@ static void _led_work_mode(GPIO_Module *gpio, uint16_t pin, uint32_t alternate, 
             gpio_init_struct.GPIO_Mode = GPIO_Mode_Input;
             break;
         default:
-            LOG_E("led_init mode failed!\n");
+            LOG_E("led_init mode failed!");
             break;
     }
     GPIO_InitPeripheral(gpio, &gpio_init_struct);
@@ -172,7 +172,7 @@ static void _hl_drv_pwm_led_set_breath_val(uint8_t ledx, uint16_t ccr_val)
             hl_hal_pwm_set_ccr_val(&tim4_info, ccr_val);
             break;
         default:
-            LOG_E("[%s][line:%d] cmd(%d) unkown!!! \r\n", __FILE__, __LINE__, 1);
+            LOG_E("[%s][line:%d] cmd(%d) unkown!!!", __FILE__, __LINE__, 1);
             break;
     }
 }
@@ -286,7 +286,7 @@ uint8_t hl_drv_pwm_led_init()
 {
     uint8_t ret;
     if (_drv_init_flag == 1) {
-        LOG_E("PWM LED is already inited!\n");
+        LOG_E("PWM LED is already inited!");
         return PWM_LED_FUNC_RET_ERR;
     }
     
@@ -294,25 +294,25 @@ uint8_t hl_drv_pwm_led_init()
     
     ret = hl_hal_pwm_init(&tim1_info);
     if (ret == PWM_FUNC_RET_ERR) {
-        LOG_E("PWM LED is init failed 1!\n");
+        LOG_E("PWM LED is init failed 1!");
         return PWM_LED_FUNC_RET_ERR;
     }
 
     ret = hl_hal_pwm_init(&tim2_info);
     if (ret == PWM_FUNC_RET_ERR) {
-        LOG_E("PWM LED is init failed 2!\n");
+        LOG_E("PWM LED is init failed 2!");
         return PWM_LED_FUNC_RET_ERR;
     }
 
     ret = hl_hal_pwm_init(&tim3_info);
     if (ret == PWM_FUNC_RET_ERR) {
-        LOG_E("PWM LED is init failed 3!\n");
+        LOG_E("PWM LED is init failed 3!");
         return PWM_LED_FUNC_RET_ERR;
     }
 
     ret = hl_hal_pwm_init(&tim4_info);
     if (ret == PWM_FUNC_RET_ERR) {
-        LOG_E("PWM LED is init failed 4!\n");
+        LOG_E("PWM LED is init failed 4!");
         return PWM_LED_FUNC_RET_ERR;
     }
 
@@ -321,7 +321,7 @@ uint8_t hl_drv_pwm_led_init()
 
     rt_timer_start(&s_breath_timer);
 
-    LOG_I("PWM LED init success!\n");
+    LOG_I("PWM LED init success!");
     _drv_init_flag = 1;
 
     return PWM_LED_FUNC_RET_OK;
@@ -330,7 +330,7 @@ uint8_t hl_drv_pwm_led_init()
 uint8_t hl_drv_pwm_led_deinit()
 {
     if (_drv_init_flag == 0) {
-        LOG_E("PWM LED is already deinited!\n");
+        LOG_E("PWM LED is already deinited!");
         return PWM_LED_FUNC_RET_ERR;
     }
     rt_timer_detach(&s_breath_timer);
@@ -348,34 +348,34 @@ uint8_t hl_drv_pwm_led_deinit()
 uint8_t hl_drv_pwm_led_ctrl(uint8_t op_cmd, void *arg, int32_t arg_size)
 {
     if (_drv_init_flag == 0) {
-        LOG_E("[%s][line:%d] cmd(%d) unkown!!! \r\n", __FILE__, __LINE__, 1);
+        LOG_E("[%s][line:%d] cmd(%d) unkown!!!", __FILE__, __LINE__, 1);
         return PWM_LED_FUNC_RET_ERR;
     }
     switch (op_cmd) {
         case HL_DRV_PWM_SET_BREATH_MODE:
             if (arg_size != sizeof(uint8_t)) {
-                LOG_E("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return PWM_LED_FUNC_RET_ERR;
             }
             _hl_drv_pwm_led_set_breath_state(*((uint8_t *)arg));
             break;
         case HL_DRV_PWM_SET_BRIGHT_MODE:
             if (arg_size != sizeof(uint8_t)) {
-                LOG_E("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return PWM_LED_FUNC_RET_ERR;
             }
             _hl_drv_pwm_led_set_bright(*((uint8_t *)arg));
             break;
         case HL_DRV_PWM_SET_CLOSE_MODE:
             if (arg_size != sizeof(uint8_t)) {
-                LOG_E("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return PWM_LED_FUNC_RET_ERR;
             }
             _hl_drv_pwm_led_set_close(*((uint8_t *)arg));
             break;
         case HL_DRV_PWM_SET_BREATH_MAX_VAL:
             if (arg_size != sizeof(uint16_t)) {
-                LOG_E("size err, ctrl arg need <uint16_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint16_t> type pointer!");
                 return PWM_LED_FUNC_RET_ERR;
             }
             breath_max_ccr_val = *((uint16_t *)arg);
@@ -387,7 +387,7 @@ uint8_t hl_drv_pwm_led_ctrl(uint8_t op_cmd, void *arg, int32_t arg_size)
             _hl_drv_pwm_led_active_mode();
             break;
         default:
-            LOG_E("[%s][line:%d] cmd(%d) unkown!!! \r\n", __FILE__, __LINE__, 1);
+            LOG_E("[%s][line:%d] cmd(%d) unkown!!!", __FILE__, __LINE__, 1);
             break;
     }
     return PWM_LED_FUNC_RET_OK;

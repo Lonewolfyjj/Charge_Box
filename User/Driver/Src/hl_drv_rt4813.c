@@ -30,7 +30,7 @@
 /* define --------------------------------------------------------------------*/
 
 #define DBG_SECTION_NAME "drv_rt4813"
-#define DBG_LEVEL DBG_INFO
+#define DBG_LEVEL DBG_WARNING
 #include <rtdbg.h>
 
 #define	RT4813_REG01_ADDR		0x01
@@ -112,7 +112,7 @@ uint8_t hl_drv_rt4813_init()
     hl_rt4813_reg01_t reg_val;
 
     if (_init_flag == 1) {
-        LOG_E("rt4813 is already inited!\n");
+        LOG_E("rt4813 is already inited!");
         return RT4813_FUNC_RET_ERR;
     }
     /* SYS_IIC_SCL---PA3    SYS_IIC_SDA---PA2 */
@@ -121,11 +121,11 @@ uint8_t hl_drv_rt4813_init()
     _rt4813_read_reg(RT4813_REG01_ADDR, (uint8_t *)&reg_val);
     
     if (RT4813_LG_DRV_ABILITY != reg_val.DRV_SEL) {
-        LOG_E("[error] rt4813 init!\n");
+        LOG_E("[error] rt4813 init!");
         return RT4813_FUNC_RET_ERR;
     }
 
-    LOG_I("rt4813 init success!\n");
+    LOG_I("rt4813 init success!");
 
     _init_flag = 1;
 
@@ -135,13 +135,13 @@ uint8_t hl_drv_rt4813_init()
 uint8_t hl_drv_rt4813_deinit()
 {
     if (_init_flag == 0) {
-        LOG_E("rt4813 is not inited!\n");
+        LOG_E("rt4813 is not inited!");
         return RT4813_FUNC_RET_ERR;
     }
 
     hl_hal_soft_i2c_api_deinit(HL_HAL_SOFT_I2C_NUMB_3);
 
-    LOG_I("rt4813 deinit success!\n");
+    LOG_I("rt4813 deinit success!");
     _init_flag = 0;
     return RT4813_FUNC_RET_OK;
 }
@@ -149,10 +149,10 @@ uint8_t hl_drv_rt4813_deinit()
 uint8_t hl_drv_rt4813_ctrl(uint8_t op_cmd, void *arg, int32_t arg_size)
 {
     if (_init_flag == 0) {
-        LOG_E("rt4813 is not inited!\n");
+        LOG_E("rt4813 is not inited!");
         return RT4813_FUNC_RET_ERR;
     } else if (sizeof(uint8_t) != arg_size) {
-        LOG_E("size err, rt4813_ctrl arg need <uint8_t> type pointer!\n");
+        LOG_E("size err, rt4813_ctrl arg need <uint8_t> type pointer!");
         return RT4813_FUNC_RET_ERR;
     }
     uint8_t reg_val = *(uint8_t *)arg;

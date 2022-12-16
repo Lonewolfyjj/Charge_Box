@@ -32,6 +32,10 @@
 
 #include "hl_mod_typedef.h"
 
+#define DBG_SECTION_NAME "extcom"
+#define DBG_LEVEL DBG_WARNING
+#include <rtdbg.h>
+
 /* typedef -------------------------------------------------------------------*/
 
 typedef enum _hl_mod_extcom_hup_cmd_e
@@ -120,9 +124,6 @@ typedef struct _hl_mod_extcom_st
 } hl_mod_extcom_st;
 
 /* define --------------------------------------------------------------------*/
-
-#define DBG_LOG rt_kprintf
-
 #define HL_MOD_EXTCOM_HUP_RX_BUFSZ 256
 #define HL_MOD_EXTCOM_HUP_TX1_BUFSZ 256
 #define HL_MOD_EXTCOM_HUP_TX2_BUFSZ 256
@@ -394,7 +395,7 @@ static int _hup_init(void)
 
     ret = hl_util_hup_init(&(objects[HL_MOD_EXTCOM_OBJECT_RX].hup), hup_buf_rx, RT_NULL, rx_hup_success_handle_func);
     if (ret == -1) {
-        DBG_LOG("hup init err!");
+        LOG_E("hup init err!");
         return HL_MOD_EXTCOM_FUNC_ERR;
     }
 
@@ -404,7 +405,7 @@ static int _hup_init(void)
 
     ret = hl_util_hup_init(&(objects[HL_MOD_EXTCOM_OBJECT_TX1].hup), hup_buf_tx1, RT_NULL, tx1_hup_success_handle_func);
     if (ret == -1) {
-        DBG_LOG("hup init err!");
+        LOG_E("hup init err!");
         return HL_MOD_EXTCOM_FUNC_ERR;
     }
 
@@ -414,7 +415,7 @@ static int _hup_init(void)
 
     ret = hl_util_hup_init(&(objects[HL_MOD_EXTCOM_OBJECT_TX2].hup), hup_buf_tx2, RT_NULL, tx2_hup_success_handle_func);
     if (ret == -1) {
-        DBG_LOG("hup init err!");
+        LOG_E("hup init err!");
         return HL_MOD_EXTCOM_FUNC_ERR;
     }
 
@@ -424,7 +425,7 @@ static int _hup_init(void)
 
     ret = hl_util_hup_init(&(objects[HL_MOD_EXTCOM_OBJECT_BOX].hup), hup_buf_box, RT_NULL, box_hup_success_handle_func);
     if (ret == -1) {
-        DBG_LOG("hup init err!");
+        LOG_E("hup init err!");
         return HL_MOD_EXTCOM_FUNC_ERR;
     }
 
@@ -1215,7 +1216,7 @@ static int _handle_op_enter_upgrade(bool* flag)
 int hl_mod_extcom_init(void* msg_hd)
 {
     if (_extcom_mod.init_flag == true) {
-        DBG_LOG("extcom mod already inited!\n");
+        LOG_E("extcom mod already inited!");
         return HL_MOD_EXTCOM_FUNC_ERR;
     }
 
@@ -1224,7 +1225,7 @@ int hl_mod_extcom_init(void* msg_hd)
     _extcom_mod.use_usb_cdc_flag = false;
     hl_hal_console_detach(false);
 
-    DBG_LOG("extcom mod init success\n");
+    LOG_I("extcom mod init success");
 
     if (msg_hd != RT_NULL) {
         _extcom_msg_hd.msg_id   = ((hl_mod_msg_handle_st*)(msg_hd))->msg_id;
@@ -1242,13 +1243,13 @@ int hl_mod_extcom_init(void* msg_hd)
 int hl_mod_extcom_deinit(void)
 {
     if (_extcom_mod.init_flag == false) {
-        DBG_LOG("extcom mod not init!\n");
+        LOG_E("extcom mod not init!");
         return HL_MOD_EXTCOM_FUNC_ERR;
     }
 
     hl_mod_extcom_stop();
 
-    DBG_LOG("extcom mod deinit success\n");
+    LOG_I("extcom mod deinit success");
 
     _extcom_mod.init_flag = false;
 
@@ -1260,12 +1261,12 @@ int hl_mod_extcom_start(void)
     rt_err_t rt_err;
 
     if (_extcom_mod.init_flag == false) {
-        DBG_LOG("extcom mod not init!\n");
+        LOG_E("extcom mod not init!");
         return HL_MOD_EXTCOM_FUNC_ERR;
     }
 
     if (_extcom_mod.start_flag == true) {
-        DBG_LOG("extcom mod already start!\n");
+        LOG_W("extcom mod already start!");
         return HL_MOD_EXTCOM_FUNC_OK;
     }
 
@@ -1282,13 +1283,13 @@ int hl_mod_extcom_start(void)
     rt_err = rt_thread_init(&(_extcom_mod.extcom_thread), "extcom_thread", _extcom_thread_entry, RT_NULL,
                             extcom_thread_stack, sizeof(extcom_thread_stack), 6, 32);
     if (rt_err == RT_ERROR) {
-        DBG_LOG("extcom thread init failed\n");
+        LOG_E("extcom thread init failed");
         return HL_MOD_EXTCOM_FUNC_ERR;
     }
 
     rt_thread_startup(&(_extcom_mod.extcom_thread));
 
-    DBG_LOG("extcom mod start success!\n");
+    LOG_I("extcom mod start success!");
 
     _extcom_mod.start_flag = true;
 
@@ -1298,24 +1299,24 @@ int hl_mod_extcom_start(void)
 int hl_mod_extcom_stop(void)
 {
     if (_extcom_mod.init_flag == false) {
-        DBG_LOG("extcom mod not init!\n");
+        LOG_E("extcom mod not init!");
         return HL_MOD_EXTCOM_FUNC_ERR;
     }
 
     if (_extcom_mod.start_flag == false) {
-        DBG_LOG("extcom mod not start!\n");
+        LOG_W("extcom mod not start!");
         return HL_MOD_EXTCOM_FUNC_OK;
     }
 
     _extcom_mod.thread_exit_flag = 1;
 
-    DBG_LOG("wait extcom thread exit\n");
+    LOG_I("wait extcom thread exit");
 
     while (_extcom_mod.thread_exit_flag != -1) {
         rt_thread_mdelay(10);
     }
 
-    DBG_LOG("extcom mod stop success!\n");
+    LOG_I("extcom mod stop success!");
 
     _extcom_mod.start_flag = false;
 
@@ -1327,14 +1328,14 @@ int hl_mod_extcom_ctrl(hl_mod_extcom_op_e op, void* arg, int arg_size)
     int ret;
 
     if (_extcom_mod.init_flag == false) {
-        DBG_LOG("extcom mod not init!\n");
+        LOG_E("extcom mod not init!\n");
         return HL_MOD_EXTCOM_FUNC_ERR;
     }
 
     switch (op) {
         case HL_MOD_EXTCOM_ENTER_UPGRADE: {
             if (arg_size != sizeof(bool)) {
-                DBG_LOG("size err, ctrl arg need <bool> type pointer!\n");
+                LOG_E("size err, ctrl arg need <bool> type pointer!");
                 return HL_MOD_EXTCOM_FUNC_ERR;
             }
 
@@ -1345,7 +1346,7 @@ int hl_mod_extcom_ctrl(hl_mod_extcom_op_e op, void* arg, int arg_size)
         } break;
         case HL_MOD_EXTCOM_START_TX1_PROBE: {
             if (arg_size != sizeof(bool)) {
-                DBG_LOG("size err, ctrl arg need <bool> type pointer!\n");
+                LOG_E("size err, ctrl arg need <bool> type pointer!");
                 return HL_MOD_EXTCOM_FUNC_ERR;
             }
 
@@ -1353,7 +1354,7 @@ int hl_mod_extcom_ctrl(hl_mod_extcom_op_e op, void* arg, int arg_size)
         } break;
         case HL_MOD_EXTCOM_START_TX2_PROBE: {
             if (arg_size != sizeof(bool)) {
-                DBG_LOG("size err, ctrl arg need <bool> type pointer!\n");
+                LOG_E("size err, ctrl arg need <bool> type pointer!");
                 return HL_MOD_EXTCOM_FUNC_ERR;
             }
 
@@ -1361,7 +1362,7 @@ int hl_mod_extcom_ctrl(hl_mod_extcom_op_e op, void* arg, int arg_size)
         } break;
         case HL_MOD_EXTCOM_START_RX_PROBE: {
             if (arg_size != sizeof(bool)) {
-                DBG_LOG("size err, ctrl arg need <bool> type pointer!\n");
+                LOG_E("size err, ctrl arg need <bool> type pointer!");
                 return HL_MOD_EXTCOM_FUNC_ERR;
             }
 
@@ -1369,7 +1370,7 @@ int hl_mod_extcom_ctrl(hl_mod_extcom_op_e op, void* arg, int arg_size)
         } break;
         case HL_MOD_EXTCOM_SET_BOX_BAT_INFO: {
             if (arg_size != sizeof(uint8_t)) {
-                DBG_LOG("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return HL_MOD_EXTCOM_FUNC_ERR;
             }
 
@@ -1378,7 +1379,7 @@ int hl_mod_extcom_ctrl(hl_mod_extcom_op_e op, void* arg, int arg_size)
         } break;
         case HL_MOD_EXTCOM_SET_BOX_CHARGE_STATE: {
             if (arg_size != sizeof(uint32_t)) {
-                DBG_LOG("size err, ctrl arg need <uint32_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint32_t> type pointer!");
                 return HL_MOD_EXTCOM_FUNC_ERR;
             }
 
@@ -1387,7 +1388,7 @@ int hl_mod_extcom_ctrl(hl_mod_extcom_op_e op, void* arg, int arg_size)
         } break;
         case HL_MOD_EXTCOM_SET_BOX_LID_STATE: {
             if (arg_size != sizeof(uint32_t)) {
-                DBG_LOG("size err, ctrl arg need <uint32_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint32_t> type pointer!");
                 return HL_MOD_EXTCOM_FUNC_ERR;
             }
 

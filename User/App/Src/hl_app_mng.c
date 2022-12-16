@@ -28,7 +28,7 @@
 #include "hl_app_task.h"
 
 #define DBG_SECTION_NAME "app_mng"
-#define DBG_LEVEL DBG_INFO
+#define DBG_LEVEL DBG_WARNING
 #include <rtdbg.h>
 
 /* typedef -------------------------------------------------------------------*/

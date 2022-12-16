@@ -29,7 +29,7 @@
 #include "hl_mod_pm.h"
 
 #define DBG_SECTION_NAME "app_pm"
-#define DBG_LEVEL DBG_INFO
+#define DBG_LEVEL DBG_WARNING
 #include <rtdbg.h>
 
 /* typedef -------------------------------------------------------------------*/

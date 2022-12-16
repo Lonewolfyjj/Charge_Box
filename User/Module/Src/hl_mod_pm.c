@@ -133,7 +133,7 @@ typedef enum _hl_mod_pm_temp_state_e {
 /* define --------------------------WATCHDOG_ERR_STAT------------------------------------------*/
 
 #define DBG_SECTION_NAME "mod_pm"
-#define DBG_LEVEL DBG_INFO
+#define DBG_LEVEL DBG_WARNING
 #include <rtdbg.h>
 
 #define PM_THREAD_STACK_SIZE 512
@@ -346,27 +346,27 @@ static void _pm_update_bat_info(hl_mod_pm_bat_info_e type)
     switch (type) {
         case HL_MOD_PM_BAT_INFO_SOC: {
             hl_drv_cw2215_ctrl(HL_DRV_GUAGE_GET_SOC, &(p_bat_info->soc_val), sizeof(p_bat_info->soc_val));
-            LOG_I("soc:%d . %d\n", p_bat_info->soc_val.soc, p_bat_info->soc_val.soc_d);
+            LOG_I("soc:%d . %d", p_bat_info->soc_val.soc, p_bat_info->soc_val.soc_d);
         } break;
         case HL_MOD_PM_BAT_INFO_VOL: {
             hl_drv_cw2215_ctrl(HL_DRV_GUAGE_GET_VOLTAGE, &(p_bat_info->voltage), sizeof(p_bat_info->voltage));
-            LOG_I("voltage:%d\n", p_bat_info->voltage);
+            LOG_I("voltage:%d", p_bat_info->voltage);
         } break;
         case HL_MOD_PM_BAT_INFO_CUR: {
             hl_drv_cw2215_ctrl(HL_DRV_GUAGE_GET_CURRENT, &(p_bat_info->current), sizeof(p_bat_info->current));
-            LOG_I("current:%d\n", p_bat_info->current);
+            LOG_I("current:%d", p_bat_info->current);
         } break;
         case HL_MOD_PM_BAT_INFO_TEMP: {
             hl_drv_cw2215_ctrl(HL_DRV_GUAGE_GET_TEMP, &(p_bat_info->temp), sizeof(p_bat_info->temp));
-            LOG_I("temp:%d . %d\n", p_bat_info->temp.temp, p_bat_info->temp.temp_d);
+            LOG_I("temp:%d . %d", p_bat_info->temp.temp, p_bat_info->temp.temp_d);
         } break;
         case HL_MOD_PM_BAT_INFO_SOH: {
             hl_drv_cw2215_ctrl(HL_DRV_GUAGE_GET_SOH, &(p_bat_info->soh), sizeof(p_bat_info->soh));
-            LOG_I("soh:%d\n", p_bat_info->soh);
+            LOG_I("soh:%d", p_bat_info->soh);
         } break;
         case HL_MOD_PM_BAT_INFO_CYCLE: {
             hl_drv_cw2215_ctrl(HL_DRV_GUAGE_GET_CYCLE_COUNT, &(p_bat_info->cycle), sizeof(p_bat_info->cycle));
-            LOG_I("cycle:%d\n", p_bat_info->cycle);
+            LOG_I("cycle:%d", p_bat_info->cycle);
         } break;
         default:
             break;
@@ -420,7 +420,7 @@ static inline void _pm_update_bat_info_check(void)
                 break;
             case HL_MOD_PM_TEMP_CHCK:                         //检测温度是否正常
                 _pm_update_bat_info(HL_MOD_PM_BAT_INFO_TEMP);
-                LOG_E("-----temp fault: %d°c-----\n", bat_info.temp.temp);
+                LOG_E("-----temp fault: %d°c-----", bat_info.temp.temp);
                 if (bat_info.temp.temp > TEMP_MIN && bat_info.temp.temp < TEMP_MAX) {
                     temp_state = HL_TEMP_NOMAL;  
                 }
@@ -491,14 +491,14 @@ static void _pm_charge_irq_pair_deal(uint8_t val)
                 
                 _mod_msg_send(HL_MOD_PM_CHARGE_MSG, RT_NULL, 0);
 
-                LOG_I("    msg send 0, charge status :%d, input:%d, bat_err:%d, charge_err:%d\n",
+                LOG_I("    msg send 0, charge status :%d, input:%d, bat_err:%d, charge_err:%d",
                         new_charge_info.charge_status, new_charge_info.vbus_connect_status,
                         new_charge_error_info.bat_error_status, new_charge_error_info.charge_error_status);
             }
             break;
         case HL_MOD_PM_VBUS_STAT:
             if (PM_STAT_COMPARE(old_charge_info.vbus_status, new_charge_info.vbus_status) == 1) {
-                LOG_I("    1, vbus status : %d\n", new_charge_info.vbus_status);
+                LOG_I("    1, vbus status : %d", new_charge_info.vbus_status);
             }
             break;
         case HL_MOD_PM_INPUT_STAT:
@@ -506,48 +506,48 @@ static void _pm_charge_irq_pair_deal(uint8_t val)
 
                 _mod_msg_send(HL_MOD_PM_VBUS_MSG, RT_NULL, 0);
 
-                LOG_I("    msg send 2, input power status: %d\n", new_charge_info.vbus_connect_status);
+                LOG_I("    msg send 2, input power status: %d", new_charge_info.vbus_connect_status);
             }
             break;
         case HL_MOD_PM_VINDPM_STAT:
             if (PM_STAT_COMPARE(old_charge_info.vindpm_status, new_charge_info.vindpm_status) == 1) {
-                LOG_E("    3\n");
+                LOG_E("    3");
             }
             break;
         case HL_MOD_PM_IINDPM_STAT:
             if (PM_STAT_COMPARE(old_charge_info.iindpm_status, new_charge_info.iindpm_status) == 1) {
-                LOG_E("    4\n");
+                LOG_E("    4");
             }
             break;
         case HL_MOD_PM_SYS_VOL_STAT:
             if (PM_STAT_COMPARE(old_charge_info.sys_vol_status, new_charge_info.sys_vol_status) == 1) {
-                LOG_E("    5\n");
+                LOG_E("    5");
             }
             break;
         case HL_MOD_PM_BAT_ERR_STAT:
             if (PM_STAT_COMPARE(old_charge_error_info.bat_error_status, new_charge_error_info.bat_error_status) == 1) {
                 _mod_msg_send(HL_MOD_PM_BAT_FAULT_MSG, RT_NULL, 0);
 
-                LOG_E("    msg send 6, battery fault status: %d\n", new_charge_error_info.bat_error_status);
+                LOG_E("    msg send 6, battery fault status: %d", new_charge_error_info.bat_error_status);
             }
             break;
         case HL_MOD_PM_CHAR_ERR_STAT:
             if (PM_STAT_COMPARE(old_charge_error_info.charge_error_status, new_charge_error_info.charge_error_status) == 1) {
                 _mod_msg_send(HL_MOD_CHAR_FAULT_MSG, RT_NULL, 0);
 
-                LOG_E("    msg send 7, charger fault status: %d\n", new_charge_error_info.charge_error_status);
+                LOG_E("    msg send 7, charger fault status: %d", new_charge_error_info.charge_error_status);
             }
             break;
         case HL_MOD_PM_BOOST_ERR_STAT:
             if (PM_STAT_COMPARE(old_charge_error_info.boost_mode_status, new_charge_error_info.boost_mode_status) == 1) {
                 _mod_msg_send(HL_MOD_BOOST_FAULT_MSG, RT_NULL, 0);
 
-                LOG_E("    msg send 8, BOOST fault status: %d\n", new_charge_error_info.boost_mode_status);
+                LOG_E("    msg send 8, BOOST fault status: %d", new_charge_error_info.boost_mode_status);
             }
             break;
         case HL_MOD_PM_WATCHDOG_ERR_STAT:
             if (PM_STAT_COMPARE(old_charge_error_info.watchdog_error_status, new_charge_error_info.watchdog_error_status) == 1) {
-                LOG_E("    9\n");
+                LOG_E("    9");
             }
             break;
         default:
@@ -596,7 +596,7 @@ static void _pm_hall_load_info_check(void)
 {
     if (hall_info.tx1_irq_flag == true) {
         hall_info.tx1_status = hl_hal_gpio_read(GPIO_HALL_TX1);
-        LOG_I("    tx1:%d\n", hall_info.tx1_status);
+        LOG_I("    tx1:%d", hall_info.tx1_status);
         hall_info.tx1_irq_flag = false;
 
         _mod_msg_send(HL_MOD_PM_TX1_MSG, RT_NULL, 0);
@@ -604,7 +604,7 @@ static void _pm_hall_load_info_check(void)
 
     if (hall_info.tx2_irq_flag == true) {
         hall_info.tx2_status = hl_hal_gpio_read(GPIO_HALL_TX2);
-        LOG_I("    tx2:%d\n", hall_info.tx2_status);
+        LOG_I("    tx2:%d", hall_info.tx2_status);
         hall_info.tx2_irq_flag = false;
 
         _mod_msg_send(HL_MOD_PM_TX2_MSG, RT_NULL, 0);
@@ -612,7 +612,7 @@ static void _pm_hall_load_info_check(void)
 
     if (hall_info.rx_irq_flag == true) {
         hall_info.rx_status = hl_hal_gpio_read(GPIO_HALL_RX);
-        LOG_I("    rx:%d\n", hall_info.rx_status);
+        LOG_I("    rx:%d", hall_info.rx_status);
         hall_info.rx_irq_flag = false;
 
         _mod_msg_send(HL_MOD_PM_RX_MSG, RT_NULL, 0);
@@ -620,7 +620,7 @@ static void _pm_hall_load_info_check(void)
 
     if (hall_info.box_irq_flag == true) {
         hall_info.box_status = hl_hal_gpio_read(GPIO_HALL_BOX);
-        LOG_I("    box:%d\n", hall_info.box_status);
+        LOG_I("    box:%d", hall_info.box_status);
         hall_info.box_irq_flag = false;
 
         _mod_msg_send(HL_MOD_PM_BOX_MSG, RT_NULL, 0);
@@ -695,7 +695,7 @@ int hl_mod_pm_init(void* msg_hd)
 {
     int ret;
     if (pm_mod_info.pm_init_flag == true) {
-        LOG_E("pm is already init!\n");
+        LOG_E("pm is already init!");
         return HL_MOD_PM_FUNC_RET_ERR;
     }
 
@@ -726,7 +726,7 @@ int hl_mod_pm_init(void* msg_hd)
     /* 霍尔感应引脚初始化 */
     _hall_gpio_init();
 
-    LOG_I("pm init success!\n");
+    LOG_I("pm init success!");
     pm_mod_info.pm_init_flag = true;
     return HL_MOD_PM_FUNC_RET_OK;
 }
@@ -735,7 +735,7 @@ int hl_mod_pm_deinit(void)
 {
     int ret;
     if (pm_mod_info.pm_init_flag == false) {
-        LOG_E("pm is already deinited!\n");
+        LOG_E("pm is already deinited!");
         return HL_MOD_PM_FUNC_RET_ERR;
     }
     hl_mod_pm_stop();
@@ -752,7 +752,7 @@ int hl_mod_pm_deinit(void)
         return HL_MOD_PM_FUNC_RET_ERR;
     }
     pm_mod_info.msg_hd = RT_NULL;
-    LOG_I("pm deinit success!\n");
+    LOG_I("pm deinit success!");
     pm_mod_info.pm_init_flag = false;
     return HL_MOD_PM_FUNC_RET_OK;
 }
@@ -763,14 +763,14 @@ int hl_mod_pm_start(void)
     rt_err_t rt_err;
 
     if (pm_mod_info.pm_init_flag == false) {
-        LOG_E("pm is not init!\n");
+        LOG_E("pm is not init!");
         return HL_MOD_PM_FUNC_RET_ERR;
     }
 
     if (pm_mod_info.pth_start_flag == true) {
         ret = hl_mod_pm_stop();
         if (ret == HL_MOD_PM_FUNC_RET_ERR) {
-            LOG_E("pm try stop failed\n");
+            LOG_E("pm try stop failed");
             return HL_MOD_PM_FUNC_RET_ERR;
         }
     }
@@ -789,11 +789,11 @@ int hl_mod_pm_start(void)
     rt_err = rt_thread_init(&(pm_mod_info.pm_thread), "hl_mod_pm_thread", _pm_thread_entry, RT_NULL, pm_thread_stack,
                             sizeof(pm_thread_stack), 6, 10);
     if (rt_err == RT_ERROR) {
-        LOG_E("pm thread create failed\n");
+        LOG_E("pm thread create failed");
         return HL_MOD_PM_FUNC_RET_ERR;
     }
     rt_thread_startup(&(pm_mod_info.pm_thread));
-    LOG_I("pm start success\n");
+    LOG_I("pm start success");
     pm_mod_info.pth_start_flag = true;
 
     return HL_MOD_PM_FUNC_RET_OK;
@@ -802,25 +802,25 @@ int hl_mod_pm_start(void)
 int hl_mod_pm_stop(void)
 {
     if (pm_mod_info.pm_init_flag == false) {
-        LOG_E("pm is not init!\n");
+        LOG_E("pm is not init!");
         return HL_MOD_PM_FUNC_RET_ERR;
     }
 
     if (pm_mod_info.pth_start_flag == false) {
-        LOG_E("pm already stop\n");
+        LOG_E("pm already stop");
         return HL_MOD_PM_FUNC_RET_ERR;
     }
 
     _hall_gpio_irq_enable(true);
 
     pm_mod_info.thread_exit_flag = 1;
-    LOG_E("wait pm thread exit\n");
+    LOG_E("wait pm thread exit");
 
     while (pm_mod_info.thread_exit_flag != -1) {
         rt_thread_mdelay(10);
     }
 
-    LOG_E("pm stop success\n");
+    LOG_E("pm stop success");
 
     pm_mod_info.pth_start_flag = false;
 
@@ -831,7 +831,7 @@ int hl_mod_pm_ctrl(int op, void* arg, int arg_size)
 {
     uint8_t* arg_val = (uint8_t*)arg;
     if (pm_mod_info.pm_init_flag == false) {
-        LOG_E("pm is not init!\n");
+        LOG_E("pm is not init!");
         return HL_MOD_PM_FUNC_RET_ERR;
     }
     switch (op) {
@@ -840,70 +840,70 @@ int hl_mod_pm_ctrl(int op, void* arg, int arg_size)
             break;
         case HL_MOD_PM_GET_SOC:
             if (arg_size != sizeof(uint8_t)) {
-                LOG_E("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return HL_MOD_PM_FUNC_RET_ERR;
             }
             *arg_val = bat_info.soc_val.soc;
             break;
         case HL_MOD_PM_GET_CHARGE_STATE:
             if (arg_size != sizeof(uint8_t)) {
-                LOG_E("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return HL_MOD_PM_FUNC_RET_ERR;
             }
             *arg_val = new_charge_info.charge_status;
             break;
         case HL_MOD_PM_GET_VBUS_STATE:
             if (arg_size != sizeof(uint8_t)) {
-                LOG_E("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return HL_MOD_PM_FUNC_RET_ERR;
             }
             *arg_val = new_charge_info.vbus_connect_status;
             break;
         case HL_MOD_PM_GET_TX1_STATE:
             if (arg_size != sizeof(uint8_t)) {
-                LOG_E("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return HL_MOD_PM_FUNC_RET_ERR;
             }
             *arg_val = hall_info.tx1_status;
             break;
         case HL_MOD_PM_GET_TX2_STATE:
             if (arg_size != sizeof(uint8_t)) {
-                LOG_E("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return HL_MOD_PM_FUNC_RET_ERR;
             }
             *arg_val = hall_info.tx2_status;
             break;
         case HL_MOD_PM_GET_RX_STATE:
             if (arg_size != sizeof(uint8_t)) {
-                LOG_E("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return HL_MOD_PM_FUNC_RET_ERR;
             }
             *arg_val = hall_info.rx_status;
             break;
         case HL_MOD_PM_GET_BOX_STATE:
             if (arg_size != sizeof(uint8_t)) {
-                LOG_E("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return HL_MOD_PM_FUNC_RET_ERR;
             }
             *arg_val = hall_info.box_status;
             break;
         case HL_MOD_PM_SET_TX1_CHARGE:
             if (arg_size != sizeof(uint8_t)) {
-                LOG_E("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return HL_MOD_PM_FUNC_RET_ERR;
             }
             _hall_load_charge_enable(GPIO_TX1_POW_EN, *arg_val);
             break;
         case HL_MOD_PM_SET_TX2_CHARGE:
             if (arg_size != sizeof(uint8_t)) {
-                LOG_E("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return HL_MOD_PM_FUNC_RET_ERR;
             }
             _hall_load_charge_enable(GPIO_TX2_POW_EN, *arg_val);
             break;
         case HL_MOD_PM_SET_RX_CHARGE:
             if (arg_size != sizeof(uint8_t)) {
-                LOG_E("size err, ctrl arg need <uint8_t> type pointer!\n");
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return HL_MOD_PM_FUNC_RET_ERR;
             }
             _hall_load_charge_enable(GPIO_RX_POW_EN, *arg_val);

@@ -26,7 +26,7 @@
 #include "hl_app_msg.h"
 
 #define DBG_SECTION_NAME "app_msg"
-#define DBG_LEVEL DBG_INFO
+#define DBG_LEVEL DBG_WARNING
 #include <rtdbg.h>
 
 /* typedef -------------------------------------------------------------------*/
