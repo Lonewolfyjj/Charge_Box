@@ -38,9 +38,11 @@ typedef void (*uart_rcv_cb_t)(uint8_t);
 // 串口枚举
 typedef enum _hl_hal_uart_numb_e
 {
-    HL_HAL_UART_NUMB_1,     //uart1
-    HL_HAL_UART_NUMB_2,     //lpuart
-    HL_HAL_UART_NUMB_3,     //uart3
+    HL_HAL_UART_NUMB_1,     //tx1
+    HL_HAL_UART_NUMB_2,     //tx2
+    HL_HAL_UART_NUMB_3,     //rx
+    HL_HAL_UART_NUMB_4,     // not use
+    HL_HAL_UART_NUMB_5,     //box debug
 } hl_hal_uart_numb_e;
 
 /**************************************************************************

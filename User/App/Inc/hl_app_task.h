@@ -55,6 +55,13 @@ typedef enum _hl_app_bat_charge_state_e
     HL_APP_BAT_CHARGE_STATE_CHARGE_COMPLETE,
 } hl_app_bat_charge_state_e;
 
+typedef enum _hl_app_vbus_state_e
+{
+    HL_APP_VBUS_STATE_UNKNOWN = 0,
+    HL_APP_VBUS_STATE_IN,
+    HL_APP_VBUS_STATE_OUT,
+} hl_app_vbus_state_e;
+
 typedef enum _hl_app_hall_state_e
 {
     HL_APP_HALL_STATE_UNKNOWN = 0,
@@ -73,13 +80,14 @@ typedef enum _hl_app_drv_state_e
 
 typedef struct _hl_app_task_common_st
 {
-    hl_app_drv_state_e        drv_state;
-    
+    hl_app_drv_state_e drv_state;
+
     /// PM
     bool                      pm_start_flag;
     uint8_t                   bat_soc;
     hl_app_bat_state_e        bat_state;
     hl_app_bat_charge_state_e charge_state;
+    hl_app_vbus_state_e       vbus_state;
     hl_app_hall_state_e       tx1_hall_state;
     hl_app_hall_state_e       tx2_hall_state;
     hl_app_hall_state_e       rx_hall_state;
