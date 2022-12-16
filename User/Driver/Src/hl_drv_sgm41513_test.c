@@ -22,14 +22,14 @@
  */ 
 /* Define to prevent recursive inclusion -------------------------------------*/
 /* Includes ------------------------------------------------------------------*/
+
 #include "hl_drv_sgm41513.h"
-#include "hl_hal_gpio.h"
 #include "stdlib.h"
 #include "rtthread.h"
+
 /* typedef -------------------------------------------------------------------*/
 /* define --------------------------------------------------------------------*/
 /* variables -----------------------------------------------------------------*/
- static HL_GPIO_PORT_E irq_arg_table[USER_GPIO_NUMBER];  // 中断参数列表，存放中断枚举编号
  
 /* Private function(only *.c)  -----------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
@@ -148,11 +148,15 @@ void temp_regulation_status_printf()
 }
 
 /* Private function(only *.c)  -----------------------------------------------*/
-void hl_driver_charge_test_irq_process(void *args)
-{
-    HL_GPIO_PORT_E gpio_pin_e = *(HL_GPIO_PORT_E *)args;
 
-    rt_kprintf("irq enum = %d\r\n", gpio_pin_e);
+void hl_drv_sgm41513_test(int argc, char *argv[])
+{
+    uint8_t data = 0;
+
+    hl_drv_sgm41513_init();
+    
+    /* 打印所有寄存器的值 */
+    hl_drv_sgm41513_ctrl(PRINTF_REG_VAL, &data, 1);
     /* 打印充电状态 */
     charge_status_printf();
 
@@ -172,90 +176,6 @@ void hl_driver_charge_test_irq_process(void *args)
     temp_regulation_status_printf();
 
     rt_kprintf("\n*************************************************************\n");
-}
-
-void hl_drv_sgm41513_test(int argc, char *argv[])
-{
-    uint8_t data = 0;
-    if (argc <= 1) {
-        rt_kprintf("format : [cmd 0/1]\n");
-        return;
-    }
-    HL_GPIO_PORT_E gpio_pin_e = GPIO_CH_INT_N;
-    hl_drv_sgm41513_init();
-
-    hl_hal_gpio_init(gpio_pin_e);
-    irq_arg_table[gpio_pin_e] = gpio_pin_e;
-    hl_hal_gpio_init(gpio_pin_e);
-    hl_hal_gpio_attach_irq(gpio_pin_e, PIN_IRQ_MODE_FALLING, hl_driver_charge_test_irq_process, &irq_arg_table[gpio_pin_e]);
-    hl_hal_gpio_irq_enable(gpio_pin_e, PIN_IRQ_ENABLE);
-
-    rt_kprintf("charge_INT val :%d\n", hl_hal_gpio_read(4));
-    
-    if (atoi(argv[1]) == 0) {
-        /* 重置所有寄存器的R/W位至默认值并重置安全定时器 */
-        hl_drv_sgm41513_ctrl(REST_ALL_REG_VAL, &data, 1);
-
-        /* 设置充电状态为使能 */
-        data = CHARGER_ENABLE;
-        hl_drv_sgm41513_ctrl(SET_CHARGE_STATUS, &data, 1);
-
-        /* 设置充电终止为使能 */
-        data = CHARGER_ENABLE;
-        hl_drv_sgm41513_ctrl(SET_CHARGEE_TERMINATION_ENABLE, &data, 1);
-        
-        /* 设置恒流时的的充电电流值（快速充电时的电流大小） */
-        data = 0x34;    //1980mA (110100)
-        hl_drv_sgm41513_ctrl(SET_FAST_CHARGE_CURRENT_VAL, &data, 1);
-        
-        /* 设置预充电的电流 */
-        data = 0x00;    //10mA
-        hl_drv_sgm41513_ctrl(SET_PRE_CHARGE_CURRENT_VAL, &data, 1);
-
-        /* 设置终止充电的电流 */
-        data = 0x0a;    //120mA (1010)
-        hl_drv_sgm41513_ctrl(SET_STOP_CHARGE_CURRENT_VAL, &data, 1);
-
-        /* 设置循环充电电压限制值L */
-        data = 0x00;    //100mV
-        hl_drv_sgm41513_ctrl(SET_RECHARGE_VOL_VAL, &data, 1);
-
-        /* 设置电池充电的电压阈值H  */
-        data = 0x0b;    //4.208V (01011)
-        hl_drv_sgm41513_ctrl(SET_CHARGE_VOL_LIMIT_VAL, &data, 1);
-
-        /* 设置输入电压动态电源管理阈值  */
-        data = 0x06;    //4.5V (0110)
-        hl_drv_sgm41513_ctrl(SET_VINDPM_THRESHOLD_VAL, &data, 1);
-
-        /* 设置热调节阈值 （0-80，1-120）*/
-        data = 0x01;
-        hl_drv_sgm41513_ctrl(SET_THERMAL_REGULATION_MAX_VAL, &data, 1);
-
-    } else {
-        /* 打印所有寄存器的值 */
-        hl_drv_sgm41513_ctrl(PRINTF_REG_VAL, &data, 1);
-        /* 打印充电状态 */
-        charge_status_printf();
-
-        /* 打印输入电源（VBUS)状态 */
-        input_power_vbus_printf();
-
-        /* 获取电池温度状态 */
-        battery_temp_status_printf();
-
-        /* 获取电池故障状态 */
-        battery_error_status_printf();
-
-        /* 获取充电故障状态 */
-        charge_error_status_printf();
-
-        /* 打印热调节状态 */
-        temp_regulation_status_printf();
-
-        rt_kprintf("\n*************************************************************\n");
-    }
-    
 
 }
 

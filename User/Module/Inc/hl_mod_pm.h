@@ -34,6 +34,39 @@
 
 /* typedef -------------------------------------------------------------------*/
 
+
+/**
+ * @brief 向APP发送的消息类型
+ * @date 2022-11-08
+ * @author yijiujun (jiujun.yi@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-11-08      <td>yijiujun     <td>新建
+ * </table>
+ */
+typedef enum _hl_mod_pm_msg_e {
+    HL_MOD_PM_MSG_START,
+    HL_MOD_PM_GUAGE_ERR_MSG,
+    HL_MOD_PM_CHARGE_ERR_MSG,
+    HL_MOD_PM_BAT_FAULT_MSG,        //电池故障
+    HL_MOD_CHAR_FAULT_MSG,          //充电故障
+    HL_MOD_BOOST_FAULT_MSG,         //升压模式故障
+    HL_MOD_PM_TEMP_FAULT_MSG,       //温度故障
+    HL_MOD_PM_TEMP_NOMAL_MSG,       //温度正常
+
+    HL_MOD_PM_VBUS_MSG,
+    HL_MOD_PM_CHARGE_MSG,
+    HL_MOD_PM_SOC_MSG,
+    
+    HL_MOD_PM_TX1_MSG,
+    HL_MOD_PM_TX2_MSG,
+    HL_MOD_PM_RX_MSG,
+    HL_MOD_PM_BOX_MSG
+} hl_mod_pm_msg_e;
+
 /**
  * @brief hl_mod_pm_ctrl接口的操作指令类型
  * @date 2022-11-08
@@ -63,34 +96,6 @@ typedef enum _hl_mod_pm_op_e {
     HL_MOD_PM_SET_TX2_CHARGE,
     HL_MOD_PM_SET_RX_CHARGE
 }hl_mod_pm_op_e;
-
-/**
- * @brief 向APP发送的消息类型
- * @date 2022-11-08
- * @author yijiujun (jiujun.yi@hollyland-tech.com)
- * @details 
- * @note 
- * @par 修改日志:
- * <table>
- * <tr><th>Date             <th>Author         <th>Description
- * <tr><td>2022-11-08      <td>yijiujun     <td>新建
- * </table>
- */
-typedef enum _hl_mod_pm_msg_e {
-    HL_MOD_PM_MSG_START,
-    HL_MOD_PM_GUAGE_ERR_MSG,
-    HL_MOD_PM_CHARGE_ERR_MSG,
-
-    HL_MOD_PM_VBUS_MSG,
-    HL_MOD_PM_CHARGE_MSG,
-    HL_MOD_PM_SOC_MSG,
-
-    HL_MOD_PM_TX1_MSG,
-    HL_MOD_PM_TX2_MSG,
-    HL_MOD_PM_RX_MSG,
-    HL_MOD_PM_BOX_MSG
-} hl_mod_pm_msg_e;
-
 /* define --------------------------------------------------------------------*/
 
 #define HL_MOD_PM_FUNC_RET_OK 0

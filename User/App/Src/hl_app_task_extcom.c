@@ -29,7 +29,7 @@
 #include "hl_mod_extcom.h"
 
 #define DBG_SECTION_NAME "app_extcom"
-#define DBG_LEVEL DBG_INFO
+#define DBG_LEVEL DBG_WARNING
 #include <rtdbg.h>
 
 /* typedef -------------------------------------------------------------------*/

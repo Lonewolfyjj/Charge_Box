@@ -25,6 +25,7 @@
 
 #include "hl_mod_ui.h"
 #include "rtthread.h"
+#include "stdlib.h"
 
 /* typedef -------------------------------------------------------------------*/
 /* define --------------------------------------------------------------------*/
@@ -36,13 +37,16 @@ static void hl_mod_ui_test(int argc, char *argv[])
 {
     uint8_t val;
     if (argc <= 1) {
-        rt_kprintf("format: cmd 1(page) 1(mod/charge_mod) 1(soc_type)\n");
+        rt_kprintf("format: cmd enum_num arg_val\n");
         return;
     }
 
     hl_mod_ui_init(RT_NULL);
+    hl_mod_ui_start();
 
+    val = atoi(argv[2]);
     hl_mod_ui_ctrl(atoi(argv[1]), &val, sizeof(val));
+    
     
 }
 

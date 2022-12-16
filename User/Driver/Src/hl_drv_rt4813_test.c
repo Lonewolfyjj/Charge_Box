@@ -1,9 +1,9 @@
 /**
- * @file hl_drv_pwm_led.h
+ * @file hl_drv_rt4813_test.c
  * @author yijiujun (jiujun.yi@hollyland-tech.com)
  * @brief 
  * @version V1.0
- * @date 2022-11-14
+ * @date 2022-12-09
  * 
  * ██╗  ██╗ ██████╗ ██╗     ██╗  ██╗   ██╗██╗      █████╗ ███╗   ██╗██████╗ 
  * ██║  ██║██╔═══██╗██║     ██║  ╚██╗ ██╔╝██║     ██╔══██╗████╗  ██║██╔══██╗
@@ -16,59 +16,46 @@
  * @par 修改日志:
  * <table>
  * <tr><th>Date           <th>Version  <th>Author         <th>Description
- * <tr><td>2022-11-14     <td>v1.0     <td>yijiujun     <td>内容
+ * <tr><td>2022-12-09     <td>v1.0     <td>yijiujun     <td>内容
  * </table>
  * 
  */ 
 /* Define to prevent recursive inclusion -------------------------------------*/
-
-#ifndef __HL_HAL_PWM_LED_H__
-#define __HL_HAL_PWM_LED_H__
-
 /* Includes ------------------------------------------------------------------*/
 
+#include "hl_drv_rt4813.h"
 #include "rtthread.h"
-#include "stdint.h"
-#include "stdbool.h"
-#include "n32l40x.h"
 
 /* typedef -------------------------------------------------------------------*/
-
-typedef enum _hl_drv_pwm_led_type_e {
-    HL_DRV_PWM_LED_BOX1,      
-    HL_DRV_PWM_LED_BOX2,        
-    HL_DRV_PWM_LED_BOX3,
-    HL_DRV_PWM_LED_BOX4,
-    HL_DRV_PWM_LED_BOX5, //红灯
-
-    HL_DRV_PWM_LED_RX,     
-    HL_DRV_PWM_LED_TX2,       
-    HL_DRV_PWM_LED_TX1,        
-}hl_drv_pwm_led_type_e;
-
-typedef enum _hl_drv_pwm_led_op_cmd_e{
-    HL_DRV_PWM_SET_BREATH_MODE,         //呼吸灯模式
-    HL_DRV_PWM_SET_BRIGHT_MODE,         //常亮模式
-    HL_DRV_PWM_SET_CLOSE_MODE,          //熄灭模式
-    HL_DRV_PWM_SET_BREATH_MAX_VAL,      //设置呼吸的最大亮度值
-    HL_DRV_PWM_LED_SLEEP_MODE,          //睡眠模式
-    HL_DRV_PWM_LED_ACTIVE_MODE          //工作活跃模式
-}hl_drv_pwm_led_op_cmd_e;
-
 /* define --------------------------------------------------------------------*/
-
-#define PWM_LED_FUNC_RET_ERR    1
-#define PWM_LED_FUNC_RET_OK     0
-
 /* variables -----------------------------------------------------------------*/
 /* Private function(only *.c)  -----------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 
-uint8_t hl_drv_pwm_led_init();
-uint8_t hl_drv_pwm_led_deinit();
-uint8_t hl_drv_pwm_led_ctrl(uint8_t op_cmd, void *arg, int32_t arg_size);
+static uint8_t hl_drv_rt4813_test(int argc, char argv[])
+{
+    uint8_t val;
+    hl_rt4813_reg01_t reg_val;
+    hl_drv_rt4813_init();
 
-#endif
+    //获取LG的驱动能力值
+    hl_drv_rt4813_ctrl(HL_DRV_RT4813_LG_DRV_ABILITY_GET, (uint8_t *)&reg_val, sizeof(uint8_t));
+
+    if (RT4813_LG_DRV_ABILITY == reg_val.DRV_SEL) {
+        rt_kprintf("LG driving capability:0x%x, Fastest (default)\n", reg_val.DRV_SEL);
+    }
+    
+    //开启放电功能
+    val = 1;
+    hl_drv_rt4813_ctrl(HL_DRV_RT4813_LG_DRV_ABILITY_GET, &val, sizeof(uint8_t));
+    rt_kprintf("load discharge start\n");
+
+    return RT4813_FUNC_RET_OK;
+
+}
+
+MSH_CMD_EXPORT(hl_drv_rt4813_test, rt4813 test);
+
 /*
  * EOF
  */

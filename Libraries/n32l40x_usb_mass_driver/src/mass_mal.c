@@ -43,7 +43,7 @@
 /* Private define ------------------------------------------------------------*/
 
 #define FLASH_START_ADDR    0x001000    // Flash 读写起始地址
-#define FLASH_SIZE          0x3FEFFF    // FLASH总大小 3M byte
+#define FLASH_SIZE          0x7FEFFF    // FLASH总大小 8M byte
 #define FLASH_PAGE_SIZE     0x1000      // W25Q32最小读写单位是4096 byte /per page
 
 #define FLASH_WAIT_TIMEOUT  100000

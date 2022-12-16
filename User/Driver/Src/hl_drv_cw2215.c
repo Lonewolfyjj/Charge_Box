@@ -21,7 +21,7 @@
 #include "hl_hal_soft_i2c_api.h"
 
 #define DBG_SECTION_NAME "cw2215"
-#define DBG_LEVEL DBG_INFO
+#define DBG_LEVEL DBG_WARNING
 #include <rtdbg.h>
 
 /* typedef -------------------------------------------------------------------*/
