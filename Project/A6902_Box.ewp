@@ -66,7 +66,7 @@
                 </option>
                 <option>
                     <name>OGLastSavedByProductVersion</name>
-                    <state>8.32.1.18618</state>
+                    <state>8.32.4.20866</state>
                 </option>
                 <option>
                     <name>GeneralEnableMisra</name>
@@ -116,7 +116,7 @@
                 </option>
                 <option>
                     <name>GBECoreSlave</name>
-                    <version>26</version>
+                    <version>27</version>
                     <state>39</state>
                 </option>
                 <option>
@@ -133,7 +133,7 @@
                 </option>
                 <option>
                     <name>CoreVariant</name>
-                    <version>26</version>
+                    <version>27</version>
                     <state>39</state>
                 </option>
                 <option>
@@ -156,7 +156,7 @@
                 </option>
                 <option>
                     <name>GFPUCoreSlave2</name>
-                    <version>26</version>
+                    <version>27</version>
                     <state>39</state>
                 </option>
                 <option>
@@ -661,7 +661,7 @@
                 <option>
                     <name>OOCOutputFormat</name>
                     <version>3</version>
-                    <state>1</state>
+                    <state>3</state>
                 </option>
                 <option>
                     <name>OCOutputOverride</name>
@@ -669,7 +669,7 @@
                 </option>
                 <option>
                     <name>OOCOutputFile</name>
-                    <state>A6902_Box.hex</state>
+                    <state>A6902_Box.bin</state>
                 </option>
                 <option>
                     <name>OOCCommandLineProducer</name>
@@ -1322,37 +1322,16 @@
                 <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_cw2215.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_cw2215_test.c</name>
-            </file>
-            <file>
                 <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_flash.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_flash_test.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_pcf85063atl.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_pcf85063atl_test.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_pwm_led.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_pwm_led_test.c</name>
-            </file>
-            <file>
                 <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_rt4813.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_rt4813_test.c</name>
-            </file>
-            <file>
                 <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_sgm41513.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\User\Driver\Src\hl_drv_sgm41513_test.c</name>
             </file>
         </group>
         <group>
@@ -1365,9 +1344,6 @@
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_gpio.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_gpio_test.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_hard_spi.c</name>
@@ -1385,16 +1361,7 @@
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_i2c_api.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_i2c_api_test.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_soft_i2c_test.c</name>
-            </file>
-            <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_uart.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_uart_test.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\User\Hal\Src\hl_hal_usb_cdc.c</name>
@@ -1406,13 +1373,10 @@
                 <name>$PROJ_DIR$\..\User\Module\Src\hl_mod_extcom.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\User\Module\Src\hl_mod_extcom_test.c</name>
-            </file>
-            <file>
                 <name>$PROJ_DIR$\..\User\Module\Src\hl_mod_pm.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\User\Module\Src\hl_mod_pm_test.c</name>
+                <name>$PROJ_DIR$\..\User\Module\Src\hl_mod_ui.c</name>
             </file>
         </group>
         <group>

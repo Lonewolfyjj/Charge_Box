@@ -35,7 +35,7 @@
 static void hl_drv_pwm_led_test(int argc, char *argv[])
 {
     uint8_t val;
-    uint16_t breath_max_val = 400;
+    uint16_t breath_max_val = 200;
 
     hl_drv_pwm_led_init();
 
@@ -64,6 +64,9 @@ static void hl_drv_pwm_led_test(int argc, char *argv[])
     val = HL_DRV_PWM_LED_BOX4;
     hl_drv_pwm_led_ctrl(HL_DRV_PWM_SET_BREATH_MODE, &val, sizeof(val));
 
+    val = HL_DRV_PWM_LED_BOX5;
+    hl_drv_pwm_led_ctrl(HL_DRV_PWM_SET_BREATH_MODE, &val, sizeof(val));
+
     rt_thread_mdelay(10000);
 
     /* 10s钟后进入睡眠模式 */
@@ -81,16 +84,38 @@ static void hl_drv_pwm_led_test(int argc, char *argv[])
     hl_drv_pwm_led_ctrl(HL_DRV_PWM_SET_BRIGHT_MODE, &val, sizeof(val));
 
     val = HL_DRV_PWM_LED_BOX3;
-    hl_drv_pwm_led_ctrl(HL_DRV_PWM_SET_BREATH_MODE, &val, sizeof(val));
+    hl_drv_pwm_led_ctrl(HL_DRV_PWM_SET_BRIGHT_MODE, &val, sizeof(val));
 
     val = HL_DRV_PWM_LED_BOX4;
-    hl_drv_pwm_led_ctrl(HL_DRV_PWM_SET_BREATH_MODE, &val, sizeof(val));
+    hl_drv_pwm_led_ctrl(HL_DRV_PWM_SET_BRIGHT_MODE, &val, sizeof(val));
+
+    val = HL_DRV_PWM_LED_BOX5;
+    hl_drv_pwm_led_ctrl(HL_DRV_PWM_SET_BRIGHT_MODE, &val, sizeof(val));
+
+    val = HL_DRV_PWM_LED_TX1;
+    hl_drv_pwm_led_ctrl(HL_DRV_PWM_SET_BRIGHT_MODE, &val, sizeof(val));
+    
+    val = HL_DRV_PWM_LED_TX2;
+    hl_drv_pwm_led_ctrl(HL_DRV_PWM_SET_BRIGHT_MODE, &val, sizeof(val));
+    
+    val = HL_DRV_PWM_LED_RX;
+    hl_drv_pwm_led_ctrl(HL_DRV_PWM_SET_BRIGHT_MODE, &val, sizeof(val));
 
     rt_thread_mdelay(5000); 
 
-    /* 5s钟后，关闭BOX4的灯显示 */
-    val = HL_DRV_PWM_LED_BOX4;
-    hl_drv_pwm_led_ctrl(HL_DRV_PWM_SET_CLOSE_MODE, &val, sizeof(val));
+    //val = HL_DRV_PWM_LED_BOX3;
+    //hl_drv_pwm_led_ctrl(HL_DRV_PWM_SET_BREATH_MODE, &val, sizeof(val));
+
+    breath_max_val = 0;
+    /* 设置呼吸灯显示的最大亮度值 */
+    hl_drv_pwm_led_ctrl(HL_DRV_PWM_SET_BREATH_MAX_VAL, &breath_max_val, sizeof(breath_max_val));
+
+    val = HL_DRV_PWM_LED_BOX3;
+    hl_drv_pwm_led_ctrl(HL_DRV_PWM_SET_BRIGHT_MODE, &val, sizeof(val));
+
+    // /* 5s钟后，关闭BOX4的灯显示 */
+    // val = HL_DRV_PWM_LED_BOX4;
+    // hl_drv_pwm_led_ctrl(HL_DRV_PWM_SET_CLOSE_MODE, &val, sizeof(val));
 }
 
 MSH_CMD_EXPORT(hl_drv_pwm_led_test, pwm led test);

@@ -108,6 +108,9 @@ static void hl_hal_us_delay(uint16_t us)
 
 int hl_hal_soft_i2c_api_init(hl_hal_soft_i2c_numb_e i2cx)
 {
+
+    i2cx = HL_HAL_SOFT_I2C_NUMB_3;
+
     switch (i2cx) {
         case HL_HAL_SOFT_I2C_NUMB_1: {
             if (i2c1_init_flag == true) {
@@ -150,6 +153,9 @@ int hl_hal_soft_i2c_api_init(hl_hal_soft_i2c_numb_e i2cx)
 
 int hl_hal_soft_i2c_api_deinit(hl_hal_soft_i2c_numb_e i2cx)
 {
+
+    i2cx = HL_HAL_SOFT_I2C_NUMB_3;
+
     switch (i2cx) {
         case HL_HAL_SOFT_I2C_NUMB_1: {
             if (i2c1_init_flag != true) {
@@ -191,6 +197,9 @@ int hl_hal_soft_i2c_api_deinit(hl_hal_soft_i2c_numb_e i2cx)
 int hl_hal_soft_i2c_api_read(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uint8_t PointReg, uint8_t* pData,
                              uint16_t len)
 {
+
+    i2cx = HL_HAL_SOFT_I2C_NUMB_3;
+
     soft_i2c_dev_addr_info i2c_addr;
 
     i2c_addr.dev_writeaddr        = (dev_addr << 1) | 0x00;
@@ -235,6 +244,9 @@ int hl_hal_soft_i2c_api_read(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uint
 int hl_hal_soft_i2c_api_write(hl_hal_soft_i2c_numb_e i2cx, uint8_t dev_addr, uint8_t PointReg, uint8_t* pData,
                               uint16_t len)
 {
+
+    i2cx = HL_HAL_SOFT_I2C_NUMB_3;
+
     soft_i2c_dev_addr_info i2c_addr;
 
     i2c_addr.dev_writeaddr        = (dev_addr << 1) | 0x00;

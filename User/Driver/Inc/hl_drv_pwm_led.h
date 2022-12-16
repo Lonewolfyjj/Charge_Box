@@ -35,15 +35,15 @@
 /* typedef -------------------------------------------------------------------*/
 
 typedef enum _hl_drv_pwm_led_type_e {
-    HL_DRV_PWM_LED_SIGN,        //对应定时器4 PWM输出通道1
-    HL_DRV_PWM_LED_RX,          //对应定时器4 PWM输出通道2
-    HL_DRV_PWM_LED_TX2,         //对应定时器4 PWM输出通道3
-    HL_DRV_PWM_LED_TX1,         //对应定时器4 PWM输出通道4
+    HL_DRV_PWM_LED_BOX1,      
+    HL_DRV_PWM_LED_BOX2,        
+    HL_DRV_PWM_LED_BOX3,
+    HL_DRV_PWM_LED_BOX4,
+    HL_DRV_PWM_LED_BOX5, //红灯
 
-    HL_DRV_PWM_LED_BOX4,        //对应定时器9 PWM输出通道1
-    HL_DRV_PWM_LED_BOX1,        //对应定时器9 PWM输出通道2
-    HL_DRV_PWM_LED_BOX2,        //对应定时器9 PWM输出通道3
-    HL_DRV_PWM_LED_BOX3,        //对应定时器9 PWM输出通道4
+    HL_DRV_PWM_LED_RX,     
+    HL_DRV_PWM_LED_TX2,       
+    HL_DRV_PWM_LED_TX1,        
 }hl_drv_pwm_led_type_e;
 
 typedef enum _hl_drv_pwm_led_op_cmd_e{
@@ -57,7 +57,6 @@ typedef enum _hl_drv_pwm_led_op_cmd_e{
 
 /* define --------------------------------------------------------------------*/
 
-#define DBG_LOG     rt_kprintf
 #define PWM_LED_FUNC_RET_ERR    1
 #define PWM_LED_FUNC_RET_OK     0
 

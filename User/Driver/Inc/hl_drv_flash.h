@@ -44,7 +44,6 @@
 //#define W25XXX_ID               0xef4016    //W25Q32
 #define W25XXX_ID               0xc84017    //GD25LQ64
 
-#define debug_printf            rt_kprintf
 #define FLASH_RET_OK            0
 #define FLASH_RET_ERR           1
 
