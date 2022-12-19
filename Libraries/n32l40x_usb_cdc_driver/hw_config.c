@@ -336,7 +336,7 @@ bool USART_Config(void)
 /**
  * @brief Configures the USB interrupts.
  */
-void USB_Interrupts_Config(void)
+void USB_Interrupts_Config(uint8_t state)
 {
     NVIC_InitType NVIC_InitStructure;
     EXTI_InitType EXTI_InitStructure;
@@ -348,7 +348,7 @@ void USB_Interrupts_Config(void)
     NVIC_InitStructure.NVIC_IRQChannel                   = USB_LP_IRQn;
     NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
     NVIC_InitStructure.NVIC_IRQChannelSubPriority        = 0;
-    NVIC_InitStructure.NVIC_IRQChannelCmd                = ENABLE;
+    NVIC_InitStructure.NVIC_IRQChannelCmd                = state;
     NVIC_Init(&NVIC_InitStructure);
 
     /* Enable the USB Wake-up interrupt */
@@ -471,7 +471,7 @@ ErrorStatus USB_Config(uint32_t sysclk)
 {
     ErrorStatus status = SUCCESS;
 
-    USB_Interrupts_Config();
+    USB_Interrupts_Config(ENABLE);
 
     if(Set_USBClock(sysclk) == SUCCESS)
     {

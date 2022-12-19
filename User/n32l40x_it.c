@@ -134,6 +134,7 @@ void USB_LP_IRQHandler(void)
 void USBWakeUp_IRQHandler(void)
 {
     EXTI_ClrITPendBit(EXTI_LINE17);
+    USB_Interrupts_Config(ENABLE);
 }
 /******************************************************************************/
 /*                 N32L40X Peripherals Interrupt Handlers                     */

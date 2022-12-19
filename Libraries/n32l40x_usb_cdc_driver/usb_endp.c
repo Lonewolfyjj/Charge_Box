@@ -150,3 +150,17 @@ void SOF_Callback(void)
     }
 }
 
+/**
+ * ERR_Callback
+ * @brief 添加USB错误则去初始化USB
+ * @author yangxy (rd52@hollyland-tech.com)
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2021-12-09      <td>yangxy     <td>新建
+ * </table>
+ */
+void ERR_Callback(void)
+{
+  USB_Interrupts_Config(DISABLE);
+}
