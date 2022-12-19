@@ -328,8 +328,7 @@ static int _error_state_display(uint8_t err_st)
 {
     uint8_t ledx;
     switch (err_st) {
-        case ENABLE:
-            _set_all_load_led_close();                   
+        case ENABLE:                 
             ledx = HL_DRV_PWM_LED_BOX1;
             hl_drv_pwm_led_ctrl(HL_DRV_PWM_SET_BREATH_MODE, &ledx, sizeof(ledx));
             ledx = HL_DRV_PWM_LED_BOX2;
