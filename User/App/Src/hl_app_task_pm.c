@@ -143,14 +143,21 @@ static void _pm_mod_rx_hall_state_set(void)
 static void _pm_mod_box_hall_state_set(void)
 {
     uint8_t hall_state;
+    rt_tick_t timeout;
 
     hl_mod_pm_ctrl(HL_MOD_PM_GET_BOX_STATE, &(hall_state), sizeof(hall_state));
 
     if (hall_state == 0) {
         _pm_task.task_comm->box_hall_state = HL_APP_HALL_STATE_IN;
+        timeout = 1000 * 5;
     } else {
         _pm_task.task_comm->box_hall_state = HL_APP_HALL_STATE_OUT;
+        timeout = 1000 * 60 * 2;
     }
+
+    rt_timer_control(&(_pm_task.timer), RT_TIMER_CTRL_SET_TIME, &timeout);
+    _pm_task.task_comm->pm_timeout_flag = false;
+    rt_timer_start(&(_pm_task.timer));
 }
 
 static void _pm_mod_vbus_state_set(void)

@@ -52,19 +52,19 @@ static void _extcom_state_reset_poll(void)
 {
     if (_extcom_task.task_comm->tx1_hall_state == HL_APP_HALL_STATE_OUT) {
         _extcom_task.task_comm->tx1_online_flag  = false;
-        _extcom_task.task_comm->tx1_bat_state    = HL_APP_BAT_STATE_UNKNOWN;
+        _extcom_task.task_comm->tx1_bat_soc      = 0xFF;
         _extcom_task.task_comm->tx1_charge_state = HL_APP_BAT_CHARGE_STATE_UNKNOWN;
     }
 
     if (_extcom_task.task_comm->tx2_hall_state == HL_APP_HALL_STATE_OUT) {
         _extcom_task.task_comm->tx2_online_flag  = false;
-        _extcom_task.task_comm->tx2_bat_state    = HL_APP_BAT_STATE_UNKNOWN;
+        _extcom_task.task_comm->tx2_bat_soc      = 0xFF;
         _extcom_task.task_comm->tx2_charge_state = HL_APP_BAT_CHARGE_STATE_UNKNOWN;
     }
 
     if (_extcom_task.task_comm->rx_hall_state == HL_APP_HALL_STATE_OUT) {
         _extcom_task.task_comm->rx_online_flag  = false;
-        _extcom_task.task_comm->rx_bat_state    = HL_APP_BAT_STATE_UNKNOWN;
+        _extcom_task.task_comm->rx_bat_soc      = 0xFF;
         _extcom_task.task_comm->rx_charge_state = HL_APP_BAT_CHARGE_STATE_UNKNOWN;
     }
 }
@@ -118,59 +118,17 @@ static void _extcom_box_lid_state_set_poll(void)
 
 static void _update_tx1_bat_state(uint8_t soc)
 {
-    if (soc == 100) {
-        _extcom_task.task_comm->tx1_bat_state = HL_APP_BAT_STATE_FULL;
-    } else if (soc < 100 && soc >= 75) {
-        _extcom_task.task_comm->tx1_bat_state = HL_APP_BAT_STATE_75_100_PERCENT;
-    } else if (soc < 75 && soc >= 50) {
-        _extcom_task.task_comm->tx1_bat_state = HL_APP_BAT_STATE_50_75_PERCENT;
-    } else if (soc < 50 && soc >= 25) {
-        _extcom_task.task_comm->tx1_bat_state = HL_APP_BAT_STATE_25_50_PERCENT;
-    } else if (soc < 25 && soc > 5) {
-        _extcom_task.task_comm->tx1_bat_state = HL_APP_BAT_STATE_5_25_PERCENT;
-    } else if (soc <= 5 && soc >= 0) {
-        _extcom_task.task_comm->tx1_bat_state = HL_APP_BAT_STATE_LOWPOWER;
-    } else {
-        _extcom_task.task_comm->tx1_bat_state = HL_APP_BAT_STATE_ERR;
-    }
+    _extcom_task.task_comm->tx1_bat_soc = soc;
 }
 
 static void _update_tx2_bat_state(uint8_t soc)
 {
-    if (soc == 100) {
-        _extcom_task.task_comm->tx2_bat_state = HL_APP_BAT_STATE_FULL;
-    } else if (soc < 100 && soc >= 75) {
-        _extcom_task.task_comm->tx2_bat_state = HL_APP_BAT_STATE_75_100_PERCENT;
-    } else if (soc < 75 && soc >= 50) {
-        _extcom_task.task_comm->tx2_bat_state = HL_APP_BAT_STATE_50_75_PERCENT;
-    } else if (soc < 50 && soc >= 25) {
-        _extcom_task.task_comm->tx2_bat_state = HL_APP_BAT_STATE_25_50_PERCENT;
-    } else if (soc < 25 && soc > 5) {
-        _extcom_task.task_comm->tx2_bat_state = HL_APP_BAT_STATE_5_25_PERCENT;
-    } else if (soc <= 5 && soc >= 0) {
-        _extcom_task.task_comm->tx2_bat_state = HL_APP_BAT_STATE_LOWPOWER;
-    } else {
-        _extcom_task.task_comm->tx2_bat_state = HL_APP_BAT_STATE_ERR;
-    }
+    _extcom_task.task_comm->tx2_bat_soc = soc;
 }
 
 static void _update_rx_bat_state(uint8_t soc)
 {
-    if (soc == 100) {
-        _extcom_task.task_comm->rx_bat_state = HL_APP_BAT_STATE_FULL;
-    } else if (soc < 100 && soc >= 75) {
-        _extcom_task.task_comm->rx_bat_state = HL_APP_BAT_STATE_75_100_PERCENT;
-    } else if (soc < 75 && soc >= 50) {
-        _extcom_task.task_comm->rx_bat_state = HL_APP_BAT_STATE_50_75_PERCENT;
-    } else if (soc < 50 && soc >= 25) {
-        _extcom_task.task_comm->rx_bat_state = HL_APP_BAT_STATE_25_50_PERCENT;
-    } else if (soc < 25 && soc > 5) {
-        _extcom_task.task_comm->rx_bat_state = HL_APP_BAT_STATE_5_25_PERCENT;
-    } else if (soc <= 5 && soc >= 0) {
-        _extcom_task.task_comm->rx_bat_state = HL_APP_BAT_STATE_LOWPOWER;
-    } else {
-        _extcom_task.task_comm->rx_bat_state = HL_APP_BAT_STATE_ERR;
-    }
+    _extcom_task.task_comm->rx_bat_soc = soc;
 }
 
 static void _update_tx1_charge_state(uint8_t state)
@@ -221,9 +179,9 @@ void hl_app_task_extcom_init(void)
     _extcom_task.task_comm->tx1_online_flag  = false;
     _extcom_task.task_comm->tx2_online_flag  = false;
     _extcom_task.task_comm->rx_online_flag   = false;
-    _extcom_task.task_comm->tx1_bat_state    = HL_APP_BAT_STATE_UNKNOWN;
-    _extcom_task.task_comm->tx2_bat_state    = HL_APP_BAT_STATE_UNKNOWN;
-    _extcom_task.task_comm->rx_bat_state     = HL_APP_BAT_STATE_UNKNOWN;
+    _extcom_task.task_comm->tx1_bat_soc      = 0XFF;
+    _extcom_task.task_comm->tx2_bat_soc      = 0XFF;
+    _extcom_task.task_comm->rx_bat_soc       = 0XFF;
     _extcom_task.task_comm->tx1_charge_state = HL_APP_BAT_CHARGE_STATE_UNKNOWN;
     _extcom_task.task_comm->tx2_charge_state = HL_APP_BAT_CHARGE_STATE_UNKNOWN;
     _extcom_task.task_comm->rx_charge_state  = HL_APP_BAT_CHARGE_STATE_UNKNOWN;
