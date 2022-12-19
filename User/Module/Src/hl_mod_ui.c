@@ -563,6 +563,7 @@ static void _ui_rx_led_show()
         }
     }
 }
+
 static void _ui_clear_old_state()
 {
     rt_memset(&_old_ui_state_st, 0, sizeof(_old_ui_state_st));
@@ -593,7 +594,7 @@ static void _ui_mod_state_check()
         _ui_box_timeout_check();                                   //BOX盒子外4LED超时检测
             
     } else {                                                      //故障显示
-        _ui_clear_old_state();
+        _old_ui_state_st.soc_val = HL_MOD_UI_SOC_UNKNOW;
         _error_state_display(ENABLE);
     }
 }
@@ -768,7 +769,7 @@ int hl_mod_ui_ctrl(int op, void *arg, int arg_size)
             _new_ui_state_st.timeout_flag = TIMEOUT_FALG_SET;
             break;
         case HL_MOD_UI_CLEAR_TIMEOUT_FLAG:
-            _ui_clear_old_state();
+            _old_ui_state_st.soc_val = HL_MOD_UI_SOC_UNKNOW;
             _new_ui_state_st.timeout_flag = TIMEOUT_FALG_NULL;
             break;
         case HL_MOD_UI_CH_MOD1:
