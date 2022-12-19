@@ -642,17 +642,18 @@ static void _pm_hall_load_info_check(void)
  */
 static void _pm_thread_start_init()
 {
-    if (_pm_drv_flag.pm_init_guage_flag == false) {         //驱动初始化出现故障，上报故障类型给APP
+    if (_pm_drv_flag.pm_init_guage_flag == false) {         //电量计驱动初始化出现故障，上报故障类型给APP
         _mod_msg_send(HL_MOD_PM_GUAGE_ERR_MSG, RT_NULL, 0);
     } else {
-        _pm_get_charge_status_info();                       //驱动初始化成功，上报电量给APP
+        _pm_update_bat_info(HL_MOD_PM_BAT_INFO_SOC);        //电量计驱动初始化成功，上报电量给APP
         _mod_msg_send(HL_MOD_PM_SOC_MSG, RT_NULL, 0);
     }
-    if (_pm_drv_flag.pm_init_charge_flag == false) {        //驱动初始化出现故障，上报故障类型给APP
+    if (_pm_drv_flag.pm_init_charge_flag == false) {        //充电驱动初始化出现故障，上报故障类型给APP
         _mod_msg_send(HL_MOD_PM_CHARGE_ERR_MSG, RT_NULL, 0);
     } else {
-        _pm_update_bat_info(HL_MOD_PM_BAT_INFO_SOC);        //驱动初始化成功，上报USB状态给APP
+        _pm_get_charge_status_info();                       //充电驱动初始化成功，上报USB状态和充电状态给APP
         _mod_msg_send(HL_MOD_PM_VBUS_MSG, RT_NULL, 0);
+        _mod_msg_send(HL_MOD_PM_CHARGE_MSG, RT_NULL, 0);
     }
 
     hall_info.tx1_status = hl_hal_gpio_read(GPIO_HALL_TX1);
