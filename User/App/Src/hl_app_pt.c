@@ -32,11 +32,14 @@
 #include "hl_mod_extcom.h"
 
 #define DBG_SECTION_NAME "app_pt"
-#define DBG_LEVEL DBG_WARNING
+#define DBG_LEVEL DBG_INFO
 #include <rtdbg.h>
 
 /* typedef -------------------------------------------------------------------*/
 /* define --------------------------------------------------------------------*/
+
+#define BOX_APP_VERSION "v1.0.0.0"
+
 /* variables -----------------------------------------------------------------*/
 
 extern bool hl_iwdog_feed_flag;
@@ -81,9 +84,15 @@ static void hl_app_pt_enter_upgrade(void)
     hl_mod_extcom_ctrl(HL_MOD_EXTCOM_ENTER_UPGRADE, &flag, sizeof(flag));
 }
 
+static void hl_app_pt_show_version(void)
+{
+    LOG_I(BOX_APP_VERSION);
+}
+
 MSH_CMD_EXPORT(hl_app_pt_enter_boot, 进入boot模式);
 MSH_CMD_EXPORT(hl_app_pt_enter_lowpower, 进入低功耗模式);
 MSH_CMD_EXPORT(hl_app_pt_enter_upgrade, 进入升级模式);
+MSH_CMD_EXPORT(hl_app_pt_show_version, 打印固件版本信息);
 /*
  * EOF
  */
