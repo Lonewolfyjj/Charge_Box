@@ -34,6 +34,18 @@
 
 /* typedef -------------------------------------------------------------------*/
 
+/**
+ * @brief 充电状态枚举
+ * @date 2022-12-19
+ * @author yijiujun (jiujun.yi@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-12-19      <td>yijiujun     <td>新建
+ * </table>
+ */
 typedef enum _hl_mod_ui_charge_state_e {
     HL_MOD_UI_NO_CHARGING = 0,
     HL_MOD_UI_CHARGING,
@@ -41,18 +53,58 @@ typedef enum _hl_mod_ui_charge_state_e {
     HL_MOD_UI_CHARG_UNKNOW,
 }hl_mod_ui_charge_state_e;
 
+/**
+ * @brief 故障状态枚举
+ * @date 2022-12-19
+ * @author yijiujun (jiujun.yi@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-12-19      <td>yijiujun     <td>新建
+ * </table>
+ */
 typedef enum _hl_mod_ui_fault_state_e {
     HL_MOD_UI_NO_FAULT = 0,
     HL_MOD_UI_FAULT,
 }hl_mod_ui_fault_state_e;
 
+/**
+ * @brief 升级状态枚举
+ * @date 2022-12-19
+ * @author yijiujun (jiujun.yi@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-12-19      <td>yijiujun     <td>新建
+ * </table>
+ */
 typedef enum _hl_mod_ui_upgrade_state_e {
     HL_MOD_UI_NO_UPGRADE = 0,
     HL_MOD_UI_UPGRADING,
     HL_MOD_UI_UPGRADE_OK,
 }hl_mod_ui_upgrade_state_e;
 
-
+/**
+ * @brief 负载设备在线状态枚举
+ * @date 2022-12-19
+ * @author yijiujun (jiujun.yi@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-12-19      <td>yijiujun     <td>新建
+ * </table>
+ */
+typedef enum _hl_mod_load_online_state_e {
+    HL_MOD_UI_NO_ONLINE,
+    HL_MOD_UI_ONLINE,
+    HL_MOD_UI_ONLINE_STATE_UNKNOW,
+}hl_mod_load_online_state_e;
 
 /**
  * @brief hl_mod_ui_ctrl函数接口，op的参数类型
@@ -113,6 +165,15 @@ typedef enum _hl_mod_ui_ctrl_op_e {
     //设置RX的充电状态, type of parameter is <uint8_t> pointer, see <hl_mod_ui_charge_state_e>
     HL_MOD_UI_SET_RX_CHARGE_STATE,
 
+    //设置TX1的在线状态, type of parameter is <uint8_t> pointer, see <hl_mod_ui_charge_state_e>
+    HL_MOD_UI_SET_TX1_ONLINE_STATE,
+
+    //设置TX2的在线状态, type of parameter is <uint8_t> pointer, see <hl_mod_ui_charge_state_e>
+    HL_MOD_UI_SET_TX2_ONLINE_STATE,
+
+    //设置RX的在线状态, type of parameter is <uint8_t> pointer, see <hl_mod_ui_charge_state_e>
+    HL_MOD_UI_SET_RX_ONLINE_STATE,
+
     //设置电池电量值, type of parameter is <uint8_t> pointer
     HL_MOD_UI_SET_BAT_SOC_VAL,
 
@@ -137,6 +198,9 @@ typedef struct _hl_ui_mod_info_st {
     uint8_t     tx1_charge_state;
     uint8_t     tx2_charge_state;
     uint8_t     rx_charge_state;
+    uint8_t     tx1_online_state;
+    uint8_t     tx2_online_state;
+    uint8_t     rx_online_state;
 
     uint8_t     soc_val;
     uint8_t     fault_state;
