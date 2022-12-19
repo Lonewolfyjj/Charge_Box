@@ -165,13 +165,13 @@ typedef enum _hl_mod_ui_ctrl_op_e {
     //设置RX的充电状态, type of parameter is <uint8_t> pointer, see <hl_mod_ui_charge_state_e>
     HL_MOD_UI_SET_RX_CHARGE_STATE,
 
-    //设置TX1的在线状态, type of parameter is <uint8_t> pointer, see <hl_mod_ui_charge_state_e>
+    //设置TX1的在线状态, type of parameter is <uint8_t> pointer, see <hl_mod_load_online_state_e>
     HL_MOD_UI_SET_TX1_ONLINE_STATE,
 
-    //设置TX2的在线状态, type of parameter is <uint8_t> pointer, see <hl_mod_ui_charge_state_e>
+    //设置TX2的在线状态, type of parameter is <uint8_t> pointer, see <hl_mod_load_online_state_e>
     HL_MOD_UI_SET_TX2_ONLINE_STATE,
 
-    //设置RX的在线状态, type of parameter is <uint8_t> pointer, see <hl_mod_ui_charge_state_e>
+    //设置RX的在线状态, type of parameter is <uint8_t> pointer, see <hl_mod_load_online_state_e>
     HL_MOD_UI_SET_RX_ONLINE_STATE,
 
     //设置电池电量值, type of parameter is <uint8_t> pointer

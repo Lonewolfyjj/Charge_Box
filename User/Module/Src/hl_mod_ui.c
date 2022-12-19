@@ -395,7 +395,7 @@ static void _ui_box_led_charge_show()
             case HL_MOD_UI_SOC_50_75_PERCENT:                   //50 <= soc < 75
                 _battery_soc_state_display(HL_MOD_UI_CH_MOD3);
                 break;
-            case HL_MOD_UI_SOC_75_100_PERCENT:                  //50 <= soc < 75
+            case HL_MOD_UI_SOC_75_100_PERCENT:                  //75 <= soc < 100
                 _battery_soc_state_display(HL_MOD_UI_CH_MOD4);
                 break;
             case HL_MOD_UI_SOC_FULL:                            //soc = 100
@@ -578,8 +578,7 @@ static void _ui_box_timeout_check()
 
     } else {                                                    //超时显示
     
-        if (_new_ui_state_st.box_charge_state == HL_MOD_UI_NO_CHARGING) {      //不在充电中就关闭UI显示
-            _ui_clear_old_state();                                             
+        if (_new_ui_state_st.box_charge_state == HL_MOD_UI_NO_CHARGING) {      //不在充电中就关闭UI显示                                          
             _set_all_box_led_close();
         }
         
@@ -590,10 +589,6 @@ static void _ui_box_timeout_check()
 static void _ui_mod_state_check()
 {
     if (_new_ui_state_st.fault_state == HL_MOD_UI_NO_FAULT) {       //无故障显示
-
-        _ui_tx1_led_show();
-        _ui_tx2_led_show();
-        _ui_rx_led_show();
 
         _ui_box_timeout_check();                                   //BOX盒子外4LED超时检测
             
@@ -614,7 +609,10 @@ static void _ui_thread_entry(void* arg)
             _set_all_load_led_close();
         } else {                                                        //不在升级中/升级成功恢复显示
 
-            _ui_mod_state_check();
+            _ui_tx1_led_show();
+            _ui_tx2_led_show();
+            _ui_rx_led_show();
+            _ui_mod_state_check();          //BOX状态检测
         }
         
         rt_thread_mdelay(200);
@@ -770,6 +768,7 @@ int hl_mod_ui_ctrl(int op, void *arg, int arg_size)
             _new_ui_state_st.timeout_flag = TIMEOUT_FALG_SET;
             break;
         case HL_MOD_UI_CLEAR_TIMEOUT_FLAG:
+            _ui_clear_old_state();
             _new_ui_state_st.timeout_flag = TIMEOUT_FALG_NULL;
             break;
         case HL_MOD_UI_CH_MOD1:
