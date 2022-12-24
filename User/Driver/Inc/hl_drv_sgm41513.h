@@ -424,11 +424,34 @@ typedef enum _hl_drv_sgm41513_ctrl_op_cmd {
 	PRINTF_REG_VAL 					//打印所有寄存器的值
 }hl_drv_sgm41513_ctrl_op_cmd;
 
+/**
+ * @brief 充电管理IC设备选择
+ * @date 2022-12-19
+ * @author yijiujun (jiujun.yi@hollyland-tech.com)
+ * @details 
+ * @note 
+ * @par 修改日志:
+ * <table>
+ * <tr><th>Date             <th>Author         <th>Description
+ * <tr><td>2022-12-19      <td>yijiujun     <td>新建
+ * </table>
+ */
+typedef enum _charge_dev_type_e {
+	CHARGE_DEV_SGM41513,
+	CHARGE_DEV_SY6974,
+	CHARGE_DEV_UNKNOW
+}charge_dev_type_e;
 /* define --------------------------------------------------------------------*/
 
 /* I2C Slave 7bit Address */
 #define SGM41513_WRITE_ADDR	0x1A
 #define SGM41513_READ_ADDR	0x1B
+#define SGM41513_PART_ID	0x00
+
+#define SY6974_WRITE_ADDR	0x6B
+#define SY6974_READ_ADDR	0x6C
+#define SY6974_PART_ID		0x09
+
 
 #define CHARGER_ENABLE		1
 #define CHARGER_DISABLE		0

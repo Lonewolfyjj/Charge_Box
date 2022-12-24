@@ -55,16 +55,36 @@
 
 static bool sgm41513_init_status = false;
 
+static uint8_t _charge_dev_type = CHARGE_DEV_UNKNOW;
+
 /* Private function(only *.c)  -----------------------------------------------*/
 
 static void hl_drv_sgm41513_write_reg(uint8_t w_addr, uint8_t *reg_data)
 {
-    hl_hal_soft_i2c_api_write(HL_HAL_SOFT_I2C_NUMB_2, SGM41513_WRITE_ADDR, w_addr, reg_data, 1);
+    switch (_charge_dev_type) {
+        case CHARGE_DEV_SGM41513:
+            hl_hal_soft_i2c_api_write(HL_HAL_SOFT_I2C_NUMB_2, SGM41513_WRITE_ADDR, w_addr, reg_data, 1);
+            break;
+        case CHARGE_DEV_SY6974:
+            hl_hal_soft_i2c_api_write(HL_HAL_SOFT_I2C_NUMB_2, SY6974_WRITE_ADDR, w_addr, reg_data, 1);
+            break;
+        default:
+            break;
+    }
 }
 
 static void hl_drv_sgm41513_read_reg(uint8_t r_addr, uint8_t *reg_data)
 {
-    hl_hal_soft_i2c_api_read(HL_HAL_SOFT_I2C_NUMB_2, SGM41513_WRITE_ADDR, r_addr, reg_data, 1);
+    switch (_charge_dev_type) {
+        case CHARGE_DEV_SGM41513:
+            hl_hal_soft_i2c_api_read(HL_HAL_SOFT_I2C_NUMB_2, SGM41513_WRITE_ADDR, r_addr, reg_data, 1);
+            break;
+        case CHARGE_DEV_SY6974:
+            hl_hal_soft_i2c_api_read(HL_HAL_SOFT_I2C_NUMB_2, SY6974_WRITE_ADDR, r_addr, reg_data, 1);
+            break;
+        default:
+            break;
+    }
 }
 
 
@@ -515,50 +535,96 @@ static uint8_t _sgm41513_init_set()
 	hl_sgm41513_reg06_t st_reg06;
 	hl_sgm41513_reg07_t st_reg07;
 
-    st_reg00.IINDPM = 0x17;     // 2400mA  Input Current Limit Value(default)
-	st_reg00.EN_ICHG_MON = 0;   // 0 = 充电状态使能(default)
-	st_reg00.EN_HIZ = 0;        //Enable HIZ Mode(default)
-	
-	st_reg01.MIN_BAT_SEL = 0;   //OTG Mode下的，Minimum Battery Voltage （0）2.8v(default)  （1）2.5v
-	st_reg01.SYS_MIN = 5;       // 3.5v Minimum System Voltage(default)
-	st_reg01.CHG_CONFIG = 1;    // 1 = 电池充电使能 (default)
-	st_reg01.OTG_CONFIG = 0;    // 0 = OTG disable (default)
-	st_reg01.WD_RST = 0;        // 0 = Normal ，I2C Watchdog Timer Reset(default)
-	st_reg01.PFM_DIS = 0;       // 0 = 启用脉冲频率调制 (default)
-	
-	st_reg02.ICHG = 0x32;       // 1980mA (110100)快速充电电流值(default)-------------非默认，1740mA(110010)
-	st_reg02.Q1_FULLON = 0;     // VBUS FET 开关(default)
-	st_reg02.BOOST_LIM = 1;     //Boost Mode Current Limit  （0）0.5A  （1）1.2A(default)
+    if (_charge_dev_type == CHARGE_DEV_SGM41513) {
+        st_reg00.IINDPM = 0x17;     // 2400mA  Input Current Limit Value(default)
+        st_reg00.EN_ICHG_MON = 0;   // 0 = 充电状态使能(default)
+        st_reg00.EN_HIZ = 0;        //Enable HIZ Mode(default)
+        
+        st_reg01.MIN_BAT_SEL = 0;   //OTG Mode下的，Minimum Battery Voltage （0）2.8v(default)  （1）2.5v
+        st_reg01.SYS_MIN = 5;       // 3.5v Minimum System Voltage(default)
+        st_reg01.CHG_CONFIG = 1;    // 1 = 电池充电使能 (default)
+        st_reg01.OTG_CONFIG = 0;    // 0 = OTG disable (default)
+        st_reg01.WD_RST = 0;        // 0 = Normal ，I2C Watchdog Timer Reset(default)
+        st_reg01.PFM_DIS = 0;       // 0 = 启用脉冲频率调制 (default)
+        
+        st_reg02.ICHG = 0x32;       // 1980mA (110100)快速充电电流值(default)-------------非默认，1740mA(110010)
+        st_reg02.Q1_FULLON = 0;     // VBUS FET 开关(default)
+        st_reg02.BOOST_LIM = 1;     //Boost Mode Current Limit  （0）0.5A  （1）1.2A(default)
+
+        st_reg03.ITERM = 0x0a;      // 120mA 充电终止电流(default)
+        st_reg03.IPRECHG = 0x0a;	// 120mA 预充电电流(default)
+
+        st_reg04.VRECHG = 0;        //电池循环充电阈值 0:100mV(default)  1:200mV
+        st_reg04.TOPOFF_TIMER = 0;  //检测到充电终止条件后，增加的充电延长时间，0就是禁用(default)
+        st_reg04.VREG = 17;       // 4.208V (11)最高充电电压限制(default) ---------------------------非默认, 4.4V(17)
+
+        st_reg05.JEITA_ISET = 1;    // 1 = 20% of I-CHG (default) 低温充电电流限制值
+        st_reg05.TREG = 1;          //热调节阈值 0:80℃  1:120℃(default)
+        st_reg05.CHG_TIMER = 1;     // Charge Safety Timer Setting  0:4hours  1:16hours(default)
+        st_reg05.EN_TIMER = 1;      // 1 = 充电安全定时器使能(default)
+        st_reg05.WATCHDOG = 0;      // 0 = Watchdog Timer Setting disable--------------------------非默认,禁用看门狗定时器
+        st_reg05.EN_TERM = 1;       // 1 = 充电终止启用 (default)
+
+        st_reg06.VINDPM = 6;        // 0110 = 4.5V (default)输入电压动态电源管理阈值
+        st_reg06.BOOSTV = 2;        // 10 = 5.15V (default) Boost Mode 电压调节
+        st_reg06.OVP = 1;           // 01 = 6.5V (5V input), 11 = 14V（12V input）(default)电源引脚的过压保护阈值-----------------非默认
+
+        st_reg07.VDPM_BAT_TRACK = 0; // 0 = 动态电压跟踪（VINDPM）设置disable(defalut)
+        st_reg07.BATFET_RST_EN = 1; // 1 = Enable BATFET reset (default)
+        st_reg07.BATFET_DLY = 1;    // 1 = Turn off BATFET after tSM_DLY(default)
+        st_reg07.JEITA_VSET = 0;    //0 = JEITA设置充电电压为4.1V(default), 1 = JEITA设置充电电压为 st_reg04.VREG
+        st_reg07.BATFET_DIS = 0;    //0 = Allow BATFET (Q4) to turn on(default)
+        st_reg07.TMR2X_EN = 1;      //1 = 启用半时钟率安全计时器(default)
+        st_reg07.IINDET_EN = 1;     //0 = Not in input current limit detection(default)输入电流限制检测----------------非默认
+
+    } else if (_charge_dev_type == CHARGE_DEV_SY6974) {
+
+        st_reg00.IINDPM = 23;     // 500mA  Input Current Limit Value(default)----------------非默认, 2400mA
+        st_reg00.EN_ICHG_MON = 0;   // 0 = 充电状态使能(default)
+        st_reg00.EN_HIZ = 0;        //Enable HIZ Mode(default)
+        
+        st_reg01.MIN_BAT_SEL = 0;   //OTG Mode下的，Minimum Battery Voltage （0）2.8v(default)  （1）2.5v
+        st_reg01.SYS_MIN = 5;       // 3.5v Minimum System Voltage(default)
+        st_reg01.CHG_CONFIG = 1;    // 1 = 电池充电使能 (default)
+        st_reg01.OTG_CONFIG = 0;    // 0 = OTG disable (default)
+        st_reg01.WD_RST = 0;        // 0 = Normal ，I2C Watchdog Timer Reset(default)
+        st_reg01.PFM_DIS = 0;       // 0 = 启用脉冲频率调制 (default)
+        
+        st_reg02.ICHG = 29;       // 2040mA (100010)快速充电电流值(default)-------------非默认，1740mA
+        st_reg02.Q1_FULLON = 0;     // VBUS FET 开关(default)
+        st_reg02.BOOST_LIM = 1;     //Boost Mode Current Limit  （0）0.5A  （1）1.2A(default)
+
+        st_reg03.ITERM = 0x01;      // 120mA 充电终止电流(default)
+        st_reg03.IPRECHG = 0x02;	// 180mA 预充电电流(default)
+
+        st_reg04.VRECHG = 0;        //电池循环充电阈值 0:100mV(default)  1:200mV
+        st_reg04.TOPOFF_TIMER = 0;  //检测到充电终止条件后，增加的充电延长时间，0就是禁用(default)
+        st_reg04.VREG = 17;       // 4.208V (11)最高充电电压限制(default) ---------------------------非默认, 4.4V(17)
+
+        st_reg05.JEITA_ISET = 1;    // 1 = 20% of I-CHG (default) 低温充电电流限制值
+        st_reg05.TREG = 1;          //热调节阈值 0:80℃  1:120℃(default)
+        st_reg05.CHG_TIMER = 1;     // Charge Safety Timer Setting  0 = 5hours  1 = 10hours(default)
+        st_reg05.EN_TIMER = 1;      // 1 = 充电安全定时器使能(default)
+        st_reg05.WATCHDOG = 0;      // 0 = Watchdog Timer Setting disable--------------------------非默认,禁用看门狗定时器
+        st_reg05.EN_TERM = 1;       // 1 = 充电终止启用 (default)
 
 
-	st_reg03.ITERM = 0x0a;      // 120mA 充电终止电流(default)
-	st_reg03.IPRECHG = 0x0a;	// 120mA 预充电电流(default)
+        st_reg06.VINDPM = 6;        // 0110 = 4.5V (default)输入电压动态电源管理阈值
+        st_reg06.BOOSTV = 2;        // 10 = 5.15V (default) Boost Mode 电压调节
+        st_reg06.OVP = 1;           // 01 = 6.5V (5V input), 11 = 14V（12V input）(default)电源引脚的过压保护阈值-----------------非默认
 
-
-	st_reg04.VRECHG = 0;        //电池循环充电阈值 0:100mV(default)  1:200mV
-	st_reg04.TOPOFF_TIMER = 0;  //检测到充电终止条件后，增加的充电延长时间，0就是禁用(default)
-	st_reg04.VREG = 17;       // 4.208V (11)最高充电电压限制(default) ---------------------------非默认, 4.4V(17)
-
-	st_reg05.JEITA_ISET = 0;    // 1 = 20% of I-CHG (default) 低温充电电流限制值
-	st_reg05.TREG = 1;          //热调节阈值 0:80℃  1:120℃(default)
-	st_reg05.CHG_TIMER = 1;     // Charge Safety Timer Setting  0:4hours  1:16hours(default)
-	st_reg05.EN_TIMER = 1;      // 1 = 充电安全定时器使能(default)
-	st_reg05.WATCHDOG = 0;      // 0 = Watchdog Timer Setting disable--------------------------非默认,禁用看门狗定时器
-	st_reg05.EN_TERM = 1;       // 1 = 充电终止启用 (default)
-
-
-	st_reg06.VINDPM = 6;        // 0110 = 4.5V (default)输入电压动态电源管理阈值
-	st_reg06.BOOSTV = 2;        // 10 = 5.15V (default) Boost Mode 电压调节
-	st_reg06.OVP = 1;           // 01 = 6.5V (5V input), 11 = 14V（12V input）(default)电源引脚的过压保护阈值-----------------非默认
-
-	st_reg07.VDPM_BAT_TRACK = 0; // 0 = 动态电压跟踪（VINDPM）设置disable(defalut)
-	st_reg07.BATFET_RST_EN = 1; // 1 = Enable BATFET reset (default)
-	st_reg07.BATFET_DLY = 1;    // 1 = Turn off BATFET after tSM_DLY(default)
-	st_reg07.JEITA_VSET = 1;    //0 = JEITA设置充电电压为4.1V(default), 1 = JEITA设置充电电压为 st_reg04.VREG
-	st_reg07.BATFET_DIS = 0;    //0 = Allow BATFET (Q4) to turn on(default)
-	st_reg07.TMR2X_EN = 1;      //1 = 启用半时钟率安全计时器(default)
-	st_reg07.IINDET_EN = 1;     //0 = Not in input current limit detection(default)输入电流限制检测----------------非默认
-
+        st_reg07.VDPM_BAT_TRACK = 0; // 0 = 动态电压跟踪（VINDPM）设置disable(defalut)
+        st_reg07.BATFET_RST_EN = 1; // 1 = Enable BATFET reset (default)
+        st_reg07.BATFET_DLY = 1;    // 1 = Turn off BATFET after tSM_DLY(default)
+        st_reg07.JEITA_VSET = 0;    //0 = JEITA设置充电电压为4.1V(default), 1 = JEITA设置充电电压为 st_reg04.VREG
+        st_reg07.BATFET_DIS = 0;    //0 = Allow BATFET (Q4) to turn on(default)
+        st_reg07.TMR2X_EN = 1;      //1 = 启用半时钟率安全计时器(default)
+        st_reg07.IINDET_EN = 1;     //0 = Not in input current limit detection(default)输入电流限制检测----------------非默认
+    } else {
+        LOG_E("[error] charge dev type unknow!\n");
+        return SGM41513_ERROR;
+    }
+    
     hl_drv_sgm41513_write_reg(REG00_ADDR, (uint8_t *)&st_reg00);
     hl_drv_sgm41513_write_reg(REG01_ADDR, (uint8_t *)&st_reg01);
     hl_drv_sgm41513_write_reg(REG02_ADDR, (uint8_t *)&st_reg02);
@@ -705,7 +771,7 @@ uint8_t hl_drv_sgm41513_ctrl(uint8_t op_cmd, void *arg, int32_t arg_size)
 uint8_t hl_drv_sgm41513_init(void)
 {
     uint8_t re_val = 0;
-    hl_sgm41513_reg0b_t reg_val;
+    hl_sgm41513_reg0b_t reg_val2, reg_val3;
     if (sgm41513_init_status == true) {
         LOG_E("[error] sgm41513 drv already init!\n");
         return SGM41513_ERROR;
@@ -716,10 +782,19 @@ uint8_t hl_drv_sgm41513_init(void)
         LOG_E("[error] sgm41513 drv init failed 1 !\n");
         return SGM41513_ERROR;
     }
-    hl_drv_sgm41513_read_reg(REG0B_ADDR, (uint8_t *)&reg_val);
-    if (reg_val.PN != SGMXXX_PART_ID) {
-        sgm41513_init_status = false;
-        LOG_E("[error] sgm41513 drv init failed 2 !\n");
+
+    _charge_dev_type = CHARGE_DEV_SGM41513;
+    hl_drv_sgm41513_read_reg(REG0B_ADDR, (uint8_t *)&reg_val2);
+    _charge_dev_type = CHARGE_DEV_SY6974;
+    hl_drv_sgm41513_read_reg(REG0B_ADDR, (uint8_t *)&reg_val3);
+
+    if (reg_val2.PN == SGM41513_PART_ID) {
+        _charge_dev_type = CHARGE_DEV_SGM41513;
+    } else if (reg_val3.PN == SY6974_PART_ID) {
+        _charge_dev_type = CHARGE_DEV_SY6974;
+    } else {
+        _charge_dev_type = CHARGE_DEV_UNKNOW;
+        LOG_E("[error] charge drv init , dev type unknow!\n");
         return SGM41513_ERROR;
     }
 

@@ -467,7 +467,7 @@ static void _pm_get_charge_status_info()
     hl_drv_sgm41513_ctrl(GET_BOOST_MODE_ERROR_STATUS, &new_charge_error_info.boost_mode_status, 1);
     hl_drv_sgm41513_ctrl(GET_WATCHDOG_ERROR_STATUS, &new_charge_error_info.watchdog_error_status, 1);
 
-    hl_drv_sgm41513_ctrl(GET_VBUS_IN_DET_STATUS, &reg_val, 1);  //只用作清除中断标志位
+    //hl_drv_sgm41513_ctrl(GET_VBUS_IN_DET_STATUS, &reg_val, 1);  //只用作清除中断标志位
 }
 
 /**
@@ -491,14 +491,14 @@ static void _pm_charge_irq_pair_deal(uint8_t val)
                 
                 _mod_msg_send(HL_MOD_PM_CHARGE_MSG, RT_NULL, 0);
 
-                LOG_I("    msg send 0, charge status :%d, input:%d, bat_err:%d, charge_err:%d",
+                LOG_I("msg send 0, charge status :%d, input:%d, bat_err:%d, charge_err:%d",
                         new_charge_info.charge_status, new_charge_info.vbus_connect_status,
                         new_charge_error_info.bat_error_status, new_charge_error_info.charge_error_status);
             }
             break;
         case HL_MOD_PM_VBUS_STAT:
             if (PM_STAT_COMPARE(old_charge_info.vbus_status, new_charge_info.vbus_status) == 1) {
-                LOG_I("    1, vbus status : %d", new_charge_info.vbus_status);
+                LOG_I("1, vbus status : %d", new_charge_info.vbus_status);
             }
             break;
         case HL_MOD_PM_INPUT_STAT:
@@ -506,48 +506,48 @@ static void _pm_charge_irq_pair_deal(uint8_t val)
 
                 _mod_msg_send(HL_MOD_PM_VBUS_MSG, RT_NULL, 0);
 
-                LOG_I("    msg send 2, input power status: %d", new_charge_info.vbus_connect_status);
+                LOG_I("msg send 2, input power status: %d", new_charge_info.vbus_connect_status);
             }
             break;
         case HL_MOD_PM_VINDPM_STAT:
             if (PM_STAT_COMPARE(old_charge_info.vindpm_status, new_charge_info.vindpm_status) == 1) {
-                LOG_E("    3");
+                LOG_E("VINDPM");
             }
             break;
         case HL_MOD_PM_IINDPM_STAT:
             if (PM_STAT_COMPARE(old_charge_info.iindpm_status, new_charge_info.iindpm_status) == 1) {
-                LOG_E("    4");
+                LOG_E("IINDPM");
             }
             break;
         case HL_MOD_PM_SYS_VOL_STAT:
             if (PM_STAT_COMPARE(old_charge_info.sys_vol_status, new_charge_info.sys_vol_status) == 1) {
-                LOG_E("    5");
+                LOG_E("SYS_VOL");
             }
             break;
         case HL_MOD_PM_BAT_ERR_STAT:
             if (PM_STAT_COMPARE(old_charge_error_info.bat_error_status, new_charge_error_info.bat_error_status) == 1) {
                 _mod_msg_send(HL_MOD_PM_BAT_FAULT_MSG, RT_NULL, 0);
 
-                LOG_E("    msg send 6, battery fault status: %d", new_charge_error_info.bat_error_status);
+                LOG_E("msg send 6, battery fault status: %d", new_charge_error_info.bat_error_status);
             }
             break;
         case HL_MOD_PM_CHAR_ERR_STAT:
             if (PM_STAT_COMPARE(old_charge_error_info.charge_error_status, new_charge_error_info.charge_error_status) == 1) {
                 _mod_msg_send(HL_MOD_CHAR_FAULT_MSG, RT_NULL, 0);
 
-                LOG_E("    msg send 7, charger fault status: %d", new_charge_error_info.charge_error_status);
+                LOG_E("msg send 7, charger fault status: %d", new_charge_error_info.charge_error_status);
             }
             break;
         case HL_MOD_PM_BOOST_ERR_STAT:
             if (PM_STAT_COMPARE(old_charge_error_info.boost_mode_status, new_charge_error_info.boost_mode_status) == 1) {
                 _mod_msg_send(HL_MOD_BOOST_FAULT_MSG, RT_NULL, 0);
 
-                LOG_E("    msg send 8, BOOST fault status: %d", new_charge_error_info.boost_mode_status);
+                LOG_E("msg send 8, BOOST fault status: %d", new_charge_error_info.boost_mode_status);
             }
             break;
         case HL_MOD_PM_WATCHDOG_ERR_STAT:
             if (PM_STAT_COMPARE(old_charge_error_info.watchdog_error_status, new_charge_error_info.watchdog_error_status) == 1) {
-                LOG_E("    9");
+                LOG_E("WATCHDOG_ERR");
             }
             break;
         default:
@@ -596,7 +596,7 @@ static void _pm_hall_load_info_check(void)
 {
     if (hall_info.tx1_irq_flag == true) {
         hall_info.tx1_status = hl_hal_gpio_read(GPIO_HALL_TX1);
-        LOG_I("    tx1:%d", hall_info.tx1_status);
+        LOG_I("tx1:%d", hall_info.tx1_status);
         hall_info.tx1_irq_flag = false;
 
         _mod_msg_send(HL_MOD_PM_TX1_MSG, RT_NULL, 0);
@@ -604,7 +604,7 @@ static void _pm_hall_load_info_check(void)
 
     if (hall_info.tx2_irq_flag == true) {
         hall_info.tx2_status = hl_hal_gpio_read(GPIO_HALL_TX2);
-        LOG_I("    tx2:%d", hall_info.tx2_status);
+        LOG_I("tx2:%d", hall_info.tx2_status);
         hall_info.tx2_irq_flag = false;
 
         _mod_msg_send(HL_MOD_PM_TX2_MSG, RT_NULL, 0);
@@ -612,7 +612,7 @@ static void _pm_hall_load_info_check(void)
 
     if (hall_info.rx_irq_flag == true) {
         hall_info.rx_status = hl_hal_gpio_read(GPIO_HALL_RX);
-        LOG_I("    rx:%d", hall_info.rx_status);
+        LOG_I("rx:%d", hall_info.rx_status);
         hall_info.rx_irq_flag = false;
 
         _mod_msg_send(HL_MOD_PM_RX_MSG, RT_NULL, 0);
