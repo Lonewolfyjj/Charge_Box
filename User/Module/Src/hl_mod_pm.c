@@ -192,6 +192,8 @@ static hl_mod_msg_handle_st _pm_msg_hd = { .msg_id = 0, .msg_send = RT_NULL };
 
 static hl_mod_pm_drv_init_st _pm_drv_flag = { .pm_init_charge_flag = false, .pm_init_guage_flag = false };
 
+static hl_st_drv_guage_soc_t old_soc_val;
+
 static bool temp_ovmax_flag = false;
 static bool  temp_ovmin_flag = false;
 
@@ -381,9 +383,9 @@ static inline void _pm_update_bat_info_check(void)
 
     hl_drv_cw2215_ctrl(HL_DRV_GUAGE_CHECK_IT_FLAG, &it_flag, sizeof(it_flag));
 
-    if (it_flag & HL_DRV_GUAGE_IT_FLAG_SOC) {   //检测是否产生电量变化中断
-        update_flag = true;
-    }
+    // if (it_flag & HL_DRV_GUAGE_IT_FLAG_SOC) {   //检测是否产生电量变化中断
+    //     update_flag = true;
+    // }
 
     if (it_flag & HL_DRV_GUAGE_IT_FLAG_TMAX) {  //检测是否产生温度超最高阈值中断
         temp_ovmax_flag = true;
@@ -395,20 +397,21 @@ static inline void _pm_update_bat_info_check(void)
 
     hl_drv_cw2215_ctrl(HL_DRV_GUAGE_CLEAR_IT_FLAG, &it_flag, sizeof(it_flag));
 
-    if (pm_mod_info.init_bat_update_flag == true) {
-        update_flag                      = true;
-        pm_mod_info.init_bat_update_flag = false;
-    }
+    // if (pm_mod_info.init_bat_update_flag == true) {
+    //     update_flag                      = true;
+    //     pm_mod_info.init_bat_update_flag = false; 
+    // }
 
-    if (update_flag == true) {
-        _pm_update_bat_info(HL_MOD_PM_BAT_INFO_SOC);
-        _pm_update_bat_info(HL_MOD_PM_BAT_INFO_VOL);
-        _pm_update_bat_info(HL_MOD_PM_BAT_INFO_CUR);
-        _pm_update_bat_info(HL_MOD_PM_BAT_INFO_TEMP);
+    _pm_update_bat_info(HL_MOD_PM_BAT_INFO_SOC);
+    _pm_update_bat_info(HL_MOD_PM_BAT_INFO_VOL);
+    _pm_update_bat_info(HL_MOD_PM_BAT_INFO_CUR);
+    _pm_update_bat_info(HL_MOD_PM_BAT_INFO_TEMP);
 
+    if (old_soc_val.soc != bat_info.soc_val.soc) {
+        old_soc_val.soc = bat_info.soc_val.soc;
         _mod_msg_send(HL_MOD_PM_SOC_MSG, RT_NULL, 0);
     }
-
+    
     /* 温度中断报警，温度超过限定值，在-10°c 和 45°c之外，关闭电池充电*/
     if (temp_ovmax_flag == true || temp_ovmin_flag == true) {
         switch (temp_state) {
@@ -647,6 +650,7 @@ static void _pm_thread_start_init()
     } else {
         _pm_update_bat_info(HL_MOD_PM_BAT_INFO_SOC);        //电量计驱动初始化成功，上报电量给APP
         _mod_msg_send(HL_MOD_PM_SOC_MSG, RT_NULL, 0);
+        old_soc_val.soc = bat_info.soc_val.soc;             //给旧电量的状态赋初始值，方便后续对比电量是否变化
     }
     if (_pm_drv_flag.pm_init_charge_flag == false) {        //充电驱动初始化出现故障，上报故障类型给APP
         _mod_msg_send(HL_MOD_PM_CHARGE_ERR_MSG, RT_NULL, 0);
