@@ -398,7 +398,7 @@ static void _ui_box_led_charge_show()
                 _battery_soc_state_display(HL_MOD_UI_CH_MOD4);
                 break;
             case HL_MOD_UI_SOC_FULL:                            //soc = 100
-                _battery_soc_state_display(HL_MOD_UI_FULL_MOD);
+                _battery_soc_state_display(HL_MOD_UI_CH_MOD4);
                 break;
             default:
                 break;  
