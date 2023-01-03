@@ -29,7 +29,7 @@
 #include "hl_mod_pm.h"
 
 #define DBG_SECTION_NAME "app_pm"
-#define DBG_LEVEL DBG_WARNING
+#define DBG_LEVEL DBG_INFO
 #include <rtdbg.h>
 
 /* typedef -------------------------------------------------------------------*/
@@ -55,6 +55,8 @@ extern bool _flash_init_flag;
 static void _pm_mod_bat_state_set()
 {
     hl_mod_pm_ctrl(HL_MOD_PM_GET_SOC, &(_pm_task.task_comm->bat_soc), sizeof(_pm_task.task_comm->bat_soc));
+
+    LOG_I("soc:%d", _pm_task.task_comm->bat_soc);
 
     if (_pm_task.task_comm->bat_soc == 100) {
         _pm_task.task_comm->bat_state = HL_APP_BAT_STATE_FULL;
@@ -82,12 +84,12 @@ static void _pm_mod_charge_state_set(void)
 
     if (charge_value == 0) {
         _pm_task.task_comm->charge_state = HL_APP_BAT_CHARGE_STATE_NO_CHARGE;
-        LOG_I("pm no charge!");
+        LOG_I("no charge!");
     } else if (charge_value == 3) {
-        LOG_I("pm charge completed!");
+        LOG_I("charge completed!");
         _pm_task.task_comm->charge_state = HL_APP_BAT_CHARGE_STATE_CHARGE_COMPLETE;
     } else {
-        LOG_I("pm is charging!");
+        LOG_I("charging!");
         _pm_task.task_comm->charge_state = HL_APP_BAT_CHARGE_STATE_CHARGING;
     }
 }
@@ -167,8 +169,10 @@ static void _pm_mod_vbus_state_set(void)
     hl_mod_pm_ctrl(HL_MOD_PM_GET_VBUS_STATE, &(state), sizeof(state));
 
     if (state == 0) {
+        LOG_I("Vbus OUT");
         _pm_task.task_comm->vbus_state = HL_APP_VBUS_STATE_OUT;
     } else {
+        LOG_I("Vbus IN");
         _pm_task.task_comm->vbus_state = HL_APP_VBUS_STATE_IN;
     }
 }
