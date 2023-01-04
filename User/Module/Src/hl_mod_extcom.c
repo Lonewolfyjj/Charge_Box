@@ -89,6 +89,13 @@ typedef struct _hl_mod_extcom_temp_flag_st
     uint8_t rx_set_tx2_online_state_flag : 1;
     uint8_t rx_set_tx1_lose_state_flag : 1;
     uint8_t rx_set_tx2_lose_state_flag : 1;
+    uint8_t rx_set_box_lid_state_flag : 1;
+    uint8_t rx_set_tx1_bat_info_flag : 1;
+    uint8_t rx_set_tx2_bat_info_flag : 1;
+    uint8_t rx_set_box_bat_info_flag : 1;
+    uint8_t rx_set_tx1_charge_state_flag : 1;
+    uint8_t rx_set_tx2_charge_state_flag : 1;
+    uint8_t rx_set_box_charge_state_flag : 1;
 } hl_mod_extcom_temp_flag_st;
 
 typedef struct _hl_mod_extcom_object_st
@@ -244,9 +251,12 @@ static void rx_hup_success_handle_func(hup_protocol_type_t hup_frame)
             }
         } break;
         case HL_HUP_CMD_GET_BAT_INFO: {
-            _extcom_mod.rx_bat_info                    = hup_frame.data_addr[0];
-            _extcom_mod.temp_flag.rx_bat_info_get_flag = true;
-            _mod_msg_send(HL_MOD_EXTCOM_MSG_RX_BAT_STATE, &(_extcom_mod.rx_bat_info), sizeof(_extcom_mod.rx_bat_info));
+            if (_extcom_mod.rx_bat_info != hup_frame.data_addr[0]) {
+                _extcom_mod.rx_bat_info                    = hup_frame.data_addr[0];
+                _extcom_mod.temp_flag.rx_bat_info_get_flag = true;
+                _mod_msg_send(HL_MOD_EXTCOM_MSG_RX_BAT_STATE, &(_extcom_mod.rx_bat_info),
+                              sizeof(_extcom_mod.rx_bat_info));
+            }
         } break;
         case HL_HUP_CMD_PAIR_START: {
             if (hup_frame.data_addr[0] == 1) {
@@ -281,10 +291,12 @@ static void rx_hup_success_handle_func(hup_protocol_type_t hup_frame)
             // do nothing
         } break;
         case HL_HUP_CMD_GET_CHARGE_STATE: {
-            _extcom_mod.rx_charge_state                    = hup_frame.data_addr[0];
-            _extcom_mod.temp_flag.rx_charge_state_get_flag = true;
-            _mod_msg_send(HL_MOD_EXTCOM_MSG_RX_CHARGE_STATE, &(_extcom_mod.rx_charge_state),
-                          sizeof(_extcom_mod.rx_charge_state));
+            if (_extcom_mod.rx_charge_state != hup_frame.data_addr[0]) {
+                _extcom_mod.rx_charge_state                    = hup_frame.data_addr[0];
+                _extcom_mod.temp_flag.rx_charge_state_get_flag = true;
+                _mod_msg_send(HL_MOD_EXTCOM_MSG_RX_CHARGE_STATE, &(_extcom_mod.rx_charge_state),
+                              sizeof(_extcom_mod.rx_charge_state));
+            }
         } break;
         default:
             break;
@@ -317,16 +329,24 @@ static void tx1_hup_success_handle_func(hup_protocol_type_t hup_frame)
             }
         } break;
         case HL_HUP_CMD_GET_BAT_INFO: {
-            _extcom_mod.tx1_bat_info                    = hup_frame.data_addr[0];
-            _extcom_mod.temp_flag.tx1_bat_info_get_flag = true;
-            _mod_msg_send(HL_MOD_EXTCOM_MSG_TX1_BAT_STATE, &(_extcom_mod.tx1_bat_info),
-                          sizeof(_extcom_mod.tx1_bat_info));
+            if (_extcom_mod.tx1_bat_info != hup_frame.data_addr[0]) {
+                _extcom_mod.tx1_bat_info                       = hup_frame.data_addr[0];
+                _extcom_mod.temp_flag.tx1_bat_info_get_flag    = true;
+                _extcom_mod.temp_flag.rx_set_tx1_bat_info_flag = false;
+
+                _mod_msg_send(HL_MOD_EXTCOM_MSG_TX1_BAT_STATE, &(_extcom_mod.tx1_bat_info),
+                              sizeof(_extcom_mod.tx1_bat_info));
+            }
         } break;
         case HL_HUP_CMD_GET_CHARGE_STATE: {
-            _extcom_mod.tx1_charge_state                    = hup_frame.data_addr[0];
-            _extcom_mod.temp_flag.tx1_charge_state_get_flag = true;
-            _mod_msg_send(HL_MOD_EXTCOM_MSG_TX1_CHARGE_STATE, &(_extcom_mod.tx1_charge_state),
-                          sizeof(_extcom_mod.tx1_charge_state));
+            if (_extcom_mod.tx1_charge_state != hup_frame.data_addr[0]) {
+                _extcom_mod.tx1_charge_state                       = hup_frame.data_addr[0];
+                _extcom_mod.temp_flag.tx1_charge_state_get_flag    = true;
+                _extcom_mod.temp_flag.rx_set_tx1_charge_state_flag = false;
+
+                _mod_msg_send(HL_MOD_EXTCOM_MSG_TX1_CHARGE_STATE, &(_extcom_mod.tx1_charge_state),
+                              sizeof(_extcom_mod.tx1_charge_state));
+            }
         } break;
         default:
             break;
@@ -359,16 +379,24 @@ static void tx2_hup_success_handle_func(hup_protocol_type_t hup_frame)
             }
         } break;
         case HL_HUP_CMD_GET_BAT_INFO: {
-            _extcom_mod.tx2_bat_info                    = hup_frame.data_addr[0];
-            _extcom_mod.temp_flag.tx2_bat_info_get_flag = true;
-            _mod_msg_send(HL_MOD_EXTCOM_MSG_TX2_BAT_STATE, &(_extcom_mod.tx2_bat_info),
-                          sizeof(_extcom_mod.tx2_bat_info));
+            if (_extcom_mod.tx2_bat_info != hup_frame.data_addr[0]) {
+                _extcom_mod.tx2_bat_info                       = hup_frame.data_addr[0];
+                _extcom_mod.temp_flag.tx2_bat_info_get_flag    = true;
+                _extcom_mod.temp_flag.rx_set_tx2_bat_info_flag = false;
+
+                _mod_msg_send(HL_MOD_EXTCOM_MSG_TX2_BAT_STATE, &(_extcom_mod.tx2_bat_info),
+                              sizeof(_extcom_mod.tx2_bat_info));
+            }
         } break;
         case HL_HUP_CMD_GET_CHARGE_STATE: {
-            _extcom_mod.tx2_charge_state                    = hup_frame.data_addr[0];
-            _extcom_mod.temp_flag.tx2_charge_state_get_flag = true;
-            _mod_msg_send(HL_MOD_EXTCOM_MSG_TX2_CHARGE_STATE, &(_extcom_mod.tx2_charge_state),
-                          sizeof(_extcom_mod.tx2_charge_state));
+            if (_extcom_mod.tx2_charge_state != hup_frame.data_addr[0]) {
+                _extcom_mod.tx2_charge_state                       = hup_frame.data_addr[0];
+                _extcom_mod.temp_flag.tx2_charge_state_get_flag    = true;
+                _extcom_mod.temp_flag.rx_set_tx2_charge_state_flag = false;
+
+                _mod_msg_send(HL_MOD_EXTCOM_MSG_TX2_CHARGE_STATE, &(_extcom_mod.tx2_charge_state),
+                              sizeof(_extcom_mod.tx2_charge_state));
+            }
         } break;
         default:
             break;
@@ -1008,12 +1036,14 @@ static void _dev_get_bat_info_poll(void)
     if (objects[HL_MOD_EXTCOM_OBJECT_TX1].connect_flag == false) {
         flag->tx1_bat_info_get_flag     = false;
         flag->tx1_charge_state_get_flag = false;
+        _extcom_mod.tx1_bat_info        = 0xFF;
+        _extcom_mod.tx1_charge_state    = 0;
         tx1_count                       = 0;
     } else {
         if (tx1_count == 0) {
             _object_send_data(HL_MOD_EXTCOM_OBJECT_TX1, HL_HUP_CMD_GET_BAT_INFO, RT_NULL, 0);
             _object_send_data(HL_MOD_EXTCOM_OBJECT_TX1, HL_HUP_CMD_GET_CHARGE_STATE, RT_NULL, 0);
-            tx1_count = 200;
+            tx1_count = 100;
         } else {
             tx1_count--;
         }
@@ -1022,12 +1052,14 @@ static void _dev_get_bat_info_poll(void)
     if (objects[HL_MOD_EXTCOM_OBJECT_TX2].connect_flag == false) {
         flag->tx2_bat_info_get_flag     = false;
         flag->tx2_charge_state_get_flag = false;
+        _extcom_mod.tx2_bat_info        = 0xFF;
+        _extcom_mod.tx2_charge_state    = 0;
         tx2_count                       = 0;
     } else {
         if (tx2_count == 0) {
             _object_send_data(HL_MOD_EXTCOM_OBJECT_TX2, HL_HUP_CMD_GET_BAT_INFO, RT_NULL, 0);
             _object_send_data(HL_MOD_EXTCOM_OBJECT_TX2, HL_HUP_CMD_GET_CHARGE_STATE, RT_NULL, 0);
-            tx2_count = 200;
+            tx2_count = 100;
         } else {
             tx2_count--;
         }
@@ -1036,12 +1068,14 @@ static void _dev_get_bat_info_poll(void)
     if (objects[HL_MOD_EXTCOM_OBJECT_RX].connect_flag == false) {
         flag->rx_bat_info_get_flag     = false;
         flag->rx_charge_state_get_flag = false;
+        _extcom_mod.rx_bat_info        = 0xFF;
+        _extcom_mod.rx_charge_state    = 0;
         rx_count                       = 0;
     } else {
         if (rx_count == 0) {
             _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_GET_BAT_INFO, RT_NULL, 0);
             _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_GET_CHARGE_STATE, RT_NULL, 0);
-            rx_count = 200;
+            rx_count = 100;
         } else {
             rx_count--;
         }
@@ -1050,122 +1084,114 @@ static void _dev_get_bat_info_poll(void)
 
 static void _dev_set_bat_soc_poll(void)
 {
-    char            buf_send[2];
-    static uint16_t tx1_count = 0;
-    static uint16_t tx2_count = 0;
-    static uint16_t box_count = 0;
-
+    char                        buf_send[2];
     hl_mod_extcom_temp_flag_st* flag;
 
     flag = &_extcom_mod.temp_flag;
 
     if (objects[HL_MOD_EXTCOM_OBJECT_RX].connect_flag == true) {
         if (flag->tx1_bat_info_get_flag == true) {
-            if (tx1_count == 0) {
+            if (flag->rx_set_tx1_bat_info_flag == false) {
+                flag->rx_set_tx1_bat_info_flag = true;
+
                 buf_send[0] = 1;
                 buf_send[1] = _extcom_mod.tx1_bat_info;
                 _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_SET_BAT_INFO, buf_send, sizeof(buf_send));
-                tx1_count = 200;
-            } else {
-                tx1_count--;
             }
-        } else {
-            tx1_count = 0;
         }
 
         if (flag->tx2_bat_info_get_flag == true) {
-            if (tx2_count == 0) {
+            if (flag->rx_set_tx2_bat_info_flag == false) {
+                flag->rx_set_tx2_bat_info_flag = true;
+
                 buf_send[0] = 2;
                 buf_send[1] = _extcom_mod.tx2_bat_info;
                 _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_SET_BAT_INFO, buf_send, sizeof(buf_send));
-                tx2_count = 200;
-            } else {
-                tx2_count--;
             }
-        } else {
-            tx2_count = 0;
         }
 
         if (flag->box_bat_info_get_flag == true) {
-            if (box_count == 0) {
+            if (flag->rx_set_box_bat_info_flag == false) {
+                flag->rx_set_box_bat_info_flag = true;
+
                 buf_send[0] = 3;
                 buf_send[1] = _extcom_mod.box_bat_info;
                 _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_SET_BAT_INFO, buf_send, sizeof(buf_send));
-                box_count = 200;
-            } else {
-                box_count--;
             }
-        } else {
-            box_count = 0;
         }
     } else {
-        tx1_count = 0;
-        tx2_count = 0;
-        box_count = 0;
+        flag->rx_set_tx1_bat_info_flag = false;
+        flag->rx_set_tx2_bat_info_flag = false;
+        flag->rx_set_box_bat_info_flag = false;
     }
 }
 
 static void _dev_set_charge_state_poll(void)
 {
-    char            buf_send[2];
-    static uint16_t tx1_count = 0;
-    static uint16_t tx2_count = 0;
-    static uint16_t box_count = 0;
-
+    char                        buf_send[2];
     hl_mod_extcom_temp_flag_st* flag;
 
     flag = &_extcom_mod.temp_flag;
 
     if (objects[HL_MOD_EXTCOM_OBJECT_RX].connect_flag == true) {
         if (flag->tx1_charge_state_get_flag == true) {
-            if (tx1_count == 0) {
+            if (flag->rx_set_tx1_charge_state_flag == false) {
+                flag->rx_set_tx1_charge_state_flag = true;
+
                 buf_send[0] = 1;
                 buf_send[1] = _extcom_mod.tx1_charge_state;
                 _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_SET_CHARGE_STATE, buf_send, sizeof(buf_send));
-                tx1_count = 200;
-            } else {
-                tx1_count--;
             }
-        } else {
-            tx1_count = 0;
         }
 
         if (flag->tx2_charge_state_get_flag == true) {
-            if (tx2_count == 0) {
+            if (flag->rx_set_tx2_charge_state_flag == false) {
+                flag->rx_set_tx2_charge_state_flag = true;
+
                 buf_send[0] = 2;
                 buf_send[1] = _extcom_mod.tx2_charge_state;
                 _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_SET_CHARGE_STATE, buf_send, sizeof(buf_send));
-                tx2_count = 200;
-            } else {
-                tx2_count--;
             }
-        } else {
-            tx2_count = 0;
         }
 
         if (flag->box_charge_state_get_flag == true) {
-            if (box_count == 0) {
+            if (flag->rx_set_box_charge_state_flag == false) {
+                flag->rx_set_box_charge_state_flag = true;
+
                 buf_send[0] = 3;
                 buf_send[1] = _extcom_mod.box_charge_state;
                 _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_SET_CHARGE_STATE, buf_send, sizeof(buf_send));
-                box_count = 200;
-            } else {
-                box_count--;
             }
-        } else {
-            box_count = 0;
         }
     } else {
-        tx1_count = 0;
-        tx2_count = 0;
-        box_count = 0;
+        flag->rx_set_tx1_charge_state_flag = false;
+        flag->rx_set_tx2_charge_state_flag = false;
+        flag->rx_set_box_charge_state_flag = false;
     }
 }
 
 static void _dev_set_box_lid_state_poll(void)
 {
-    if (_extcom_mod.box_lid_state == 0) {
+    uint8_t                     lid_state;
+    hl_mod_extcom_temp_flag_st* flag;
+
+    flag = &_extcom_mod.temp_flag;
+
+    if (objects[HL_MOD_EXTCOM_OBJECT_RX].connect_flag == false) {
+        flag->rx_set_box_lid_state_flag = false;
         return;
+    }
+
+    if (flag->rx_set_box_lid_state_flag == false) {
+        flag->rx_set_box_lid_state_flag = true;
+
+        if (_extcom_mod.box_lid_state == 2) {
+            lid_state = 1;
+        } else {
+            lid_state = 0;
+        }
+
+        _object_send_data(HL_MOD_EXTCOM_OBJECT_RX, HL_HUP_CMD_SET_BOX_LID_STATE, &lid_state, sizeof(lid_state));
     }
 }
 
@@ -1273,8 +1299,10 @@ int hl_mod_extcom_start(void)
     _extcom_mod.tx1_probe_flag = false;
     _extcom_mod.tx2_probe_flag = false;
     _extcom_mod.rx_probe_flag  = false;
-    _extcom_mod.box_lid_state  = 0;
 
+    _extcom_mod.box_lid_state                       = 0;
+    _extcom_mod.box_bat_info                        = 0xFF;
+    _extcom_mod.box_charge_state                    = 0;
     _extcom_mod.temp_flag.box_bat_info_get_flag     = false;
     _extcom_mod.temp_flag.box_charge_state_get_flag = false;
 
@@ -1325,7 +1353,8 @@ int hl_mod_extcom_stop(void)
 
 int hl_mod_extcom_ctrl(hl_mod_extcom_op_e op, void* arg, int arg_size)
 {
-    int ret;
+    int     ret;
+    uint8_t state;
 
     if (_extcom_mod.init_flag == false) {
         LOG_E("extcom mod not init!\n");
@@ -1374,25 +1403,36 @@ int hl_mod_extcom_ctrl(hl_mod_extcom_op_e op, void* arg, int arg_size)
                 return HL_MOD_EXTCOM_FUNC_ERR;
             }
 
-            _extcom_mod.box_bat_info                    = *(uint8_t*)arg;
-            _extcom_mod.temp_flag.box_bat_info_get_flag = true;
+            if (_extcom_mod.box_bat_info != *(uint8_t*)arg) {
+                _extcom_mod.box_bat_info                       = *(uint8_t*)arg;
+                _extcom_mod.temp_flag.box_bat_info_get_flag    = true;
+                _extcom_mod.temp_flag.rx_set_box_bat_info_flag = false;
+            }
         } break;
         case HL_MOD_EXTCOM_SET_BOX_CHARGE_STATE: {
-            if (arg_size != sizeof(uint32_t)) {
-                LOG_E("size err, ctrl arg need <uint32_t> type pointer!");
+            if (arg_size != sizeof(uint8_t)) {
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return HL_MOD_EXTCOM_FUNC_ERR;
             }
 
-            _extcom_mod.box_charge_state                    = *(uint32_t*)arg;
-            _extcom_mod.temp_flag.box_charge_state_get_flag = true;
+            if (_extcom_mod.box_charge_state != *(uint8_t*)arg) {
+                _extcom_mod.box_charge_state                       = *(uint8_t*)arg;
+                _extcom_mod.temp_flag.box_charge_state_get_flag    = true;
+                _extcom_mod.temp_flag.rx_set_box_charge_state_flag = false;
+            }
         } break;
         case HL_MOD_EXTCOM_SET_BOX_LID_STATE: {
-            if (arg_size != sizeof(uint32_t)) {
-                LOG_E("size err, ctrl arg need <uint32_t> type pointer!");
+            if (arg_size != sizeof(uint8_t)) {
+                LOG_E("size err, ctrl arg need <uint8_t> type pointer!");
                 return HL_MOD_EXTCOM_FUNC_ERR;
             }
 
-            _extcom_mod.box_lid_state = *(uint32_t*)arg;
+            state = *(uint8_t*)arg;
+
+            if (_extcom_mod.box_lid_state != state) {
+                _extcom_mod.box_lid_state                       = state;
+                _extcom_mod.temp_flag.rx_set_box_lid_state_flag = false;
+            }
         } break;
         default:
             break;

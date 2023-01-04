@@ -107,13 +107,13 @@ static void _extcom_bat_soc_set_poll(void)
 
     if (_extcom_task.task_comm->charge_state != HL_APP_BAT_CHARGE_STATE_UNKNOWN) {
         hl_mod_extcom_ctrl(HL_MOD_EXTCOM_SET_BOX_CHARGE_STATE, &(_extcom_task.task_comm->charge_state),
-                           sizeof(uint32_t));
+                           sizeof(uint8_t));
     }
 }
 
 static void _extcom_box_lid_state_set_poll(void)
 {
-    hl_mod_extcom_ctrl(HL_MOD_EXTCOM_SET_BOX_LID_STATE, &(_extcom_task.task_comm->box_hall_state), sizeof(uint32_t));
+    hl_mod_extcom_ctrl(HL_MOD_EXTCOM_SET_BOX_LID_STATE, &(_extcom_task.task_comm->box_hall_state), sizeof(uint8_t));
 }
 
 static void _update_tx1_bat_state(uint8_t soc)
