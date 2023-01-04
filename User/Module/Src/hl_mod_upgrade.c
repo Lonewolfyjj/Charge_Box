@@ -25,12 +25,14 @@
 
 #include "hl_mod_upgrade.h"
 #include "string.h"
+#include "hl_mod_typedef.h"
 
 /* typedef -------------------------------------------------------------------*/
 
 #pragma pack(push)  //保存之前的对齐方式
 #pragma pack(1)     //以下内容设置为1字节对齐
 
+#if 0
 typedef struct Fat12Header
 {
     uint8_t  BS_OEMName[8];      // OEM字符串,必须为8个字符,不足以空格填空
@@ -53,7 +55,7 @@ typedef struct Fat12Header
     uint8_t  BS_VolLab[11];      // 卷标,必须是11个字符,不足以空格填充
     uint8_t  BS_FileSysType[8];  // 文件系统类型,必须是8个字符,不足填充空格
 } hl_mod_upgrade_fat12header_st;
-
+#endif
 typedef struct _hl_mod_upgrade_file_info_st
 {
     char     DIR_Name[11];      //文件名
@@ -61,7 +63,7 @@ typedef struct _hl_mod_upgrade_file_info_st
     uint8_t  reserve[10];       //保留值
     uint16_t DIR_WrtTime;       //最后一次写入时间
     uint16_t DIR_WrtDate;       //最后一次写入日期
-    uint16_t DIR_FstClus;       //文件数据起始族
+    uint16_t DIR_FstClus;       //文件数据起始簇
     uint32_t DIR_FileSize;      //文件大小
 } hl_mod_upgrade_file_info_st;
 
@@ -90,6 +92,8 @@ typedef enum _hl_mod_upgrade_file_dec_e
 
 #define UPGRADE_THREAD_STACK_SIZE    512
 
+#define UPGRADE_FILE_TOTAL           512    //升级文件总容量
+
 /* variables -----------------------------------------------------------------*/
 
 static hl_mod_upgrade_st _upgrade_info = {
@@ -100,7 +104,9 @@ static hl_mod_upgrade_st _upgrade_info = {
     .thread_exit_flag = -1
 };
 
-static hl_mod_upgrade_fat12header_st _fat12_head;   //文件系统的头信息
+//static hl_mod_upgrade_fat12header_st _fat12_head;   //文件系统的头信息
+
+static hl_mod_msg_handle_st _upgrade_msg_hd;
 
 static uint8_t _upgrade_thread_stack[UPGRADE_THREAD_STACK_SIZE] = { 0 };
 
@@ -143,20 +149,30 @@ static void _upgrade_file_info_printf(hl_mod_upgrade_file_info_st file_info)
 }
 #endif
 
-static uint8_t _upgrade_file_find(int file_total, char* file_name)
+static int _mod_msg_send(uint8_t cmd, void* param, uint16_t len)
+{
+    if (_upgrade_info.msg_hd != RT_NULL && _upgrade_msg_hd.msg_send != RT_NULL) {
+        _upgrade_msg_hd.msg_send(_upgrade_msg_hd.msg_id, cmd, param, len);
+        return HL_MOD_UPGRADE_FUNC_OK;
+    }
+
+    return HL_MOD_UPGRADE_FUNC_ERR;
+}
+
+static uint8_t _upgrade_file_find(char* file_name)
 {
     hl_mod_upgrade_file_info_st file_info;
     int                         i;
     int                         f_nlen = strlen(file_name);
-    uint8_t                     ret;
+    uint8_t                     ret = UPGRADE_NO_FILE;
 
     LOG_I("要找的文件名为:%s \n", file_name);
     LOG_I("start find...\n");
 
-    for (i = 0; i < file_total; i++) {
+    for (i = 0; i < UPGRADE_FILE_TOTAL; i++) {
         hl_drv_flash_read(UPGRADE_FILE_DIR_ENTRY_ADDR + i * sizeof(file_info), (uint8_t*)&file_info, sizeof(file_info));
 
-        if (file_info.DIR_Name[0] == 0) {
+        if (file_info.DIR_Name[0] == 0) {   //查找到最后，没有文件了，说明没有找到
             ret = UPGRADE_NO_FILE;
             break;
         }
@@ -176,23 +192,23 @@ static void _upgrade_thread_entry(void* arg)
     uint8_t f_ret = 0, count = 0, find_sign = 0;
     while (_upgrade_info.thread_exit_flag == 0) {
         
-        if (flash_write_use_state == 1) {
+        if (flash_write_use_state == 1) {       //大容量的FLASH写还在使用，重新计超时时间
             flash_write_use_state = 0;
             count = 0;
             find_sign = 1;
             LOG_I("flash write used\n");
         }
         
-        if (count >= 5) {
+        if (count >= 5) {                       //5秒之后，大容量的FLASH写没有使用时，进行升级文件检测
 
             if (find_sign == 1) {
                 find_sign = 0;
-                f_ret = _upgrade_file_find(_fat12_head.BPB_RootEntCnt, UPGRADE_FILE_NAME);
+                f_ret = _upgrade_file_find(UPGRADE_FILE_NAME);
                 if (UPGRADE_FILE_OK == f_ret) {
 
                     LOG_I("file exist, start reset...\n");
-                    __NVIC_SystemReset();     //重启
-                    
+                    //__NVIC_SystemReset();     //重启
+                    _mod_msg_send(HL_MOD_UPGRADE_FILE_EXIST_MSG, RT_NULL, 0);
                 }
             }
             
@@ -209,7 +225,7 @@ static void _upgrade_thread_entry(void* arg)
 
 /* Exported functions --------------------------------------------------------*/
 
-int hl_mod_upgrade_start()
+int hl_mod_upgrade_start(void)
 {
     rt_err_t rt_err;
 
@@ -237,7 +253,7 @@ int hl_mod_upgrade_start()
     return HL_MOD_UPGRADE_FUNC_OK;
 }
 
-int hl_mod_upgrade_stop()
+int hl_mod_upgrade_stop(void)
 {
     if (_upgrade_info.init_flag == false) {
         LOG_E("ui mod not init!");
@@ -274,10 +290,19 @@ int hl_mod_upgrade_init(void *msg_hd)
 
     hl_drv_flash_init();
  
-    ret= hl_drv_flash_read(UPGRADE_FILE_SYSTEM_ADDR, (uint8_t*)&_fat12_head, sizeof(_fat12_head));
-    if (ret == FLASH_RET_ERR) {
-        LOG_E("upgrade mod init failed!");
-        return HL_MOD_UPGRADE_FUNC_ERR;
+    /* 读取文件系统的头部信息 */
+    // ret= hl_drv_flash_read(UPGRADE_FILE_SYSTEM_ADDR, (uint8_t*)&_fat12_head, sizeof(_fat12_head));
+    // if (ret == FLASH_RET_ERR) {
+    //     LOG_E("upgrade mod init failed!");
+    //     return HL_MOD_UPGRADE_FUNC_ERR;
+    // }
+
+    if (msg_hd != RT_NULL) {
+        _upgrade_msg_hd.msg_id   = ((hl_mod_msg_handle_st*)(msg_hd))->msg_id;
+        _upgrade_msg_hd.msg_send = ((hl_mod_msg_handle_st*)(msg_hd))->msg_send;
+        _upgrade_info.msg_hd  = &_upgrade_msg_hd;
+    } else {
+        _upgrade_info.msg_hd = RT_NULL;
     }
 
     LOG_I("upgrade mod init success");
@@ -288,7 +313,7 @@ int hl_mod_upgrade_init(void *msg_hd)
     return HL_MOD_UPGRADE_FUNC_OK;
 }
 
-int hl_mod_upgrade_deinit()
+int hl_mod_upgrade_deinit(void)
 {
     if (_upgrade_info.init_flag == false) {
         LOG_E("upgrade mod no init!");
@@ -300,6 +325,24 @@ int hl_mod_upgrade_deinit()
     _upgrade_info.msg_hd = NULL;
 
     _upgrade_info.init_flag = false;
+    return HL_MOD_UPGRADE_FUNC_OK;
+}
+
+int hl_mod_upgrade_ctrl(uint8_t op_cmd, void *arg, int32_t arg_size)
+{
+    if (_upgrade_info.init_flag == false) {
+        LOG_E("upgrade mod no init!");
+        return HL_MOD_UPGRADE_FUNC_ERR;
+    }
+    switch (op_cmd) {
+        case HL_MOD_UPGRADE_FILE_CHECK:
+            flash_write_use_state = 1;
+            break;
+        case 1:
+            break;
+        default:
+            break;
+    }
     return HL_MOD_UPGRADE_FUNC_OK;
 }
 

@@ -30,6 +30,20 @@
 #include "hl_drv_flash.h"
 
 /* typedef -------------------------------------------------------------------*/
+
+typedef enum _hl_mod_upgrade_op_cmd_e {
+
+    //进行一次升级文件检测, type of parameter is <RT_NULL> pointer.
+    HL_MOD_UPGRADE_FILE_CHECK
+}hl_mod_upgrade_op_cmd_e;
+
+
+typedef enum _hl_mod_upgrade_msg_e {
+
+    HL_MOD_UPGRADE_FILE_EXIST_MSG,      //升级文件存在
+
+} hl_mod_upgrade_msg_e;
+
 /* define --------------------------------------------------------------------*/
 
 #define UPGRADE_FILE_SYSTEM_ADDR        0x1003      //文件系统信息起始地址（FLASH偏移地址 + 3）
@@ -48,9 +62,11 @@ int hl_mod_upgrade_init(void *msg_hd);
 
 int hl_mod_upgrade_deinit(void);
 
-int hl_mod_upgrade_start();
+int hl_mod_upgrade_start(void);
 
-int hl_mod_upgrade_stop();
+int hl_mod_upgrade_stop(void);
+
+int hl_mod_upgrade_ctrl(uint8_t op_cmd, void *arg, int32_t arg_size);
 
 #endif
 /*
