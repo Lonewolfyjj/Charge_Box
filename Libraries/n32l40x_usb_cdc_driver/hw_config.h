@@ -65,7 +65,7 @@ void Set_System(void);
 ErrorStatus Set_USBClock(uint32_t sysclk);
 void Enter_LowPowerMode(void);
 void Leave_LowPowerMode(void);
-void USB_Interrupts_Config(void);
+void USB_Interrupts_Config(uint8_t state);
 void USB_Configured_LED(void);
 void USB_NotConfigured_LED(void);
 void USB_Cable_Config (FunctionalState NewState);

@@ -68,6 +68,7 @@ void (*pEpInt_OUT[7])(void) = {
  */
 void USB_Istr(void)
 {
+    static uint8_t accept_error_cnt = 10;
     uint32_t i=0;
     __IO uint32_t EP[8];
 
@@ -110,9 +111,15 @@ void USB_Istr(void)
     if (wIstr & STS_ERROR & wInterrupt_Mask)
     {
         _SetISTR((uint16_t)CLR_ERROR);
+        accept_error_cnt--;
 #ifdef ERR_CALLBACK
-        ERR_Callback();
+        if (accept_error_cnt == 0) {
+            accept_error_cnt = 10;
+            ERR_Callback();
+        }
 #endif
+    }else {
+        accept_error_cnt = 10;
     }
 #endif
     /*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*/

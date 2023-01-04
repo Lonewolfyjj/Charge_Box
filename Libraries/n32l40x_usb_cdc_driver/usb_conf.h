@@ -86,8 +86,8 @@
 //#define IMR_MSK (CTRL_CTRSM  | CTRL_WKUPM | CTRL_SUSPDM | CTRL_ERRORM  | CTRL_SOFM \
 //                 | CTRL_ESOFM | CTRL_RSTM )
 #define IMR_MSK (CTRL_CTRSM  | CTRL_WKUPM | CTRL_SUSPDM | CTRL_ERRORM   \
-                 | CTRL_ESOFM | CTRL_RSTM | CTRL_SOFM )
-								 
+                 | CTRL_ESOFM | CTRL_RSTM | CTRL_SOFM )	
+
 /* CTR service routines */
 /* associated to defined endpoints */
 //#define  EP1_IN_Callback   USB_ProcessNop
@@ -109,6 +109,7 @@
 
 
 #define SOF_CALLBACK
+#define ERR_CALLBACK
 
 #endif /* __USB_CONF_H */
 
