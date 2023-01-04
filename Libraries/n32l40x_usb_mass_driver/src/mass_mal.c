@@ -57,6 +57,8 @@ uint32_t Mass_Block_Count[2];
 /* logic unit count; the first is 0 */
 uint32_t Max_Lun = 0;
 
+int flash_write_use_state = 0;
+
 /**
  * @brief   Initializes the Media on the Nations.
  * @param   lun: logical unit.
@@ -78,10 +80,10 @@ uint16_t MAL_Init(uint8_t lun)
  */
 uint16_t MAL_Write(uint8_t lun, uint32_t Memory_Offset, uint32_t *Writebuff, uint16_t Transfer_Length)
 {
-    uint16_t i;
     switch (lun)
     {
     case 0:
+        flash_write_use_state = 1;
         hl_drv_flash_write(FLASH_START_ADDR + Memory_Offset, (uint8_t*)Writebuff, Transfer_Length);
         break;
     case 1:
@@ -91,6 +93,7 @@ uint16_t MAL_Write(uint8_t lun, uint32_t Memory_Offset, uint32_t *Writebuff, uin
     }
     return MAL_OK;
 }
+
 
 /**
  * @brief   Write sectors.
@@ -102,7 +105,6 @@ uint16_t MAL_Write(uint8_t lun, uint32_t Memory_Offset, uint32_t *Writebuff, uin
  */
 uint16_t MAL_Read(uint8_t lun, uint32_t Memory_Offset, uint32_t *Readbuff, uint16_t Transfer_Length)
 {
-    uint16_t i;
     switch (lun)
     {
     case 0:
