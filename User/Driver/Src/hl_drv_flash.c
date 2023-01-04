@@ -78,13 +78,13 @@ static struct rt_mutex _flash_mutex = { 0 };
 
 /* Private function(only *.c)  -----------------------------------------------*/
 
-static int _flash_mutex_enable()
-{
-    _flash_mutex_enbale_flag = true;
-    return 0;
-}
+// static int _flash_mutex_enable()
+// {
+//     _flash_mutex_enbale_flag = true;
+//     return 0;
+// }
 
-INIT_APP_EXPORT(_flash_mutex_enable);
+// INIT_APP_EXPORT(_flash_mutex_enable);
 
 static void hl_drv_flash_write_enable(void)
 {

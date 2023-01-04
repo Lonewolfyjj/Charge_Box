@@ -192,6 +192,8 @@ static hl_mod_msg_handle_st _pm_msg_hd = { .msg_id = 0, .msg_send = RT_NULL };
 
 static hl_mod_pm_drv_init_st _pm_drv_flag = { .pm_init_charge_flag = false, .pm_init_guage_flag = false };
 
+static hl_st_drv_guage_soc_t old_soc_val;
+
 static bool temp_ovmax_flag = false;
 static bool  temp_ovmin_flag = false;
 
@@ -381,9 +383,9 @@ static inline void _pm_update_bat_info_check(void)
 
     hl_drv_cw2215_ctrl(HL_DRV_GUAGE_CHECK_IT_FLAG, &it_flag, sizeof(it_flag));
 
-    if (it_flag & HL_DRV_GUAGE_IT_FLAG_SOC) {   //检测是否产生电量变化中断
-        update_flag = true;
-    }
+    // if (it_flag & HL_DRV_GUAGE_IT_FLAG_SOC) {   //检测是否产生电量变化中断
+    //     update_flag = true;
+    // }
 
     if (it_flag & HL_DRV_GUAGE_IT_FLAG_TMAX) {  //检测是否产生温度超最高阈值中断
         temp_ovmax_flag = true;
@@ -395,20 +397,21 @@ static inline void _pm_update_bat_info_check(void)
 
     hl_drv_cw2215_ctrl(HL_DRV_GUAGE_CLEAR_IT_FLAG, &it_flag, sizeof(it_flag));
 
-    if (pm_mod_info.init_bat_update_flag == true) {
-        update_flag                      = true;
-        pm_mod_info.init_bat_update_flag = false;
-    }
+    // if (pm_mod_info.init_bat_update_flag == true) {
+    //     update_flag                      = true;
+    //     pm_mod_info.init_bat_update_flag = false; 
+    // }
 
-    if (update_flag == true) {
-        _pm_update_bat_info(HL_MOD_PM_BAT_INFO_SOC);
-        _pm_update_bat_info(HL_MOD_PM_BAT_INFO_VOL);
-        _pm_update_bat_info(HL_MOD_PM_BAT_INFO_CUR);
-        _pm_update_bat_info(HL_MOD_PM_BAT_INFO_TEMP);
+    _pm_update_bat_info(HL_MOD_PM_BAT_INFO_SOC);
+    _pm_update_bat_info(HL_MOD_PM_BAT_INFO_VOL);
+    _pm_update_bat_info(HL_MOD_PM_BAT_INFO_CUR);
+    _pm_update_bat_info(HL_MOD_PM_BAT_INFO_TEMP);
 
+    if (old_soc_val.soc != bat_info.soc_val.soc) {
+        old_soc_val.soc = bat_info.soc_val.soc;
         _mod_msg_send(HL_MOD_PM_SOC_MSG, RT_NULL, 0);
     }
-
+    
     /* 温度中断报警，温度超过限定值，在-10°c 和 45°c之外，关闭电池充电*/
     if (temp_ovmax_flag == true || temp_ovmin_flag == true) {
         switch (temp_state) {
@@ -467,7 +470,7 @@ static void _pm_get_charge_status_info()
     hl_drv_sgm41513_ctrl(GET_BOOST_MODE_ERROR_STATUS, &new_charge_error_info.boost_mode_status, 1);
     hl_drv_sgm41513_ctrl(GET_WATCHDOG_ERROR_STATUS, &new_charge_error_info.watchdog_error_status, 1);
 
-    hl_drv_sgm41513_ctrl(GET_VBUS_IN_DET_STATUS, &reg_val, 1);  //只用作清除中断标志位
+    //hl_drv_sgm41513_ctrl(GET_VBUS_IN_DET_STATUS, &reg_val, 1);  //只用作清除中断标志位
 }
 
 /**
@@ -491,14 +494,14 @@ static void _pm_charge_irq_pair_deal(uint8_t val)
                 
                 _mod_msg_send(HL_MOD_PM_CHARGE_MSG, RT_NULL, 0);
 
-                LOG_I("    msg send 0, charge status :%d, input:%d, bat_err:%d, charge_err:%d",
+                LOG_I("msg send 0, charge status :%d, input:%d, bat_err:%d, charge_err:%d",
                         new_charge_info.charge_status, new_charge_info.vbus_connect_status,
                         new_charge_error_info.bat_error_status, new_charge_error_info.charge_error_status);
             }
             break;
         case HL_MOD_PM_VBUS_STAT:
             if (PM_STAT_COMPARE(old_charge_info.vbus_status, new_charge_info.vbus_status) == 1) {
-                LOG_I("    1, vbus status : %d", new_charge_info.vbus_status);
+                LOG_I("1, vbus status : %d", new_charge_info.vbus_status);
             }
             break;
         case HL_MOD_PM_INPUT_STAT:
@@ -506,48 +509,48 @@ static void _pm_charge_irq_pair_deal(uint8_t val)
 
                 _mod_msg_send(HL_MOD_PM_VBUS_MSG, RT_NULL, 0);
 
-                LOG_I("    msg send 2, input power status: %d", new_charge_info.vbus_connect_status);
+                LOG_I("msg send 2, input power status: %d", new_charge_info.vbus_connect_status);
             }
             break;
         case HL_MOD_PM_VINDPM_STAT:
             if (PM_STAT_COMPARE(old_charge_info.vindpm_status, new_charge_info.vindpm_status) == 1) {
-                LOG_E("    3");
+                LOG_E("VINDPM");
             }
             break;
         case HL_MOD_PM_IINDPM_STAT:
             if (PM_STAT_COMPARE(old_charge_info.iindpm_status, new_charge_info.iindpm_status) == 1) {
-                LOG_E("    4");
+                LOG_E("IINDPM");
             }
             break;
         case HL_MOD_PM_SYS_VOL_STAT:
             if (PM_STAT_COMPARE(old_charge_info.sys_vol_status, new_charge_info.sys_vol_status) == 1) {
-                LOG_E("    5");
+                LOG_E("SYS_VOL");
             }
             break;
         case HL_MOD_PM_BAT_ERR_STAT:
             if (PM_STAT_COMPARE(old_charge_error_info.bat_error_status, new_charge_error_info.bat_error_status) == 1) {
                 _mod_msg_send(HL_MOD_PM_BAT_FAULT_MSG, RT_NULL, 0);
 
-                LOG_E("    msg send 6, battery fault status: %d", new_charge_error_info.bat_error_status);
+                LOG_E("msg send 6, battery fault status: %d", new_charge_error_info.bat_error_status);
             }
             break;
         case HL_MOD_PM_CHAR_ERR_STAT:
             if (PM_STAT_COMPARE(old_charge_error_info.charge_error_status, new_charge_error_info.charge_error_status) == 1) {
                 _mod_msg_send(HL_MOD_CHAR_FAULT_MSG, RT_NULL, 0);
 
-                LOG_E("    msg send 7, charger fault status: %d", new_charge_error_info.charge_error_status);
+                LOG_E("msg send 7, charger fault status: %d", new_charge_error_info.charge_error_status);
             }
             break;
         case HL_MOD_PM_BOOST_ERR_STAT:
             if (PM_STAT_COMPARE(old_charge_error_info.boost_mode_status, new_charge_error_info.boost_mode_status) == 1) {
                 _mod_msg_send(HL_MOD_BOOST_FAULT_MSG, RT_NULL, 0);
 
-                LOG_E("    msg send 8, BOOST fault status: %d", new_charge_error_info.boost_mode_status);
+                LOG_E("msg send 8, BOOST fault status: %d", new_charge_error_info.boost_mode_status);
             }
             break;
         case HL_MOD_PM_WATCHDOG_ERR_STAT:
             if (PM_STAT_COMPARE(old_charge_error_info.watchdog_error_status, new_charge_error_info.watchdog_error_status) == 1) {
-                LOG_E("    9");
+                LOG_E("WATCHDOG_ERR");
             }
             break;
         default:
@@ -596,7 +599,7 @@ static void _pm_hall_load_info_check(void)
 {
     if (hall_info.tx1_irq_flag == true) {
         hall_info.tx1_status = hl_hal_gpio_read(GPIO_HALL_TX1);
-        LOG_I("    tx1:%d", hall_info.tx1_status);
+        LOG_I("tx1:%d", hall_info.tx1_status);
         hall_info.tx1_irq_flag = false;
 
         _mod_msg_send(HL_MOD_PM_TX1_MSG, RT_NULL, 0);
@@ -604,7 +607,7 @@ static void _pm_hall_load_info_check(void)
 
     if (hall_info.tx2_irq_flag == true) {
         hall_info.tx2_status = hl_hal_gpio_read(GPIO_HALL_TX2);
-        LOG_I("    tx2:%d", hall_info.tx2_status);
+        LOG_I("tx2:%d", hall_info.tx2_status);
         hall_info.tx2_irq_flag = false;
 
         _mod_msg_send(HL_MOD_PM_TX2_MSG, RT_NULL, 0);
@@ -612,7 +615,7 @@ static void _pm_hall_load_info_check(void)
 
     if (hall_info.rx_irq_flag == true) {
         hall_info.rx_status = hl_hal_gpio_read(GPIO_HALL_RX);
-        LOG_I("    rx:%d", hall_info.rx_status);
+        LOG_I("rx:%d", hall_info.rx_status);
         hall_info.rx_irq_flag = false;
 
         _mod_msg_send(HL_MOD_PM_RX_MSG, RT_NULL, 0);
@@ -642,17 +645,19 @@ static void _pm_hall_load_info_check(void)
  */
 static void _pm_thread_start_init()
 {
-    if (_pm_drv_flag.pm_init_guage_flag == false) {         //驱动初始化出现故障，上报故障类型给APP
+    if (_pm_drv_flag.pm_init_guage_flag == false) {         //电量计驱动初始化出现故障，上报故障类型给APP
         _mod_msg_send(HL_MOD_PM_GUAGE_ERR_MSG, RT_NULL, 0);
     } else {
-        _pm_get_charge_status_info();                       //驱动初始化成功，上报电量给APP
+        _pm_update_bat_info(HL_MOD_PM_BAT_INFO_SOC);        //电量计驱动初始化成功，上报电量给APP
         _mod_msg_send(HL_MOD_PM_SOC_MSG, RT_NULL, 0);
+        old_soc_val.soc = bat_info.soc_val.soc;             //给旧电量的状态赋初始值，方便后续对比电量是否变化
     }
-    if (_pm_drv_flag.pm_init_charge_flag == false) {        //驱动初始化出现故障，上报故障类型给APP
+    if (_pm_drv_flag.pm_init_charge_flag == false) {        //充电驱动初始化出现故障，上报故障类型给APP
         _mod_msg_send(HL_MOD_PM_CHARGE_ERR_MSG, RT_NULL, 0);
     } else {
-        _pm_update_bat_info(HL_MOD_PM_BAT_INFO_SOC);        //驱动初始化成功，上报USB状态给APP
+        _pm_get_charge_status_info();                       //充电驱动初始化成功，上报USB状态和充电状态给APP
         _mod_msg_send(HL_MOD_PM_VBUS_MSG, RT_NULL, 0);
+        _mod_msg_send(HL_MOD_PM_CHARGE_MSG, RT_NULL, 0);
     }
 
     hall_info.tx1_status = hl_hal_gpio_read(GPIO_HALL_TX1);

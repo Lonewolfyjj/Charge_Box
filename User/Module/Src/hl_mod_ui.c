@@ -74,6 +74,9 @@ static hl_ui_mod_info_st _new_ui_state_st = {
     .tx1_charge_state   = HL_MOD_UI_CHARG_UNKNOW,
     .tx2_charge_state   = HL_MOD_UI_CHARG_UNKNOW,
     .rx_charge_state    = HL_MOD_UI_CHARG_UNKNOW,
+    .tx1_online_state   = HL_MOD_UI_ONLINE_STATE_UNKNOW,
+    .tx2_online_state   = HL_MOD_UI_ONLINE_STATE_UNKNOW,
+    .rx_online_state    = HL_MOD_UI_ONLINE_STATE_UNKNOW,
     .soc_val            = HL_MOD_UI_SOC_UNKNOW,
     .fault_state        = HL_MOD_UI_NO_FAULT,
     .upgrade_state      = HL_MOD_UI_NO_UPGRADE,
@@ -325,8 +328,7 @@ static int _error_state_display(uint8_t err_st)
 {
     uint8_t ledx;
     switch (err_st) {
-        case ENABLE:
-            _set_all_load_led_close();                   
+        case ENABLE:                 
             ledx = HL_DRV_PWM_LED_BOX1;
             hl_drv_pwm_led_ctrl(HL_DRV_PWM_SET_BREATH_MODE, &ledx, sizeof(ledx));
             ledx = HL_DRV_PWM_LED_BOX2;
@@ -392,11 +394,11 @@ static void _ui_box_led_charge_show()
             case HL_MOD_UI_SOC_50_75_PERCENT:                   //50 <= soc < 75
                 _battery_soc_state_display(HL_MOD_UI_CH_MOD3);
                 break;
-            case HL_MOD_UI_SOC_75_100_PERCENT:                  //50 <= soc < 75
+            case HL_MOD_UI_SOC_75_100_PERCENT:                  //75 <= soc < 100
                 _battery_soc_state_display(HL_MOD_UI_CH_MOD4);
                 break;
             case HL_MOD_UI_SOC_FULL:                            //soc = 100
-                _battery_soc_state_display(HL_MOD_UI_FULL_MOD);
+                _battery_soc_state_display(HL_MOD_UI_CH_MOD4);
                 break;
             default:
                 break;  
@@ -484,88 +486,114 @@ static void _ui_box_led_show()
 
 static void _ui_tx1_led_show()
 {
-    if (_old_ui_state_st.tx1_charge_state != _new_ui_state_st.tx1_charge_state) {
-        switch (_new_ui_state_st.tx1_charge_state) {
-            case HL_MOD_UI_NO_CHARGING:
-                _ui_load_state_display(HL_MOD_UI_TX1_DIS_LIGHT);
-                break;
-            case HL_MOD_UI_CHARG_FULL:
-                _ui_load_state_display(HL_MOD_UI_TX1_DIS_LIGHT);
-                break;
-            case HL_MOD_UI_CHARGING:
+    if (_old_ui_state_st.tx1_online_state != _new_ui_state_st.tx1_online_state) {
+        switch (_new_ui_state_st.tx1_online_state) {
+            case HL_MOD_UI_ONLINE:
                 _ui_load_state_display(HL_MOD_UI_TX1_LIGHT);
+                break;
+            case HL_MOD_UI_NO_ONLINE:
+                _ui_load_state_display(HL_MOD_UI_TX1_DIS_LIGHT);
+                break;
+            case HL_MOD_UI_ONLINE_STATE_UNKNOW:
+                _ui_load_state_display(HL_MOD_UI_TX1_DIS_LIGHT);
                 break;
             default:
                 break;  
         }
-        _old_ui_state_st.tx1_charge_state = _new_ui_state_st.tx1_charge_state;
+        _old_ui_state_st.tx1_online_state = _new_ui_state_st.tx1_online_state;
+        return;
     }
-    
+    if (_new_ui_state_st.tx1_online_state == HL_MOD_UI_ONLINE) {
+        if (_new_ui_state_st.tx1_charge_state == HL_MOD_UI_CHARG_FULL) {
+            _ui_load_state_display(HL_MOD_UI_TX1_DIS_LIGHT);
+        }
+    }
 }
 
 static void _ui_tx2_led_show()
 {
-    if (_old_ui_state_st.tx2_charge_state != _new_ui_state_st.tx2_charge_state) {
-        switch (_new_ui_state_st.tx2_charge_state) {
-            case HL_MOD_UI_NO_CHARGING:
-                _ui_load_state_display(HL_MOD_UI_TX2_DIS_LIGHT);
-                break;
-            case HL_MOD_UI_CHARG_FULL:
-                _ui_load_state_display(HL_MOD_UI_TX2_DIS_LIGHT);
-                break;
-            case HL_MOD_UI_CHARGING:
+    if (_old_ui_state_st.tx2_online_state != _new_ui_state_st.tx2_online_state) {
+        switch (_new_ui_state_st.tx2_online_state) {
+            case HL_MOD_UI_ONLINE:
                 _ui_load_state_display(HL_MOD_UI_TX2_LIGHT);
+                break;
+            case HL_MOD_UI_NO_ONLINE:
+                _ui_load_state_display(HL_MOD_UI_TX2_DIS_LIGHT);
+                break;
+            case HL_MOD_UI_ONLINE_STATE_UNKNOW:
+                _ui_load_state_display(HL_MOD_UI_TX2_DIS_LIGHT);
                 break;
             default:
                 break;  
         }
-        _old_ui_state_st.tx2_charge_state = _new_ui_state_st.tx2_charge_state;
+        _old_ui_state_st.tx2_online_state = _new_ui_state_st.tx2_online_state;
+        return;
+    }
+    if (_new_ui_state_st.tx2_online_state == HL_MOD_UI_ONLINE) {
+        if (_new_ui_state_st.tx2_charge_state == HL_MOD_UI_CHARG_FULL) {
+            _ui_load_state_display(HL_MOD_UI_TX2_DIS_LIGHT);
+        }
     }
     
 }
 
 static void _ui_rx_led_show()
 {
-    if (_old_ui_state_st.rx_charge_state != _new_ui_state_st.rx_charge_state) {
-        switch (_new_ui_state_st.rx_charge_state) {
-            case HL_MOD_UI_NO_CHARGING:
-                _ui_load_state_display(HL_MOD_UI_RX_DIS_LIGHT);
-                break;
-            case HL_MOD_UI_CHARG_FULL:
-                _ui_load_state_display(HL_MOD_UI_RX_DIS_LIGHT);
-                break;
-            case HL_MOD_UI_CHARGING:
+    if (_old_ui_state_st.rx_online_state != _new_ui_state_st.rx_online_state) {
+        switch (_new_ui_state_st.rx_online_state) {
+            case HL_MOD_UI_ONLINE:
                 _ui_load_state_display(HL_MOD_UI_RX_LIGHT);
+                break;
+            case HL_MOD_UI_NO_ONLINE:
+                _ui_load_state_display(HL_MOD_UI_RX_DIS_LIGHT);
+                break;
+            case HL_MOD_UI_ONLINE_STATE_UNKNOW:
+                _ui_load_state_display(HL_MOD_UI_RX_DIS_LIGHT);
                 break;
             default:
                 break;  
         }
-        _old_ui_state_st.rx_charge_state = _new_ui_state_st.rx_charge_state;
+        _old_ui_state_st.rx_online_state = _new_ui_state_st.rx_online_state;
+        return;
+    }
+    if (_new_ui_state_st.rx_online_state == HL_MOD_UI_ONLINE) {
+        if (_new_ui_state_st.rx_charge_state == HL_MOD_UI_CHARG_FULL) {
+            _ui_load_state_display(HL_MOD_UI_RX_DIS_LIGHT);
+        }
     }
 }
+
 static void _ui_clear_old_state()
 {
     rt_memset(&_old_ui_state_st, 0, sizeof(_old_ui_state_st));
     _old_ui_state_st.soc_val = HL_MOD_UI_SOC_UNKNOW;
 }
 
+
+static void _ui_box_timeout_check()
+{
+    if (_new_ui_state_st.timeout_flag == TIMEOUT_FALG_NULL) {   //无超时显示
+
+        _ui_box_led_show();
+
+    } else {                                                    //超时显示
+    
+        if (_new_ui_state_st.box_charge_state == HL_MOD_UI_NO_CHARGING) {      //不在充电中就关闭UI显示                                          
+            _set_all_box_led_close();
+        }
+        
+    }  
+
+}
+
 static void _ui_mod_state_check()
 {
     if (_new_ui_state_st.fault_state == HL_MOD_UI_NO_FAULT) {       //无故障显示
 
-        _ui_tx1_led_show();
-        _ui_tx2_led_show();
-        _ui_rx_led_show();
-
-        if (_new_ui_state_st.timeout_flag == TIMEOUT_FALG_NULL) {   //无超时显示
-            _ui_box_led_show();
-        } else {                                                    //超时显示
-            _ui_clear_old_state();                                             
-            _set_all_box_led_close();
-        }  
+        _ui_box_timeout_check();                                   //BOX盒子外4LED超时检测
             
     } else {                                                      //故障显示
-        _ui_clear_old_state();
+        _old_ui_state_st.soc_val = HL_MOD_UI_SOC_UNKNOW;
         _error_state_display(ENABLE);
     }
 }
@@ -581,7 +609,10 @@ static void _ui_thread_entry(void* arg)
             _set_all_load_led_close();
         } else {                                                        //不在升级中/升级成功恢复显示
 
-            _ui_mod_state_check();
+            _ui_tx1_led_show();
+            _ui_tx2_led_show();
+            _ui_rx_led_show();
+            _ui_mod_state_check();          //BOX状态检测
         }
         
         rt_thread_mdelay(200);
@@ -715,6 +746,15 @@ int hl_mod_ui_ctrl(int op, void *arg, int arg_size)
         case HL_MOD_UI_SET_RX_CHARGE_STATE:
             _new_ui_state_st.rx_charge_state = *state_val;
             break;
+        case HL_MOD_UI_SET_TX1_ONLINE_STATE:
+            _new_ui_state_st.tx1_online_state = *state_val;
+            break;
+        case HL_MOD_UI_SET_TX2_ONLINE_STATE:
+            _new_ui_state_st.tx2_online_state = *state_val;
+            break;
+        case HL_MOD_UI_SET_RX_ONLINE_STATE:
+            _new_ui_state_st.rx_online_state = *state_val;
+            break;
         case HL_MOD_UI_SET_BAT_SOC_VAL:
             _new_ui_state_st.soc_val = *state_val;
             break;
@@ -728,6 +768,7 @@ int hl_mod_ui_ctrl(int op, void *arg, int arg_size)
             _new_ui_state_st.timeout_flag = TIMEOUT_FALG_SET;
             break;
         case HL_MOD_UI_CLEAR_TIMEOUT_FLAG:
+            _old_ui_state_st.soc_val = HL_MOD_UI_SOC_UNKNOW;
             _new_ui_state_st.timeout_flag = TIMEOUT_FALG_NULL;
             break;
         case HL_MOD_UI_CH_MOD1:
